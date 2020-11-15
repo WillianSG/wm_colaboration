@@ -29,7 +29,7 @@ from run_frequencies import *
 # Simulation run variables
 dt = 0.1/1000 # = 0.0001 sconds (0.1ms) | step of simulation time step resolution
 t_run = 5 # time of simulation (seconds ?)
-noise = 0.75 # ?
+noise = 0.75 # ? (Used to introduce difference between spike times betweem pre- and post-)
 
 N_Pre = 1
 N_Post = 1
@@ -89,7 +89,7 @@ drho_all = np.zeros((len(pre_freq),len(post_freq)))
 
 # ========== Brian stuff ==========
 
-ans = run_frequencies(pre_freq[3], post_freq[1], t_run, dt, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E)
+ans = run_frequencies(pre_freq[1], post_freq[1], t_run, dt, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E)
 
 
 # Starts a new scope for magic functions

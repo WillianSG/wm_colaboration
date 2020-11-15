@@ -4,7 +4,7 @@
 @based-on: asonntag
 """
 
-# ?
+# Creates the arrays containing the spiking times for both pre- and postsynaptic neurons.
 """
 input:
 
@@ -67,4 +67,26 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise):
 			# ATENTION - experiment with negative shift btween spike timings should be from here on.
 
 			avg_interval = 1.0/spikes_per_s
+
+			# 'len(lowrate_spikes_t)'s floats between ['-avg_interval*noise','avg_interval*noise')
+			shifts = uniform(-avg_interval*noise, avg_interval*noise, len(lowrate_spikes_t))
+
+			# 'lowrate_spikes_t' has now some of the same spike times as 'highrate_spikes_t' but with a shifted value (for more or for less) 
+			lowrate_spikes_t = lowrate_spikes_t.flatten()+shifts
+
+			# Removing spikes that are too close
+			lowrate_spikes_t = remove_close_spikes(np.sort(lowrate_spikes_t), dt, t_run)
+
+			# Removing negative values
+			lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
+
+		# Updating return values
+		if rate_pre >= rate_post:
+			pre_spikes_t = np.sort(highrate_spikes_t)
+			post_spikes_t = np.sort(lowrate_spikes_t)
+		elif rate_pre <= rate_post:
+			post_spikes_t = np.sort(highrate_spikes_t)
+			pre_spikes_t = np.sort(lowrate_spikes_t)
+
+	return pre_spikes_t, post_spikes_t
 
