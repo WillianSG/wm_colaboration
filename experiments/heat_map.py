@@ -9,6 +9,9 @@ import platform
 from brian2 import *
 from scipy import *
 from numpy import *
+from joblib import Parallel, delayed
+import multiprocessing
+
 prefs.codegen.target = "numpy"
 
 helper_dir = 'helper_functions'
@@ -49,7 +52,8 @@ plot_single_trial = False  # True = plot single simulations
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 100
+# max_freq = 100
+max_freq = 10
 step = 5
 
 # Frequency activity ranges (for pre and post neurons)
@@ -91,9 +95,29 @@ drho_all = np.zeros((len(pre_freq),len(post_freq)))
 	pre_E_E, 
 	post_E_E] = load_synapse_model(plasticity_rule, neuron_type, bistability)
 
-
 # ========== Brian stuff ==========
 
-ans = run_frequencies(pre_freq[1], post_freq[1], t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn)
+# ==========
+def run_net_parallel(p, q):
+	print('Iteration: ', p, ' ', q, ' of ', len(pre_freq)*len(post_freq))
 
-print('END\n')
+	ans = run_frequencies(pre_freq[p], post_freq[q], t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn)
+
+	return p, q, ans
+
+num_cores = multiprocessing.cpu_count()
+
+# Running network for each pair of frequency
+"""
+https://stackoverflow.com/questions/42220458/what-does-the-delayed-function-do-when-used-with-joblib-in-python
+"""
+results = Parallel(n_jobs=num_cores)(delayed(run_net_parallel)(p,q) for p,q in simulationsset)
+
+for t in results:
+	p = t[0] # x
+	q = t[1] # y
+	final_rho_all[p,q], drho_all[p,q] = t[2] # '(last rho, last rho/initial rho)' of each execution, for (p,q) pairs of firing ratesd
+
+# ==========
+
+print('\nSCRIPT END\n')

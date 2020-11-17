@@ -110,10 +110,6 @@ def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, 
 		synaptic_mon, 
 		name = 'net')
 
-	print("=====================")
-	print("Here.")
-	print("=====================\n")
-
 
 	net.run(t_run*second) # simulating (running network)
 
@@ -121,14 +117,20 @@ def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, 
 	"""
 	spike_trains() - dictionary with keys being the indices of the neurons and values being the array of spike times for that neuron
 	"""
-	# spiketrains_PRE = Pre_mon.spike_trains()[0]
-	# print(spiketrains_PRE)
-	# print('\n')
-	# spiketrains_POST = Post_mon.spike_trains()[0]
-	# print(spiketrains_POST)
-	# efficacy_PRE_POST = synaptic_mon.rho[0][:]
-	# weight_PRE_POST = synaptic_mon.w[0][:]
-	# rec_t_PRE_POST = synaptic_mon.t[:]
+	# - neurons related
+	spiketrains_PRE = Pre_mon.spike_trains()[0]
+	spiketrains_POST = Post_mon.spike_trains()[0]
+
+	# - synapse related (all array lenths are equal)
+	efficacy_PRE_POST = synaptic_mon.rho[0][:] # Rho variable evolution
+	weight_PRE_POST = synaptic_mon.w[0][:] # Weight (w) variable evolution
+	rec_t_PRE_POST = synaptic_mon.t[:] # Simulations time steps
+
+	# - store final w value and calculate dw
+	final_rho_all = Pre_Post.rho[0] # last value of 'rho' at the end of the ex.
+	drho_all = Pre_Post.rho[0] / rho_init # synaptic weight change (last/init)
+
+	return final_rho_all, drho_all
 
 
 

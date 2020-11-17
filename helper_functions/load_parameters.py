@@ -4,6 +4,33 @@
 @based-on: asonntag
 """
 
+# Parameter set definitions.
+"""
+input:
+- plasticity_rule():
+- parameter_set():
+
+output:
+- tau_xpre():
+- tau_xpost():
+- xpre_jump():
+- xpost_jump():
+- rho_neg():
+- rho_neg2():
+- rho_init():
+- tau_rho():
+- thr_post():
+- thr_pre():
+- thr_b_rho():
+- rho_min():
+- rho_max():
+- alpha():
+- beta():
+- xpre_factor():
+- w_max():
+
+Comments:
+"""
 def load_rule_params(plasticity_rule, parameter_set):
 	from brian2 import ms, mV
 	xpre_jump = 1 # jump of x_pre
