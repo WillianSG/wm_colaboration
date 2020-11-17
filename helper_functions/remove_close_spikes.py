@@ -12,30 +12,25 @@ input:
 - t_run: simulation time
 
 output:
+- spikes_t: original spike times with spikes separated by less than 'min_dist' (spikes in the same timestep) removed.
 
 Comments:
+- Annkatherin originally used 7 for the precision variable (why?).
+- if abs(spikes_t[index - shift] - prev_timestamp) < min_dist it means that the interspike interval is smaller than a simulation time step.
 """
-
-'''
-This function takes the spikes vector and it checks for every spike pair the distance between them,
-If the distance is too close it set the second one to zero
-:return: spikes
-'''
-
 def remove_close_spikes(spikes_t, min_dist, t_run):
 	shift = 0 # ?
-	precision = 7 # decimal value of the time
+	prev_timestamp = 0 # loop variable
 
-	prev_timestamps = 0 # loop variable		
+	# ALTERED (E) - precision defined by amount of decimal places available for the simulation time step (time resolution)
+	precision = len(str(min_dist).split('.',1)[1]) # Times must differ at least on the final decimal place of 'min_dist'
+
 	for index in range(0, len(spikes_t)):
-		print(spikes_t[index - shift])
 		spikes_t[index - shift] = round(spikes_t[index - shift], precision)
-		print(spikes_t[index - shift])
-		print('\n')
 
-		if abs(spikes_t[index - shift] - prev_timestamps) < min_dist or spikes_t[index - shift] > t_run:
+		if round((spikes_t[index - shift] - prev_timestamp), precision) < min_dist or spikes_t[index - shift] > t_run:
 			spikes_t[index - shift] = 0
 		else:
-			prev_timestamps = spikes_t[index - shift]
+			prev_timestamp = spikes_t[index - shift]
 
 	return spikes_t
