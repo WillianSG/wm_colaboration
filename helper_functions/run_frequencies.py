@@ -41,10 +41,10 @@ def run_frequencies(pre_rate, post_rate, t_run, dt, plasticity_rule, neuron_type
 
 	pre_spikes_t, post_spikes_t = poisson_spiking_gen(pre_rate, post_rate, t_run, dt, noise)
 
-	print(spikes_t_Pre)
+	# print(spikes_t_Pre)
 
-	Pre, Post = load_neurons(N_Pre, N_Post, neuron_type,
-		spikes_t_Pre = pre_spikes_t,
-		spikes_t_Post = post_spikes_t,
-		pre_rate = pre_rate,
-		post_rate =  post_rate)
+	# Pre, Post = load_neurons(N_Pre, N_Post, neuron_type,
+	# 	spikes_t_Pre = pre_spikes_t,
+	# 	spikes_t_Post = post_spikes_t,
+	# 	pre_rate = pre_rate,
+	# 	post_rate =  post_rate)

@@ -16,6 +16,7 @@ Comments:
 """
 import numpy as np
 from brian2 import uniform, rand, size
+from remove_close_spikes import *
 
 def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise):
 	# Initializing decision variables
@@ -74,11 +75,14 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise):
 			# 'lowrate_spikes_t' has now some of the same spike times as 'highrate_spikes_t' but with a shifted value (for more or for less) 
 			lowrate_spikes_t = lowrate_spikes_t.flatten()+shifts
 
-			# Removing spikes that are too close
-			lowrate_spikes_t = remove_close_spikes(np.sort(lowrate_spikes_t), dt, t_run)
-
 			# Removing negative values
 			lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
+
+			# Removing spikes that are too close - QUESTION (why only with lowrate?)
+			lowrate_spikes_t = remove_close_spikes(np.sort(lowrate_spikes_t), dt, t_run)
+
+			# ALTERED (S) - I guess this should be moved to be exec. before removing close spikes | moved to line 79
+			# lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
 
 		# Updating return values
 		if rate_pre >= rate_post:
