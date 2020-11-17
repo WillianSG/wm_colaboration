@@ -10,8 +10,8 @@ input:
 - N_Pre(int): # of neurons on presynaptic group
 - N_Post(int): # of neurons on postynaptic group
 - neuron_type(str): type of neuron ('poisson', 'LIF' , 'spikegenerators')
-- spikes_t_Pre(np.array): pres- spike times
-- spikes_t_Post(np.array): post- spike times
+- spikes_t_Pre(np.array): pres- spike times (default - single synapse timing experiment like)
+- spikes_t_Post(np.array): post- spike times (default - single synapse timing experiment like)
 - pre_rate(int/default=1): pre- firing rate (in Hz?)
 - post_rate(int/default=1): post- firing rate (in Hz?)
 
@@ -27,6 +27,40 @@ import numpy as np
 
 def load_neurons(N_Pre, N_Post, neuron_type, spikes_t_Pre = [i/1000.0 for i in [20, 120 ,340, 540]], spikes_t_Post = [i/1000.0 for i in [40, 130, 320, 530]], pre_rate = 1, post_rate = 1):
 
-	print(spikes_t_Pre)
+	if neuron_type == 'spikegenerator':
+		spikes_t_Pre = np.array(spikes_t_Pre.flatten())*second
+		spikes_t_Post = np.array(spikes_t_Post.flatten())*second
 
-	# if neuron_type == 'spikegenerator':
+		inds_PRE = np.zeros(len(spikes_t_Pre))
+		inds_POST = np.zeros(len(spikes_t_Post))
+
+		Pre = SpikeGeneratorGroup(
+			N = N_Pre,
+			indices = inds_PRE,
+			times = spikes_t_Pre,
+			name = 'Pre')
+
+		Post = SpikeGeneratorGroup(
+			N = N_Post,
+			indices = inds_POST,
+			times = spikes_t_Post,
+			name = 'Post')    
+
+	if neuron_type == 'poisson':
+		Pre = NeuronGroup(
+			N = N_Pre,
+			model = 'rates : Hz',
+			threshold = 'rand()<rates*dt',
+			name = 'Pre')
+
+		Post = NeuronGroup(
+			N = N_Post,
+			model = 'rates : Hz',
+			threshold = 'rand()<rates*dt',
+			name = 'Post')
+
+		Pre.rates = pre_rate*Hz
+		Post.rates = post_rate*Hz
+
+
+	return Pre, Post

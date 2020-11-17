@@ -39,12 +39,12 @@ from load_neurons import *
 
 def run_frequencies(pre_rate, post_rate, t_run, dt, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_dep, rho_dep2, rho_init, tau_rho, thr_post, thr_pre,	thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E,	pre_E_E, post_E_E):
 
+	# Spike time arrays
 	pre_spikes_t, post_spikes_t = poisson_spiking_gen(pre_rate, post_rate, t_run, dt, noise)
 
-	# print(spikes_t_Pre)
-
-	# Pre, Post = load_neurons(N_Pre, N_Post, neuron_type,
-	# 	spikes_t_Pre = pre_spikes_t,
-	# 	spikes_t_Post = post_spikes_t,
-	# 	pre_rate = pre_rate,
-	# 	post_rate =  post_rate)
+	# Brian2's NeuronGroup
+	Pre, Post = load_neurons(N_Pre, N_Post, neuron_type,
+		spikes_t_Pre = pre_spikes_t,
+		spikes_t_Post = post_spikes_t,
+		pre_rate = pre_rate,
+		post_rate =  post_rate)
