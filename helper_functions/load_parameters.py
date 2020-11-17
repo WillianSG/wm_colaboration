@@ -23,40 +23,40 @@ def load_rule_params(plasticity_rule, parameter_set):
 			xpre_factor = 0.1 # scaling factor positive efficacy change
 			thr_post = 0.4 # threshold for x_post
 			thr_pre = 0.2 # threshold for x_pre
-			rho_dep = -0.05 # negative efficacy change
-			rho_dep2 = rho_dep # additional negative efficacy change 
+			rho_neg = -0.05 # negative efficacy change
+			rho_neg2 = rho_neg # additional negative efficacy change 
 		elif parameter_set =='2.2':
 			tau_xpre = 13*ms # time constant x_pre 
 			tau_xpost = 33*ms # time constant x_post
 			xpre_factor = 0.013 # scaling factor positive efficacy change
 			thr_post = 0.4 #0.4# threshold for x_post
 			thr_pre = 0.5 # threshold for x_pre
-			rho_dep = -0.0008 # negative efficacy change
-			rho_dep2 = rho_dep*10 # additional negative efficacy change 
+			rho_neg = -0.0008 # negative efficacy change
+			rho_neg2 = rho_neg*10 # additional negative efficacy change 
 		elif parameter_set =='2.3':
 			tau_xpre = 13*ms # time constant x_pre 
 			tau_xpost = 33*ms # time constant x_post
 			xpre_factor = 0.017 # scaling factor positive efficacy change
 			thr_post = 0.4 #0.4# threshold for x_post
 			thr_pre = 0.5 # threshold for x_pre
-			rho_dep = -0.00055 # negative efficacy change
-			rho_dep2 = rho_dep*10 # additional negative efficacy change 
+			rho_neg = -0.00055 # negative efficacy change
+			rho_neg2 = rho_neg*10 # additional negative efficacy change 
 		elif parameter_set =='2.4':
 			tau_xpre = 13*ms # time constant x_pre 
 			tau_xpost = 33*ms # time constant x_post
 			xpre_factor = 0.21 # scaling factor positive efficacy change
 			thr_post = 0.4 #0.4# threshold for x_post
 			thr_pre = 0.5 # threshold for x_pre
-			rho_dep = -0.008 # negative efficacy change
-			rho_dep2 = rho_dep*10 # additional negative efficacy change
+			rho_neg = -0.008 # negative efficacy change
+			rho_neg2 = rho_neg*10 # additional negative efficacy change
 	else: # default '2.1'
 		tau_xpre = 13*ms
 		tau_xpost = 33*ms
 		xpre_factor = 0.1
 		thr_post = 0.4
 		thr_pre = 0.2
-		rho_dep = -0.05
-		rho_dep2 = rho_dep
+		rho_neg = -0.05
+		rho_neg2 = rho_neg
 
 	w_max = 1*mV
 
@@ -64,8 +64,8 @@ def load_rule_params(plasticity_rule, parameter_set):
 	tau_xpost,\
 	xpre_jump,\
 	xpost_jump,\
-	rho_dep,\
-	rho_dep2,\
+	rho_neg,\
+	rho_neg2,\
 	rho_init,\
 	tau_rho,\
 	thr_post,\

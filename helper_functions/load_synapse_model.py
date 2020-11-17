@@ -61,7 +61,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 	rho_dep2: rho_neg2
 	"""
 	post_E_E_LR2 = '''xpost = xpost + xpost_jump
-		rho = clip(rho + xpre * xpre_factor+ rho_dep2 *int(xpre < thr_pre) * int(xpre > 0), rho_min, rho_max)
+		rho = clip(rho + xpre * xpre_factor+ rho_neg2 *int(xpre < thr_pre) * int(xpre > 0), rho_min, rho_max)
 		w = rho*w_max'''
 
 	# - On pre spike (both LR1/LR2) 
@@ -71,7 +71,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 	"""
 	xpre_update = {'xpre_update': '''xpre = xpre + xpre_jump'''}
 	w_update = {'w_update' : ''' w = rho * w_max'''}
-	rho_update_pre = {'rho_update_pre':'''rho = clip(rho + rho_dep *int(xpost > thr_post), rho_min, rho_max)'''}
+	rho_update_pre = {'rho_update_pre':'''rho = clip(rho + rho_neg *int(xpost > thr_post), rho_min, rho_max)'''}
 
 	# Defines the argument 'on_pre' for Brian2 - same as on_pre='v_post += w'
 	"""

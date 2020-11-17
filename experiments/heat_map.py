@@ -24,20 +24,25 @@ from load_parameters import *
 from load_synapse_model import *
 from run_frequencies import *
 
+# Starts a new scope for magic functions
+start_scope()
+
 # 1 ========== Experiment parameters ==========
 
 # Simulation run variables
-dt = 0.1/1000 # = 0.0001 sconds (0.1ms) | step of simulation time step resolution
-t_run = 5 # simulation time (seconds ?)
+dt_resolution = 0.1/1000 # = 0.0001 sconds (0.1ms) | step of simulation time step resolution
+t_run = 5 # simulation time (seconds)
 noise = 0.75 # ? (Used to introduce difference between spike times betweem pre- and post-)
 
 N_Pre = 1
 N_Post = 1
 
-plasticity_rule = 'LR2' # 'none', 'LR1', 'LR2'
+plasticity_rule = 'LR1' # 'none', 'LR1', 'LR2'
 parameter_set = '2.1' # '2.1'
 neuron_type = 'poisson' # 'poisson', 'LIF' , 'spikegenerators'
 bistability = False
+
+int_meth_syn = 'euler' # Synaptic integration method
 
 # Plotting settings
 plot_single_trial = False  # True = plot single simulations
@@ -89,10 +94,6 @@ drho_all = np.zeros((len(pre_freq),len(post_freq)))
 
 # ========== Brian stuff ==========
 
-ans = run_frequencies(pre_freq[1], post_freq[1], t_run, dt, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E)
-
-
-# Starts a new scope for magic functions
-start_scope()
+ans = run_frequencies(pre_freq[1], post_freq[1], t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn)
 
 print('END\n')
