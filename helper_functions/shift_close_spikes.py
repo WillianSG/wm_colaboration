@@ -18,7 +18,7 @@ Comments:
 - Annkatherin originally used 7 for the precision variable (why?).
 - if abs(spikes_t[index - shift] - prev_timestamp) < min_dist it means that the interspike interval is smaller than a simulation time step.
 """
-def remove_close_spikes(spikes_t, min_dist, t_run):
+def shift_close_spikes(spikes_t, min_dist, t_run):
 	shift = 0 # ?
 	prev_timestamp = 0 # loop variable
 
@@ -28,8 +28,11 @@ def remove_close_spikes(spikes_t, min_dist, t_run):
 	for index in range(0, len(spikes_t)):
 		spikes_t[index - shift] = round(spikes_t[index - shift], precision)
 
-		if round((spikes_t[index - shift] - prev_timestamp), precision) < min_dist or spikes_t[index - shift] > t_run:
+		if spikes_t[index - shift] > t_run:
 			spikes_t[index - shift] = 0
+		elif round((spikes_t[index - shift] - prev_timestamp), precision) < min_dist:
+			spikes_t[index - shift] = spikes_t[index - shift] + min_dist
+			prev_timestamp = spikes_t[index - shift]
 		else:
 			prev_timestamp = spikes_t[index - shift]
 

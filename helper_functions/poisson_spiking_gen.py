@@ -26,6 +26,7 @@ Comments:
 """
 import numpy as np
 import logging
+from helper_functions.shift_close_spikes import shift_close_spikes
 
 
 # from remove_close_spikes import *
@@ -106,7 +107,7 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 
 		# Removing spikes that are too close - QUESTION (why only with lowrate?) ANSWER: because of the added noise only to low rate
 		# I would not even remove close spikes because otherwise you will just have 2 excecuted shortly after one another
-		# lowrate_spikes_t = remove_close_spikes(np.sort(lowrate_spikes_t), dt, t_run)
+		lowrate_spikes_t = shift_close_spikes(np.sort(lowrate_spikes_t), dt, t_run)
 
 		# remove spikes that have negative time steps (not allowed)
 		lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
