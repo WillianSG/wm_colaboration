@@ -4,13 +4,13 @@
 @based-on: asonntag
 """
 import setuptools
-import os, sys
+import os, sys, pickle
 import platform
 from brian2 import *
 from scipy import *
 from numpy import *
 from joblib import Parallel, delayed
-import time
+from time import localtime
 import multiprocessing
 prefs.codegen.target = 'nunpy'
 
@@ -29,6 +29,14 @@ is_dir = os.path.isdir(results_path)
 if not(is_dir):
 	os.mkdir(results_path)
 
+# Creating simulation ID
+idt = localtime()
+sim_id = str(idt.tm_year) \
+	+ '{:02}'.format(idt.tm_mon) \
+	+ '{:02}'.format(idt.tm_mday) + '_' \
+	+ '{:02}'.format(idt.tm_hour) + '_' \
+	+ '{:02}'.format(idt.tm_min)
+
 # Starts a new scope for magic functions
 start_scope()
 
@@ -42,15 +50,16 @@ from run_frequencies import *
 # Simulation run variables
 dt_resolution = 0.1/1000 # = 0.0001 sconds (0.1ms) | step of simulation time step resolution
 t_run = 5 # simulation time (seconds)
-noise = 0.75 # ? (Used to introduce difference between spike times betweem pre- and post-)
+noise = 0.75 # used to introduce difference between spike times betweem pre- and post-
 
 N_Pre = 1
 N_Post = 1
 
+exp_type = 'firing_freq_parallel'
 plasticity_rule = 'LR1' # 'none', 'LR1', 'LR2'
 parameter_set = '2.1' # '2.1'
 neuron_type = 'poisson' # 'poisson', 'LIF' , 'spikegenerators'
-bistability = False
+bistability = True
 
 int_meth_syn = 'euler' # Synaptic integration method
 
@@ -59,8 +68,7 @@ plot_single_trial = False  # True = plot single simulations
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-# max_freq = 100
-max_freq = 5
+max_freq = 100
 step = 5
 
 # Frequency activity ranges (for pre and post neurons)
@@ -104,7 +112,7 @@ drho_all = np.zeros((len(pre_freq),len(post_freq)))
 
 # 2 ========== Running network in parallel ==========
 def run_net_parallel(p, q):
-	print('pre @ ', pre_freq[p], 'Hz, post @ ', post_freq[q])
+	print('pre @ ', pre_freq[p], 'Hz, post @ ', post_freq[q], 'Hz')
 
 	ans = run_frequencies(pre_freq[p], post_freq[q], t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn)
 
@@ -124,26 +132,35 @@ for t in results:
 	q = t[1] # y
 	final_rho_all[p,q], drho_all[p,q] = t[2] # '(last rho, last rho/initial rho)' of each execution, for (p,q) pairs of firing ratesd
 
-# TO DO - save experiment metadata too
+# Saving results + metadata
+path_sim_id = os.path.join(results_path, sim_id +'_' + exp_type)
+os.mkdir(path_sim_id)
 
-# Saving results
-now = time.time()
+fn = sim_id + '_' + exp_type + '_w_final_drho.pickle'
 
-rho_file = results_path \
-	+ '\\rho_' \
-	+ plasticity_rule \
-	+ '_' + parameter_set \
-	+ '_' + str(now).split('.')[1] \
-	+ '.npy'
+fnopen = os.path.join(path_sim_id, fn)
 
-drho_file = results_path \
-	+ '\\drho_' \
-	+ plasticity_rule \
-	+ '_' + parameter_set \
-	+ '_' + str(now).split('.')[1] \
-	+ '.npy'
+with open(fnopen,'wb') as f:
+	pickle.dump((
+		final_rho_all,
+		drho_all,
+		pre_freq,
+		post_freq,
+		min_freq,
+		max_freq,
+		step,
+		sim_id,
+		exp_type,
+		plasticity_rule,
+		parameter_set,
+		neuron_type,
+		bistability,
+		dt_resolution,
+		t_run,
+		noise,
+		N_Pre,
+		N_Post,
+		int_meth_syn)
+		, f)
 
-save(rho_file, final_rho_all)
-save(drho_file, drho_all)
-
-print('\nSCRIPT END\n')
+print('\nrun_firing_freq.py - END.\n')
