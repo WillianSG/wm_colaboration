@@ -20,6 +20,8 @@ parent_dir = os.path.dirname(os.getcwd())
 # Getting list of sim. results files
 entries = os.listdir(os.path.join(parent_dir, 'sim_results'))
 
+entries.sort()
+
 # Dir with .pickle data with results of simulations
 sim_results_dir = os.path.join(parent_dir, 'sim_results', 
 	entries[len(entries)-1], 

@@ -56,8 +56,8 @@ N_Pre = 1
 N_Post = 1
 
 exp_type = 'firing_freq_parallel'
-plasticity_rule = 'LR1' # 'none', 'LR1', 'LR2'
-parameter_set = '2.1' # '2.1'
+plasticity_rule = 'LR2' # 'none', 'LR1', 'LR2'
+parameter_set = '2.2' # '2.1'
 neuron_type = 'poisson' # 'poisson', 'LIF' , 'spikegenerators'
 bistability = True
 
@@ -68,7 +68,7 @@ plot_single_trial = False  # True = plot single simulations
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 10
+max_freq = 100
 step = 5
 
 # Frequency activity ranges (for pre and post neurons)
@@ -136,7 +136,8 @@ for t in results:
 path_sim_id = os.path.join(results_path, sim_id +'_' + exp_type)
 os.mkdir(path_sim_id)
 
-fn = sim_id + '_' + exp_type + '_w_final_drho.pickle'
+# fn = sim_id + '_' + exp_type + '_' + str() + '_w_final_drho.pickle'
+fn = str(sys.argv[1]) + '_' + exp_type + '_w_final_drho.pickle'
 
 fnopen = os.path.join(path_sim_id, fn)
 

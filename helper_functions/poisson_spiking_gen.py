@@ -25,6 +25,7 @@ output:
 Comments:
 """
 import numpy as np
+from numpy.random import Generator, PCG64, SeedSequence
 import logging
 from shift_close_spikes import *
 
@@ -32,16 +33,16 @@ from shift_close_spikes import *
 # from remove_close_spikes import *
 
 
-def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlation="random"):
+def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlation="negative"):
 	# Initializing decision variables
 	rate_low = -1
 	rate_high = -1
 
 	# Initialise random gen
 	# from seed to have reproducible results, numpy version must match!
-	seedsequ = np.random.SeedSequence(seed)
+	seedsequ = SeedSequence(seed)
 	logging.info('the following random seed is used for spike generation: {}'.format(seedsequ.entropy))
-	randomgen = np.random.PCG64(seedsequ)
+	randomgen = Generator(PCG64(seedsequ))
 
 	# Arrays with spike times
 	pre_spikes_t = np.array([])
