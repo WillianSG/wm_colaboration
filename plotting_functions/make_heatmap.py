@@ -48,6 +48,8 @@ sim_results_dir = os.path.join(parent_dir, 'sim_results',
 [16] N_Pre
 [17] N_Post
 [18] int_meth_syn
+[19] isi_correlation
+[20] drho_all_metric
 """
 exp_data = pickle.load(open(sim_results_dir, "rb" ))
 
@@ -109,9 +111,13 @@ plt.savefig(os.path.join(plots_dir,
 	dpi = 200)
 
 # 1.2 ========== drho (final/init.) as func. of pre/post activity  ==========
-
 # https://www.geeksforgeeks.org/matplotlib-colors-twoslopenorm-class-in-python/
-norm = mcolors.TwoSlopeNorm(vmin = 0., vcenter = 1.0, vmax = 2.0)
+if exp_data[20] == 'original':
+	norm = mcolors.TwoSlopeNorm(vmin = 0., vcenter = 1.0, vmax = 2.0)
+elif exp_data[20] == 'mean':
+	norm = mcolors.TwoSlopeNorm(vmin = 0., vcenter = 0.5, vmax = 1.0)
+else:
+	norm = mcolors.TwoSlopeNorm(vmin = 0., vcenter = 1.0, vmax = 2.0)
 
 fig = plt.figure(figsize=(21,21))
 ax1 = fig.add_subplot(1, 1, 1)
@@ -135,7 +141,17 @@ ax1.set_xlim(xmin = 0, xmax = len(exp_data[2]))
 ax1.set_ylim(ymin = 0, ymax = len(exp_data[3]))
 
 cb = plt.colorbar()
-cb.set_label(r'Change in synaptic efficacy $\Delta \rho$ (a.u.)',
+
+if exp_data[20] == 'original':
+	cb.set_label(r'Change in synaptic efficacy $\Delta \rho$ (a.u.)',
+	size = s2,
+	labelpad = 20)
+elif exp_data[20] == 'mean':
+	cb.set_label(r'Mean synaptic efficacy $\rho$ (a.u.)',
+	size = s2,
+	labelpad = 20)
+else:
+	cb.set_label(r'Change in synaptic efficacy $\Delta \rho$ (a.u.)',
 	size = s2,
 	labelpad = 20)
 

@@ -37,18 +37,20 @@ Comments:
 from brian2 import Synapses,StateMonitor, SpikeMonitor, defaultclock, Network, second
 from poisson_spiking_gen import *
 from load_neurons import *
+from numpy import mean
 
-def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, neuron_type, noise, job_seed, correlation, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn = 'euler'):
+def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn = 'euler',
+	isi_correlation='random', drho_all_metric='original', job_seed = 0):
 
 	# Spike time arrays
 	pre_spikes_t, post_spikes_t = poisson_spiking_gen(
-		pre_rate, 
-		post_rate, 
-		t_run, 
-		dt_resolution, 
-		noise,
-		job_seed,
-		correlation)
+		rate_pre = pre_rate, 
+		rate_post = post_rate, 
+		t_run = t_run, 
+		dt = dt_resolution, 
+		noise = noise,
+		job_seed = job_seed,
+		correlation = isi_correlation)
 
 	# Brian2's NeuronGroup
 	Pre, Post = load_neurons(
@@ -70,7 +72,7 @@ def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, 
 		method = int_meth_syn,
 		name = 'Pre_Post')
 
-	Pre_Post.connect(j='i') # each in source connected to one in target
+	Pre_Post.connect(j = 'i') # each in source connected to one in target
 
 	# - Initialization of synaptic variables
 	Pre_Post.rho = rho_init
@@ -91,15 +93,6 @@ def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, 
 		source = Post,
 		record = True,
 		name = 'Post_mon')
-
-	# Namespace ???
-	namespace = {
-		'rho_neg' : rho_neg,
-		'tau_xPRE' : tau_xpre,
-		'tau_xPOST' : tau_xpost,
-		'xpre_factor' : xpre_factor,
-		'thr_post' : thr_post
-		}
 
 	# Network
 	defaultclock.dt = dt_resolution*second
@@ -130,7 +123,13 @@ def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, 
 
 	# - store final w value and calculate dw
 	final_rho_all = Pre_Post.rho[0] # last value of 'rho' at the end of the ex.
-	drho_all = Pre_Post.rho[0] / rho_init # synaptic weight change (last/init)
+
+	if drho_all_metric == 'original':
+		drho_all = Pre_Post.rho[0] / rho_init # synaptic weight change (last/init)
+	elif drho_all_metric == 'mean':
+		drho_all = mean(synaptic_mon.rho[0])
+	else:
+		drho_all = Pre_Post.rho[0] / rho_init
 
 	return final_rho_all, drho_all
 
