@@ -11,16 +11,19 @@ from matplotlib import gridspec
 from matplotlib.ticker import FormatStrFormatter
 import matplotlib.colors as mcolors
 
-# TO DO - have 'em as arguments for the script
 # Target file
-folder = "20201124_19_35_firing_freq_parallel"
 file = "_w_final_drho.pickle"
 
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())
 
+# Getting list of sim. results files
+entries = os.listdir(os.path.join(parent_dir, 'sim_results'))
+
 # Dir with .pickle data with results of simulations
-sim_results_dir = os.path.join(parent_dir, 'sim_results', folder, folder+file)
+sim_results_dir = os.path.join(parent_dir, 'sim_results', 
+	entries[len(entries)-1], 
+	entries[len(entries)-1]+file)
 
 # Loading data
 """
@@ -46,14 +49,14 @@ sim_results_dir = os.path.join(parent_dir, 'sim_results', folder, folder+file)
 """
 exp_data = pickle.load(open(sim_results_dir, "rb" ))
 
-# 
-results_path = parent_dir + '\\plots_results'
+# Results dir
+results_path = os.path.join(parent_dir, 'plots_results')
 is_dir = os.path.isdir(results_path)
 
 if not(is_dir):
 	os.mkdir(results_path)
 
-plots_dir = os.path.join(results_path, folder)
+plots_dir = os.path.join(results_path, entries[len(entries)-1])
 is_dir = os.path.isdir(plots_dir)
 
 if not(is_dir):
@@ -98,9 +101,8 @@ ax1.set_ylim(ymin=0, ymax=len(exp_data[3]))
 cb = plt.colorbar()
 cb.set_label('Synaptic weight w (a.u)')
 
-plt.savefig(plots_dir \
-	+ '\\' + exp_data[7] + '_' \
-	+ exp_data[8] + '_abs_w.png',
+plt.savefig(os.path.join(plots_dir, 
+	exp_data[7] + '_' + exp_data[8] + '_abs_w.png'),
 	bbox_inches = 'tight', 
 	dpi = 200)
 
@@ -148,9 +150,8 @@ plt.tick_params(axis = 'both',
 	pad = 10, 
 	direction = 'in')
 
-plt.savefig(plots_dir \
-	+ '\\' + exp_data[7] + '_' \
-	+ exp_data[8] + "_drho.png",
+plt.savefig(os.path.join(plots_dir, 
+	exp_data[7] + '_' + exp_data[8] + "_drho.png"),
 	bbox_inches = 'tight', 
 	dpi = 200)
 
