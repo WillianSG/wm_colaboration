@@ -118,10 +118,4 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, job_seed=0, corre
 			post_spikes_t = np.sort(highrate_spikes_t)
 			pre_spikes_t = np.sort(lowrate_spikes_t)
 
-	# quick-fix bug for negative correlation
-	if correlation == "negative":
-		temp = post_spikes_t
-		post_spikes_t = pre_spikes_t
-		pre_spikes_t = temp
-
 	return pre_spikes_t, post_spikes_t

@@ -121,7 +121,7 @@ drho_all = np.zeros((len(pre_freq),len(post_freq)))
 
 # 2 ========== Running network in parallel ==========
 def run_net_parallel(p, q):
-	print('pre @ ', p, 'Hz, post @ ', q, 'Hz')
+	print('pre @ ', pre_freq[p], 'Hz, post @ ', post_freq[q], 'Hz')
 
 	ans = run_frequencies(pre_freq[p], post_freq[q], t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn, isi_correlation, drho_all_metric, job_seed)
 
