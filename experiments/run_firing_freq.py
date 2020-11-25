@@ -61,7 +61,6 @@ noise = 0.75 # used to introduce difference between spike times betweem pre- and
 N_Pre = 1
 N_Post = 1
 
-exp_type = 'firing_freq_parallel'
 isi_correlation = 'random' # "random", "positive", "negative"
 plasticity_rule = 'LR2' # 'none', 'LR1', 'LR2'
 parameter_set = '2.2' # '2.1'
@@ -69,6 +68,7 @@ neuron_type = 'spikegenerator' # 'poisson', 'LIF' , 'spikegenerator'
 bistability = True
 drho_all_metric = 'mean' # 'original', 'mean'
 
+exp_type = 'firing_freq_parallel_'+isi_correlation
 
 int_meth_syn = 'euler' # Synaptic integration method
 
@@ -148,8 +148,8 @@ for t in results:
 
 ## Saving results + metadata
 # distingish between cluster and local exec
-if "SLURM_JOB_ID" in os.environ:
-	path_sim_id = os.path.join(results_path, str(os.environ['SLURM_JOB_ID']) + '_' + exp_type)
+if "SLURM_ARRAY_JOB_ID" in os.environ:
+	path_sim_id = os.path.join(results_path, str(os.environ['SLURM_ARRAY_JOB_ID']) + '_' + exp_type)
 else:
 	path_sim_id = os.path.join(results_path, sim_id +'_' + exp_type)
 
