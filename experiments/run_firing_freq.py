@@ -23,7 +23,7 @@ parent_dir = os.path.dirname(os.getcwd())
 sys.path.append(os.path.join(parent_dir, helper_dir))
 
 # Results dir check
-results_path = parent_dir + '\\sim_results'
+results_path = os.path.join(parent_dir, 'sim_results')
 
 is_dir = os.path.isdir(results_path)
 if not(is_dir):
@@ -68,7 +68,7 @@ plot_single_trial = False  # True = plot single simulations
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 100
+max_freq = 10
 step = 5
 
 # Frequency activity ranges (for pre and post neurons)
