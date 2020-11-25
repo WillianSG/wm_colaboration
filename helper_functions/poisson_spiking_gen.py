@@ -26,7 +26,7 @@ Comments:
 """
 import numpy as np
 import logging
-from helper_functions.shift_close_spikes import shift_close_spikes
+from shift_close_spikes import *
 
 
 # from remove_close_spikes import *
