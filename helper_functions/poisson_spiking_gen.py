@@ -29,7 +29,7 @@ from numpy.random import Generator, PCG64, SeedSequence
 import logging
 from shift_close_spikes import *
 
-def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlation="negative"):
+def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlation="random"):
 	# Initializing decision variables
 	rate_low = -1
 	rate_high = -1
@@ -115,9 +115,6 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 		elif rate_pre <= rate_post:
 			post_spikes_t = np.sort(highrate_spikes_t)
 			pre_spikes_t = np.sort(lowrate_spikes_t)
-
-	# BUG? - original code is not flatenning pre_spikes_t (while post is)
-	pre_spikes_t = pre_spikes_t.flatten() # Fix (?)
 
 	# quick-fix bug for negative correlation
 	if correlation == "negative":
