@@ -29,10 +29,6 @@ from numpy.random import Generator, PCG64, SeedSequence
 import logging
 from shift_close_spikes import *
 
-
-# from remove_close_spikes import *
-
-
 def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlation="negative"):
 	# Initializing decision variables
 	rate_low = -1
@@ -91,12 +87,11 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 			avg_interval = 1.0 / spikes_per_s
 			# 'len(lowrate_spikes_t)'s floats between ['-avg_interval*noise','avg_interval*noise')
 			shifts = randomgen.uniform(-avg_interval * noise, avg_interval * noise, len(lowrate_spikes_t))
+
 			if correlation == "random":
 				pass
-			elif correlation == "positive":
+			elif correlation == "positive" or correlation == "negative":
 				shifts = np.abs(shifts)
-			elif correlation == "negative":
-				shifts = np.abs(shifts) * -1
 			else:
 				raise KeyError("correlation can only be: random (default), positive, negative")
 
@@ -120,5 +115,14 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 		elif rate_pre <= rate_post:
 			post_spikes_t = np.sort(highrate_spikes_t)
 			pre_spikes_t = np.sort(lowrate_spikes_t)
+
+	# BUG? - original code is not flatenning pre_spikes_t (while post is)
+	pre_spikes_t = pre_spikes_t.flatten() # Fix (?)
+
+	# quick-fix bug for negative correlation
+	if correlation == "negative":
+		temp = post_spikes_t
+		post_spikes_t = pre_spikes_t
+		pre_spikes_t = temp
 
 	return pre_spikes_t, post_spikes_t
