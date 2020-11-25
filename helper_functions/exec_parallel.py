@@ -33,7 +33,7 @@ except IndexError:
 	logging.error(f"could not read command line arguments: {sys.argv}")
 	raise SystemExit(f"Usage: {sys.argv[0]} <file to run> <from> <to (excl)>")
 
-
+q = Queue()
 def worker():
 	while True:
 		item = q.get()
@@ -54,7 +54,7 @@ for i in range(MULTITHREAD_WORKER_THREADS):
 logging.info(f"{MULTITHREAD_WORKER_THREADS} workers created")
 
 # create task queue
-q = Queue()
+
 for run_id in range(int(MULTITHREAD_ITERATIONS_BEGIN), int(MULTITHREAD_ITERATIONS_END_BEFORE)):
 	item = [run_id]
 	q.put(item)
