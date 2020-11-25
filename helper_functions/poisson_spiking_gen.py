@@ -85,18 +85,18 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 			# @TODO we should think about not making the distribution adaptive, but fixed to 1-3* STDP time constant?
 			# be aware of impact on correlation
 			avg_interval = 1.0 / spikes_per_s
-			# 'len(lowrate_spikes_t)'s floats between ['-avg_interval*noise','avg_interval*noise')
-			shifts = randomgen.uniform(-avg_interval * noise, avg_interval * noise, len(lowrate_spikes_t))
 
 			if correlation == "random":
-				pass
-			elif correlation == "positive" or correlation == "negative":
-				shifts = np.abs(shifts)
+				shifts = randomgen.uniform(-avg_interval * noise, avg_interval * noise, len(lowrate_spikes_t))
+			elif correlation == "positive":
+				shifts = randomgen.uniform(0.0, avg_interval * noise, len(lowrate_spikes_t))
+			elif correlation == "negative":
+				shifts = randomgen.uniform(-avg_interval * noise, 0.0, len(lowrate_spikes_t))
 			else:
 				raise KeyError("correlation can only be: random (default), positive, negative")
 
 			# 'lowrate_spikes_t' has now some of the same spike times as 'highrate_spikes_t' but with a shifted value (for more or for less)
-			lowrate_spikes_t = lowrate_spikes_t.flatten() + shifts
+			lowrate_spikes_t = abs(lowrate_spikes_t.flatten() + shifts)
 
 			# Removing negative values
 			lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
@@ -115,11 +115,5 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 		elif rate_pre <= rate_post:
 			post_spikes_t = np.sort(highrate_spikes_t)
 			pre_spikes_t = np.sort(lowrate_spikes_t)
-
-	# quick-fix bug for negative correlation
-	if correlation == "negative":
-		temp = post_spikes_t
-		post_spikes_t = pre_spikes_t
-		pre_spikes_t = temp
 
 	return pre_spikes_t, post_spikes_t
