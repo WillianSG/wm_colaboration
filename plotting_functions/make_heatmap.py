@@ -141,7 +141,17 @@ ax1.set_xlim(xmin = 0, xmax = len(exp_data[2]))
 ax1.set_ylim(ymin = 0, ymax = len(exp_data[3]))
 
 cb = plt.colorbar()
-cb.set_label(r'Change in synaptic efficacy $\Delta \rho$ (a.u.)',
+
+if exp_data[20] == 'original':
+	cb.set_label(r'Change in synaptic efficacy $\Delta \rho$ (a.u.)',
+	size = s2,
+	labelpad = 20)
+elif exp_data[20] == 'mean':
+	cb.set_label(r'Mean synaptic efficacy $\rho$ (a.u.)',
+	size = s2,
+	labelpad = 20)
+else:
+	cb.set_label(r'Change in synaptic efficacy $\Delta \rho$ (a.u.)',
 	size = s2,
 	labelpad = 20)
 
