@@ -1,0 +1,7 @@
+**/sim_results
+**/plots_results
+sim_results/
+plots_results/
+*.pickle
+*.png
+__pycache__

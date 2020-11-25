@@ -29,14 +29,14 @@ from numpy.random import Generator, PCG64, SeedSequence
 import logging
 from shift_close_spikes import *
 
-def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlation="random"):
+def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, job_seed=0, correlation="random"):
 	# Initializing decision variables
 	rate_low = -1
 	rate_high = -1
 
 	# Initialise random gen
 	# from seed to have reproducible results, numpy version must match!
-	seedsequ = SeedSequence(seed)
+	seedsequ = SeedSequence(job_seed)
 	logging.info('the following random seed is used for spike generation: {}'.format(seedsequ.entropy))
 	randomgen = Generator(PCG64(seedsequ))
 
@@ -90,8 +90,10 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 
 			if correlation == "random":
 				pass
-			elif correlation == "positive" or correlation == "negative":
+			elif correlation == "positive":
 				shifts = np.abs(shifts)
+			elif correlation == "negative":
+				shifts = np.abs(shifts) * -1
 			else:
 				raise KeyError("correlation can only be: random (default), positive, negative")
 

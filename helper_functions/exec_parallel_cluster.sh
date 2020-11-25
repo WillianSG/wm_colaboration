@@ -13,13 +13,13 @@
 # standart for normal python
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=6
 
 ## please adapt the following to your need:
-# notify by email on fail and end
-#SBATCH --mail-type=END,FAIL
-# send email to
-#SBATCH --mail-user=o.j.richter@rug.nl
+
+# set with how many cpu cores it should be running
+#SBATCH --cpus-per-task=6
+# from to (incl) range of iterations, max is 1000 total
+#SBATCH --array=1-100
 # memory requirement - check on your PC first if possible
 #SBATCH --mem=2GB
 # max execution time
@@ -28,8 +28,10 @@
 #SBATCH --partition=regular
 # job name
 #SBATCH --job-name=stdp_learning_rule
-# from to (incl) range of iterations, max is 1000 total
-#SBATCH --array=1-100
+# notify by email on fail and end
+#SBATCH --mail-type=END,FAIL
+# send email to
+#SBATCH --mail-user=o.j.richter@rug.nl
 
 ## Most importantly check your python script on pg-interactive.hpc.rug.nl first (with reduced load) if you environment works fine.
 

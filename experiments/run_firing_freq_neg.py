@@ -61,12 +61,12 @@ noise = 0.75 # used to introduce difference between spike times betweem pre- and
 N_Pre = 1
 N_Post = 1
 
-exp_type = 'firing_freq_parallel'
+exp_type = 'firing_freq_parallel_negative'
 plasticity_rule = 'LR2' # 'none', 'LR1', 'LR2'
 parameter_set = '2.2' # '2.1'
 neuron_type = 'spikegenerator' # 'poisson', 'LIF' , 'spikegenerator'
 bistability = True
-correlation = "random" # "random", "positive", "negative"
+correlation = "negative" # "random", "positive", "negative"
 
 int_meth_syn = 'euler' # Synaptic integration method
 
