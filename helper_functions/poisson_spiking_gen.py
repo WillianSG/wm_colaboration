@@ -90,18 +90,21 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, job_seed=0, corre
 
 			if correlation == "random":
 				pass
-			elif correlation == "positive":
+			elif (correlation == "positive" and rate_pre >= rate_post) or (correlation == "negative" and rate_pre < rate_post):
 				shifts = np.abs(shifts)
-			elif correlation == "negative":
+			elif (correlation == "positive" and rate_pre < rate_post) or (correlation == "negative" and rate_pre >= rate_post):
 				shifts = np.abs(shifts) * -1
 			else:
 				raise KeyError("correlation can only be: random (default), positive, negative")
 
 			# 'lowrate_spikes_t' has now some of the same spike times as 'highrate_spikes_t' but with a shifted value (for more or for less)
 			lowrate_spikes_t = lowrate_spikes_t.flatten() + shifts
+			time_shift = np.min(lowrate_spikes_t)
+			lowrate_spikes_t = lowrate_spikes_t + time_shift
+			highrate_spikes_t = highrate_spikes_t + time_shift
 
 			# Removing negative values
-			lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
+			#lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
 
 		# Removing spikes that are too close - QUESTION (why only with lowrate?) ANSWER: because of the added noise only to low rate
 		# I would not even remove close spikes because otherwise you will just have 2 excecuted shortly after one another
