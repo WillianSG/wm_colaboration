@@ -24,10 +24,14 @@ Comments:
 from brian2 import SpikeGeneratorGroup, NeuronGroup
 from brian2.units import second, ms, Hz, fundamentalunits
 import numpy as np
+from check_spikes_isi import *
 
 def load_neurons(N_Pre, N_Post, neuron_type, spikes_t_Pre = [i/1000.0 for i in [20, 120 ,340, 540]], spikes_t_Post = [i/1000.0 for i in [40, 130, 320, 530]], pre_rate = 1, post_rate = 1):
 
 	if neuron_type == 'spikegenerator':
+		spikes_t_Post = check_spikes_isi(spikes_t_Post, 0.0001)
+		spikes_t_Pre = check_spikes_isi(spikes_t_Pre, 0.0001)
+
 		spikes_t_Pre = np.array(spikes_t_Pre.flatten())*second
 		spikes_t_Post = np.array(spikes_t_Post.flatten())*second
 
@@ -44,9 +48,9 @@ def load_neurons(N_Pre, N_Post, neuron_type, spikes_t_Pre = [i/1000.0 for i in [
 			N = N_Post,
 			indices = inds_POST,
 			times = spikes_t_Post,
-			name = 'Post')    
+			name = 'Post')
 
-	if neuron_type == 'poisson':
+	elif neuron_type == 'poisson':
 		Pre = NeuronGroup(
 			N = N_Pre,
 			model = 'rates : Hz',
@@ -61,6 +65,9 @@ def load_neurons(N_Pre, N_Post, neuron_type, spikes_t_Pre = [i/1000.0 for i in [
 
 		Pre.rates = pre_rate*Hz
 		Post.rates = post_rate*Hz
+	else:
+		raise ValueError("\nneuron type should be 'poisson' or 'spikegenerator'")
+
 
 
 	return Pre, Post

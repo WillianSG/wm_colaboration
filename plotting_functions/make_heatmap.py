@@ -12,20 +12,19 @@ from matplotlib.ticker import FormatStrFormatter
 import matplotlib.colors as mcolors
 
 # Target file
-file = "_w_final_drho.pickle"
+file = "0_firing_freq_parallel_negative_w_final_drho.pickle"
 
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())
 
 # Getting list of sim. results files
 entries = os.listdir(os.path.join(parent_dir, 'sim_results'))
-
 entries.sort()
 
 # Dir with .pickle data with results of simulations
 sim_results_dir = os.path.join(parent_dir, 'sim_results', 
 	entries[len(entries)-1], 
-	entries[len(entries)-1]+file)
+	file)
 
 # Loading data
 """

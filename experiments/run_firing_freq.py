@@ -12,7 +12,7 @@ from numpy import *
 from joblib import Parallel, delayed
 from time import localtime
 import multiprocessing
-prefs.codegen.target = 'auto'
+prefs.codegen.target = 'numpy'
 
 helper_dir = 'helper_functions'
 
@@ -61,12 +61,12 @@ noise = 0.75 # used to introduce difference between spike times betweem pre- and
 N_Pre = 1
 N_Post = 1
 
-isi_correlation = 'random' # "random", "positive", "negative"
+isi_correlation = 'negative' # "random", "positive", "negative"
 plasticity_rule = 'LR2' # 'none', 'LR1', 'LR2'
 parameter_set = '2.2' # '2.1'
 neuron_type = 'spikegenerator' # 'poisson', 'LIF' , 'spikegenerator'
 bistability = True
-drho_all_metric = 'mean' # 'original', 'mean'
+drho_all_metric = 'original' # 'original', 'mean'
 
 exp_type = 'firing_freq_parallel_'+isi_correlation
 

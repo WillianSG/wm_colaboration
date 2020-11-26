@@ -111,7 +111,9 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, job_seed=0, corre
 
 			# 'lowrate_spikes_t' has now some of the same spike times as 'highrate_spikes_t' but with a shifted value (for more or for less)
 			lowrate_spikes_t = lowrate_spikes_t.flatten() + shifts
+
 			time_shift = abs(np.min(lowrate_spikes_t))
+
 			lowrate_spikes_t = lowrate_spikes_t + time_shift
 			highrate_spikes_t = highrate_spikes_t + time_shift
 
@@ -120,7 +122,7 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, job_seed=0, corre
 
 		# Removing spikes that are too close - QUESTION (why only with lowrate?) ANSWER: because of the added noise only to low rate
 		# I would not even remove close spikes because otherwise you will just have 2 excecuted shortly after one another
-		lowrate_spikes_t = shift_close_spikes(np.sort(lowrate_spikes_t), dt, t_run)
+		lowrate_spikes_t = shift_close_spikes(lowrate_spikes_t, dt, t_run)
 
 		# remove spikes that have negative time steps (not allowed)
 		lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
@@ -132,5 +134,8 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, job_seed=0, corre
 		elif rate_pre <= rate_post:
 			post_spikes_t = np.sort(highrate_spikes_t)
 			pre_spikes_t = np.sort(lowrate_spikes_t)
+
+	pre_spikes_t = shift_close_spikes(pre_spikes_t, dt, t_run)
+	post_spikes_t = shift_close_spikes(post_spikes_t, dt, t_run)
 
 	return pre_spikes_t, post_spikes_t

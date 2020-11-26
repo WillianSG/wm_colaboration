@@ -20,17 +20,11 @@ Comments:
 """
 import numpy as np 
 
-def shift_close_spikes(spikes_t, min_dist, t_run):
+def check_spikes_isi(spikes_t, min_dist):
 	prev_timestamp = 0 # loop variable
-
-	# ALTERED (E) - precision defined by amount of decimal places available for the simulation time step (time resolution)
-	precision = len(str(min_dist).split('.',1)[1]) # Times must differ at least on the final decimal place of 'min_dist'
-	# precision = min_dist
 
 	# Maybe shoudl stop rounding
 	for index in range(0, len(spikes_t)):
-		# spikes_t[index] = np.round(spikes_t[index], precision)
-
 		if spikes_t[index] < 0:
 			raise ValueError("negaive spike detected")
 		elif (spikes_t[index] - prev_timestamp) <= min_dist:
