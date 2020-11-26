@@ -12,9 +12,15 @@ from numpy import *
 from joblib import Parallel, delayed
 from time import localtime
 import multiprocessing
-prefs.codegen.target = 'nunpy'
+prefs.codegen.target = 'auto'
 
 helper_dir = 'helper_functions'
+
+# get run id as seed for random gens
+try:
+	job_seed = int(sys.argv[1])
+except:
+	job_seed = int(0)
 
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())
@@ -55,13 +61,14 @@ noise = 0.75 # used to introduce difference between spike times betweem pre- and
 N_Pre = 1
 N_Post = 1
 
-exp_type = 'firing_freq_parallel'
-isi_correlation = 'random'
+isi_correlation = 'random' # "random", "positive", "negative"
 plasticity_rule = 'LR2' # 'none', 'LR1', 'LR2'
 parameter_set = '2.2' # '2.1'
-neuron_type = 'poisson' # 'poisson', 'LIF' , 'spikegenerators'
+neuron_type = 'spikegenerator' # 'poisson', 'LIF' , 'spikegenerator'
 bistability = True
 drho_all_metric = 'mean' # 'original', 'mean'
+
+exp_type = 'firing_freq_parallel_'+isi_correlation
 
 int_meth_syn = 'euler' # Synaptic integration method
 
@@ -70,7 +77,7 @@ plot_single_trial = False  # True = plot single simulations
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 20
+max_freq = 100
 step = 5
 
 # Frequency activity ranges (for pre and post neurons)
@@ -103,27 +110,32 @@ drho_all = np.zeros((len(pre_freq),len(post_freq)))
 	rho_min,
 	rho_max,
 	alpha,
-	beta, 
+	beta,
 	xpre_factor,
 	w_max] = load_rule_params(plasticity_rule, parameter_set)
 
 # 2.1 ========== Learning rule as Brian2's synaptic model
-[model_E_E, 
-	pre_E_E, 
+[model_E_E,
+	pre_E_E,
 	post_E_E] = load_synapse_model(plasticity_rule, neuron_type, bistability)
 
 # 2 ========== Running network in parallel ==========
 def run_net_parallel(p, q):
-	print('pre @ ', p, 'Hz, post @ ', q, 'Hz')
+	print('pre @ ', pre_freq[p], 'Hz, post @ ', post_freq[q], 'Hz')
 
-	ans = run_frequencies(pre_freq[p], post_freq[q], t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn, isi_correlation, drho_all_metric)
+	ans = run_frequencies(pre_freq[p], post_freq[q], t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn, isi_correlation, drho_all_metric, job_seed)
 
 	return p, q, ans
 
-num_cores = multiprocessing.cpu_count()
+# check if running on cluster and adapt the multithread exec to cluster job
+if "SLURM_CPUS_ON_NODE" in os.environ:
+	num_cores = int(os.environ['SLURM_CPUS_ON_NODE'])
+	print("\n# cluster job cores: ", num_cores)
+else:
+	num_cores = multiprocessing.cpu_count()
+	print("\n# machine cores: ", num_cores)
 
 
-print("\n# cores: ", num_cores)
 print("Running network...\n")
 
 # Running network for each pair of frequency
@@ -134,18 +146,17 @@ for t in results:
 	q = t[1] # y
 	final_rho_all[p,q], drho_all[p,q] = t[2] # '(last rho, last rho/initial rho)' of each execution, for (p,q) pairs of firing ratesd
 
-# Saving results + metadata
-try:
-	path_sim_id = os.path.join(results_path, str(sys.argv[1]) + '_' + sim_id + '_' + exp_type)
-except:
+## Saving results + metadata
+# distingish between cluster and local exec
+if "SLURM_ARRAY_JOB_ID" in os.environ:
+	path_sim_id = os.path.join(results_path, str(os.environ['SLURM_ARRAY_JOB_ID']) + '_' + exp_type)
+else:
 	path_sim_id = os.path.join(results_path, sim_id +'_' + exp_type)
 
-os.mkdir(path_sim_id)
+if not os.path.exists(path_sim_id):
+	os.mkdir(path_sim_id)
 
-try:
-	fn = str(sys.argv[1]) + '_' + exp_type + '_w_final_drho.pickle'
-except:
-	fn = sim_id + '_' + exp_type + '_w_final_drho.pickle'
+fn = str(job_seed) + '_' + exp_type + '_w_final_drho.pickle'
 
 fnopen = os.path.join(path_sim_id, fn)
 
@@ -171,7 +182,8 @@ with open(fnopen,'wb') as f:
 		N_Post,
 		int_meth_syn,
 		isi_correlation,
-		drho_all_metric)
+		drho_all_metric,
+		job_seed)
 		, f)
 
 print('\nrun_firing_freq.py - END.\n')

@@ -90,7 +90,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 		post_E_E = ''
 
 	# - LIF neuron responding to pre- activity with non-plastic synapse
-	if plasticity_rule == 'none' and neuron_type == 'LIF':
+	elif plasticity_rule == 'none' and neuron_type == 'LIF':
 		model_E_E = model_E_E_non_plastic
 		#**pre_E_E_empty used to unpack arguments
 		# pre_E_E = dict(Vepsp_transmission, **pre_E_E_empty) 
@@ -98,7 +98,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 		post_E_E = ''
 
 	# - LIF neuron with plastic synapse ruled by LR1 (membrane changes for incoming spikes)
-	if plasticity_rule == 'LR1' and neuron_type == 'LIF':
+	elif plasticity_rule == 'LR1' and neuron_type == 'LIF':
 		model_E_E = model_E_E_plastic
 		# pre_E_E = dict(Vepsp_transmission, **pre_E_E_empty)
 		pre_E_E = dict(Vepsp_transmission) # ALTERED (R) - pre_E_E_empty
@@ -108,7 +108,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 		post_E_E = post_E_E_LR1
 
 	# - LIF neuron with plastic synapse ruled by LR1 (membrane does not change for incoming spikes)
-	if plasticity_rule == 'LR1' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
+	elif plasticity_rule == 'LR1' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
 		model_E_E = model_E_E_plastic
 		# pre_E_E = dict(xpre_update, **pre_E_E_empty)
 		pre_E_E = dict(xpre_update) # ALTERED (R) - pre_E_E_empty
@@ -117,7 +117,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 		post_E_E = post_E_E_LR1
 
 	# - LIF neuron with plastic synapse ruled by LR2 (membrane changes for incoming spikes)
-	if plasticity_rule == 'LR2' and neuron_type == 'LIF':
+	elif plasticity_rule == 'LR2' and neuron_type == 'LIF':
 		model_E_E = model_E_E_plastic
 		# pre_E_E = dict(Vepsp_transmission, **pre_E_E_empty)
 		pre_E_E = dict(Vepsp_transmission) # ALTERED (R) - pre_E_E_empty
@@ -127,13 +127,16 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 		post_E_E = post_E_E_LR2
 
 	# - LIF neuron with plastic synapse ruled by LR2 (membrane does not change for incoming spikes)
-	if plasticity_rule == 'LR2' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
+	elif plasticity_rule == 'LR2' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
 		model_E_E = model_E_E_plastic
 		# pre_E_E = dict(xpre_update, **pre_E_E_empty) 
 		pre_E_E = dict(xpre_update) # ALTERED (R) - pre_E_E_empty
 		pre_E_E = dict(rho_update_pre, **pre_E_E)
 		pre_E_E = dict(w_update, **pre_E_E)
 		post_E_E = post_E_E_LR2
+
+	else:
+		raise ValueError("invalid compination of learning rule and neuron type")
 
 	return model_E_E, pre_E_E, post_E_E
 

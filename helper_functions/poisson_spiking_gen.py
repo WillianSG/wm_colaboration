@@ -29,14 +29,14 @@ from numpy.random import Generator, PCG64, SeedSequence
 import logging
 from shift_close_spikes import *
 
-def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlation="random"):
+def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, job_seed=0, correlation="random"):
 	# Initializing decision variables
 	rate_low = -1
 	rate_high = -1
 
 	# Initialise random gen
 	# from seed to have reproducible results, numpy version must match!
-	seedsequ = SeedSequence(seed)
+	seedsequ = SeedSequence(job_seed)
 	logging.info('the following random seed is used for spike generation: {}'.format(seedsequ.entropy))
 	randomgen = Generator(PCG64(seedsequ))
 
@@ -85,21 +85,38 @@ def poisson_spiking_gen(rate_pre, rate_post, t_run, dt, noise, seed=0, correlati
 			# @TODO we should think about not making the distribution adaptive, but fixed to 1-3* STDP time constant?
 			# be aware of impact on correlation
 			avg_interval = 1.0 / spikes_per_s
+			shifttype = "shift"
+			if shifttype == "shift":
+				if correlation == "random":
+					shifts = randomgen.uniform(-avg_interval * noise, avg_interval * noise, len(lowrate_spikes_t))
+				elif (correlation == "positive" and rate_pre >= rate_post) or (correlation == "negative" and rate_pre < rate_post):
+					shifts = randomgen.uniform(0.0, avg_interval * noise, len(lowrate_spikes_t))
+				elif (correlation == "positive" and rate_pre < rate_post) or (correlation == "negative" and rate_pre >= rate_post):
+					shifts = randomgen.uniform(-avg_interval * noise, 0.0, len(lowrate_spikes_t))
+				else:
+					raise KeyError("correlation can only be: random (default), positive, negative")
 
-			if correlation == "random":
+			elif shifttype == "abs":
 				shifts = randomgen.uniform(-avg_interval * noise, avg_interval * noise, len(lowrate_spikes_t))
-			elif correlation == "positive":
-				shifts = randomgen.uniform(0.0, avg_interval * noise, len(lowrate_spikes_t))
-			elif correlation == "negative":
-				shifts = randomgen.uniform(-avg_interval * noise, 0.0, len(lowrate_spikes_t))
+				if correlation == "random":
+					pass
+				elif (correlation == "positive" and rate_pre >= rate_post) or (correlation == "negative" and rate_pre < rate_post):
+					shifts = np.abs(shifts)
+				elif (correlation == "positive" and rate_pre < rate_post) or (correlation == "negative" and rate_pre >= rate_post):
+					shifts = np.abs(shifts) * -1
+				else:
+					raise KeyError("correlation can only be: random (default), positive, negative")
 			else:
-				raise KeyError("correlation can only be: random (default), positive, negative")
+				raise ValueError("shift type has to be abs or shift")
 
 			# 'lowrate_spikes_t' has now some of the same spike times as 'highrate_spikes_t' but with a shifted value (for more or for less)
-			lowrate_spikes_t = abs(lowrate_spikes_t.flatten() + shifts)
+			lowrate_spikes_t = lowrate_spikes_t.flatten() + shifts
+			time_shift = abs(np.min(lowrate_spikes_t))
+			lowrate_spikes_t = lowrate_spikes_t + time_shift
+			highrate_spikes_t = highrate_spikes_t + time_shift
 
 			# Removing negative values
-			lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
+			#lowrate_spikes_t = lowrate_spikes_t[lowrate_spikes_t > 0]
 
 		# Removing spikes that are too close - QUESTION (why only with lowrate?) ANSWER: because of the added noise only to low rate
 		# I would not even remove close spikes because otherwise you will just have 2 excecuted shortly after one another
