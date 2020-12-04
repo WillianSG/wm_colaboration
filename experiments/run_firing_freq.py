@@ -77,7 +77,7 @@ plot_single_trial = False  # True = plot single simulations
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 100
+max_freq = 5
 step = 5
 
 # Frequency activity ranges (for pre and post neurons)
