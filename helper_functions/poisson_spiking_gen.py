@@ -23,6 +23,7 @@ output:
 - post_spikes_t: post- spikes times
 
 Comments:
+- Change name to 'poisson_spiking_tgen_rate'
 """
 import numpy as np
 from numpy.random import Generator, PCG64, SeedSequence
