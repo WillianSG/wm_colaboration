@@ -2,7 +2,7 @@
 
 ## Spike distance correlation
 
-![Independent Spikes](https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/Independent_Spike_Distance_10Repetition.png)
+![Independent Spikes](https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/Independent_Spike_Distance_10Repetition.png = 100x100)
 
 <caption>Independent spikes for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
 
