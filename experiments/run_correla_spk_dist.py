@@ -10,7 +10,7 @@ from brian2 import *
 from scipy import *
 from numpy import *
 from joblib import Parallel, delayed
-from time import localtime
+from time import *
 import multiprocessing
 # from pyspike import *
 prefs.codegen.target = 'numpy'
@@ -25,7 +25,7 @@ import matplotlib.colors as mcolors
 
 helper_dir = 'helper_functions'
 
-# sys.path.append('PySpike')
+sys.path.append('PySpike')
 from pyspike import SpikeTrain
 import pyspike as spk
 
@@ -71,7 +71,9 @@ noise = 0.25
 min_freq = 0
 max_freq = 100
 
-repetition = 10 # number of times exp repeated
+repetition = 1 # number of times exp repeated
+
+isi_correlation = "positive"
 
 # Frequency activity ranges (for pre and post neurons)
 pre_freq = arange(min_freq, max_freq+0.1, step)
@@ -92,42 +94,43 @@ for n in arange(0, repetition, 1):
 	print('Repetition #: ', n)
 	for p in arange(0, len(pre_freq), 1):
 		for q in arange(0, len(post_freq), 1):
-			# Poisson spikes
-			ind_train1 = single_poisson_spk_gen(pre_freq[p], t_run, dt_resolution, job_seed = n+repetition)
-			ind_train2 = single_poisson_spk_gen(post_freq[q], t_run, dt_resolution, job_seed = n+1+repetition)
+			if p > 0 or q > 0:
+				# independent Poisson spikes
+				ind_train1 = single_poisson_spk_gen(pre_freq[p], t_run, dt_resolution, job_seed = job_seed)
+				ind_train2 = single_poisson_spk_gen(post_freq[q], t_run, dt_resolution, job_seed = job_seed+n+1)
 
-			# PySpike
-			"""
-			SpikeTrain - obj consists of the spike times given as numpy arrays as well as the edges of the spike train as [t_start, t_end].
-			"""
-			ind_Train1 = SpikeTrain(ind_train1.flatten(), [0.0, t_run])
-			ind_Train2 = SpikeTrain(ind_train2.flatten(), [0.0, t_run])
+				# PySpike
+				"""
+				SpikeTrain - obj consists of the spike times given as numpy arrays as well as the edges of the spike train as [t_start, t_end].
+				"""
+				ind_Train1 = SpikeTrain(ind_train1.flatten(), [0.0, t_run])
+				ind_Train2 = SpikeTrain(ind_train2.flatten(), [0.0, t_run])
 
-			# corr_train1, corr_train2 = poisson_generation_rate(pre_freq[p],post_freq[q], t_run, dt, noise = .25)
+				# corr_train1, corr_train2 = poisson_generation_rate(pre_freq[p],post_freq[q], t_run, dt, noise = .25)
 
-			# ?
-			corr_train1, corr_train2 = poisson_spiking_gen(
-				rate_pre = pre_freq[p], 
-				rate_post = post_freq[p], 
-				t_run = t_run, 
-				dt = dt_resolution, 
-				noise = noise,
-				job_seed = n+repetition+1,
-				correlation = 'positive')
+				# ?
+				corr_train1, corr_train2 = poisson_spiking_gen(
+					rate_pre = pre_freq[p], 
+					rate_post = post_freq[q], 
+					t_run = t_run, 
+					dt = dt_resolution, 
+					noise = noise,
+					job_seed = job_seed+n+2,
+					correlation = isi_correlation)
 
-			# PySpike object
-			Corr_train1 = SpikeTrain(corr_train1.flatten(), 
-				edges = (0, t_run))
-			Corr_train2 = SpikeTrain(corr_train2.flatten(), 
-				edges = (0.0, t_run))
+				# PySpike object
+				Corr_train1 = SpikeTrain(corr_train1.flatten(), 
+					edges = (0.0, t_run))
+				Corr_train2 = SpikeTrain(corr_train2.flatten(), 
+					edges = (0.0, t_run))
 
-			spike_profile_corr = spk.spike_profile(Corr_train1, Corr_train2)
+				spike_profile_corr = spk.spike_profile(Corr_train1, Corr_train2)
 
-			spike_diff_corr[p, q, n] = spike_profile_corr.avrg()
+				spike_diff_corr[p, q, n] = spike_profile_corr.avrg()
 
-			spike_profile = spk.spike_profile(ind_Train1, ind_Train2)
+				spike_profile = spk.spike_profile(ind_Train1, ind_Train2)
 
-			spike_diff[p, q, n] = spike_profile.avrg()
+				spike_diff[p, q, n] = spike_profile.avrg()
 
 	spike_diff_corr_all_concat = concatenate((spike_diff_corr[:,:,n]), 
 		axis = 0)
@@ -197,7 +200,7 @@ plt.tick_params(axis='both',which='major',width=lwdth, length=9,
 	pad=10, 
 	direction = 'in')
 
-plt.savefig('Correlated_Spike_Distance_10Repetition.png',
+plt.savefig(isi_correlation+'Correlated_Spike_Distance_10Repetition.png',
 	bbox_inches='tight', 
 	dpi = 200)
 
