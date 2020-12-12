@@ -16,7 +16,7 @@
 
 ## Frequency depedent synaptic change
 
-<img src="https://github.com/WillianSG/learning_rule/tree/main/metrics/imgs/20201126_17_53_firing_freq_parallel_random_mean" width="500" height="500">
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/20201126_17_53_firing_freq_parallel_random_mean/20201126_17_53_firing_freq_parallel_positive_drho.png" width="500" height="500">
 
 <caption>Independent spikes.</caption>
 
