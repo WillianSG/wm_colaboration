@@ -2,14 +2,29 @@
 
 ## Spike distance correlation
 
-<p style="text-align:center;"><img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/Independent_Spike_Distance_10Repetition.png" alt="Girl in a jacket" width="500" height="500">
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/Independent_Spike_Distance_10Repetition.png" width="500" height="500">
 
 <caption>Independent spikes for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
 
-<p style="text-align:center;"><img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/positiveCorrelated_Spike_Distance_10Repetition.png" alt="Girl in a jacket" width="500" height="500">
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/positiveCorrelated_Spike_Distance_10Repetition.png" width="500" height="500">
 
-<p style="text-align:center;"><caption>Positively correlated for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
+<caption>Positively correlated for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
 
-<p style="text-align:center;"><img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/negativeCorrelated_Spike_Distance_10Repetition.png" alt="Girl in a jacket" width="500" height="500">
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/negativeCorrelated_Spike_Distance_10Repetition.png" width="500" height="500">
 
 <caption>Negatively correlated for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
+
+## Frequency depedent synaptic change
+
+<img src="https://github.com/WillianSG/learning_rule/tree/main/metrics/imgs/20201126_17_53_firing_freq_parallel_random_mean" width="500" height="500">
+
+<caption>Independent spikes.</caption>
+
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/20201126_17_48_firing_freq_parallel_positive_mean/20201126_17_48_firing_freq_parallel_positive_drho.png" width="500" height="500">
+
+<caption>Positively correlated.</caption>
+
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/20201126_17_43_firing_freq_parallel_negative_mean/20201126_17_43_firing_freq_parallel_negative_drho.png" width="500" height="500">
+
+<caption>Negatively correlated.</caption>
+
