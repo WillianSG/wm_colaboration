@@ -2,14 +2,14 @@
 
 ## Spike distance correlation
 
-![Independent Spikes](https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/Independent_Spike_Distance_10Repetition.png = 100x100)
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/Independent_Spike_Distance_10Repetition.png" alt="Girl in a jacket" width="100" height="100">
 
 <caption>Independent spikes for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
 
-![Positively correlated Spikes](https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/positiveCorrelated_Spike_Distance_10Repetition.png)
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/positiveCorrelated_Spike_Distance_10Repetition.png" alt="Girl in a jacket" width="100" height="100">
 
 <caption>Positively correlated for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
 
-![Negatively correlated Spikes](https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/negativeCorrelated_Spike_Distance_10Repetition.png)
+<img src="https://github.com/WillianSG/learning_rule/blob/main/metrics/imgs/negativeCorrelated_Spike_Distance_10Repetition.png" alt="Girl in a jacket" width="100" height="100">
 
 <caption>Negatively correlated for post and pre at varying frequencies. Mean interspike interval (over 10 independent runs).</caption>
