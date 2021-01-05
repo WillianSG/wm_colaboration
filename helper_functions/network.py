@@ -2,13 +2,14 @@
 """
 @author: wgirao
 @based-on: asonntag
+@original: adapted from Lehfeldt
 
 Comments:
-- Adapted from Lehfeldt
 - [1] Adaptive threshold of E as in https://brian2.readthedocs.io/en/2.0rc/examples/adaptive_threshold.html
 - What's the "external attractor net"?
 - [IMPORTANT] tag with stuff to fix
-- What was originally used for 'stim_type_i' and 'stim_type_e'?
+- https://en.wikipedia.org/wiki/Python_syntax_and_semantics#Decorators
+- https://stackoverflow.com/questions/6392739/what-does-the-at-symbol-do-in-python
 """
 import setuptools
 import os, sys, pickle
@@ -193,19 +194,19 @@ class Network:
 
 	# ========== Network Initialization ==========
 	def init_network_modules(self):
-		self.set_neurons() #
-		self.set_synapses() #
-		self.set_learning_rule_parameters() #
-		self.set_stimulus_e() #
-		self.init_stimulus_i() #
+		self.set_neurons()
+		self.set_synapses()
+		self.set_learning_rule_parameters()
+		self.set_stimulus_e()
+		self.set_stimulus_i()
 
 		if self.add_Ext_att:
-			self.set_stimulus_ext_att() #
+			self.set_stimulus_ext_att()
 
-		self.set_weights() #
-		self.set_monitors() #
-		self.get_namespace() #
-		self.init_network_object()
+		self.set_weights()
+		self.set_monitors()
+		self.get_namespace()
+		self.get_network_object()
 
 	# ========== Neurons Initialization ==========
 	def set_neurons(self):
@@ -390,7 +391,7 @@ class Network:
 		self.Input_to_E.rates[self.stim_inds_original_E] = self.stim_freq_e
 
 	# ========== Inhibitory stimulus loader ==========
-	def init_stimulus_i(self):
+	def set_stimulus_i(self):
 		# Load stimulus to I  
 		self.stim_inds_original_I = load_stimulus(
 			stimulus_type = self.stim_type_i,
@@ -537,6 +538,7 @@ class Network:
 			dt = self.rec_dt,
 			name = 'I_E_rec')
 
+	# ========== Network namespace ==========
 	def get_namespace(self):
 
 		self.namespace = {
@@ -563,6 +565,204 @@ class Network:
 			'thr_pre' : self.thr_pre}
 
 		return self.namespace
+
+	# ========== @network_operation functions ==========
+	def get_network_object(self):
+		# ========== Clocks, counters and switches
+		# Rho snapthots
+		self.rho_matrix_snapshot_clock = Clock(
+			self.rho_matrix_snapshots_step, name = 'clk_rho_snap')
+
+		self.rho_matrix_snapshot_count = 0
+
+		# Weight snapthots
+		self.w_matrix_snapshot_clock = Clock(
+			self.w_matrix_snapshots_step, name = 'clk_w_snap')
+
+		self.w_matrix_snapshot_count = 0
+
+		# Xpre snapthots
+		self.xpre_matrix_snapshot_clock = Clock(
+			self.xpre_matrix_snapshots_step, name = 'clk_xpre_snap')
+
+		self.xpre_matrix_snapshot_count = 0
+
+		# Xpost snapthots
+		self.xpost_matrix_snapshot_clock = Clock(
+			self.xpost_matrix_snapshots_step, name = 'clk_xpost_snap')
+
+		self.xpost_matrix_snapshot_count = 0
+
+		# Stimulus pulse
+		self.stimulus_pulse_clock = Clock(
+			self.stimulus_pulse_clock_dt, name = 'clk_stim_pulse')
+
+		self.stimulus_pulse_switch = 0
+
+		# ========== Snapshot of rho matrices
+		if self.rho_matrix_snapshots:
+			@network_operation(clock = self.rho_matrix_snapshot_clock)
+			def store_rho_matrix_snapshot():
+				data_rho_ee = return_rho_matrix('E_E', self.net,
+					self.N_e, self.N_e)
+
+				out_path = os.path.join(self.path_rho_snapshots,
+					self.id + "_rho_snaps_E_E_" + \
+					'{:02}'.format(self.rho_matrix_snapshot_count) + \
+					"_time_" + '{:05.2f}'.format(defaultclock.t[:]/second) + \
+					"s.csv")
+
+				with open(out_path, 'wb') as f:
+					np.savetxt(f, data_rho_ee, fmt = '%.3e', delimiter = ",")
+
+				self.rho_matrix_snapshot_count += 1
+		else:
+			@network_operation(clock = self.rho_matrix_snapshot_clock)
+			def store_rho_matrix_snapshot():
+				pass
+
+		# ========== Snapshot of weight matrices
+		if self.w_matrix_snapshots:
+			@network_operation(clock = self.w_matrix_snapshot_clock)
+			def store_w_matrix_snapshot():
+				data_w_ee = return_w_matrix('E_E', self.net, self.N_e, 
+					self.N_e)
+
+				out_path = os.path.join(self.path_w_snapshots,
+					self.id + "_w_snaps_E_E_" + \
+					'{:02}'.format(self.w_matrix_snapshot_count) + \
+					"_time_" + '{:05.2f}'.format(defaultclock.t[:]/second) + \
+					"s.csv")
+
+				with open(out_path, 'wb') as f:
+					np.savetxt(f, data_w_ee, fmt = '%.3e', delimiter = ",")
+
+				self.w_matrix_snapshot_count += 1
+		else:
+			@network_operation(clock = self.w_matrix_snapshot_clock)
+			def store_w_matrix_snapshot():
+				pass
+
+		# ========== Snapshot of xpre matrices
+		if self.xpre_matrix_snapshots:
+			@network_operation(clock = self.xpre_matrix_snapshot_clock)
+			def store_xpre_matrix_snapshot():
+				data_xpre_ee = return_xpre_matrix('E_E', self.net, self.N_e,
+					self.N_e)
+
+				out_path = os.path.join(self.path_xpre_snapshots, self.id + \
+					"_xpre_snaps_E_E_" + \
+					'{:02}'.format(self.xpre_matrix_snapshot_count) + \
+					"_time_" + '{:05.2f}'.format(defaultclock.t[:]/second) + \
+					"s.csv")
+
+				with open(out_path, 'wb') as f:
+					np.savetxt(f, data_xpre_ee, fmt = '%.3e', delimiter = ",")
+
+				self.xpre_matrix_snapshot_count += 1
+		else:
+			@network_operation(clock = self.xpre_matrix_snapshot_clock)
+			def store_xpre_matrix_snapshot():
+				pass
+
+		# ========== Snapshot of xpost matrices
+		if self.xpost_matrix_snapshots:
+			@network_operation(clock = self.xpost_matrix_snapshot_clock)
+			def store_xpost_matrix_snapshot():
+				data_xpost_ee = return_xpost_matrix('E_E', self.net, self.N_e,
+					self.N_e)
+
+				out_path = os.path.join(self.path_xpost_snapshots,self.id + \
+					"_xpost_snaps_E_E_" + \
+					'{:02}'.format(self.xpost_matrix_snapshot_count) + \
+					"_time_" + '{:05.2f}'.format(defaultclock.t[:]/second) + \
+					"s.csv")
+
+				with open(out_path, 'wb') as f:
+					np.savetxt(f, data_xpost_ee, fmt = '%.3e', delimiter = ",")
+
+				self.xpost_matrix_snapshot_count += 1
+		else:
+			@network_operation(clock = self.xpost_matrix_snapshot_clock)
+			def store_xpost_matrix_snapshot():
+				pass
+
+		# ========== Protocol 1 - one stimulus pulse, constant stimulus offset
+		if self.stimulus_pulse:
+			@network_operation(clock = self.stimulus_pulse_clock)
+			def stimulus_pulse():
+				if defaultclock.t >= self.stimulus_pulse_duration:
+					self.stim_freq_e = 0*Hz
+					self.init_stimulus_e()
+		else:
+		@network_operation(clock = self.stimulus_pulse_clock)
+		def stimulus_pulse():
+			pass
+
+		# ========== Network object
+		defaultclock.dt = self.dt
+
+		if self.add_Ext_att:
+			self.net = Network(
+				self.Input_to_E,
+				self.Input_to_I,
+				self.E,
+				self.I,
+				self.Ext_att,
+				self.Input_E,
+				self.Input_I,
+				self.E_E,
+				self.E_I,
+				self.I_E,
+				self.Ext_att_E,
+				self.Input_to_E_mon,
+				self.Input_to_I_mon,
+				self.E_mon,
+				self.I_mon,
+				self.Ext_att_mon,
+				self.Input_E_rec,
+				self.Input_I_rec,
+				self.E_rec,
+				self.I_rec,
+				self.E_E_rec,
+				self.E_I_rec,
+				self.I_E_rec,
+				self.Ext_att_E_rec,
+				store_rho_matrix_snapshot,
+				store_w_matrix_snapshot,
+				store_xpre_matrix_snapshot,
+				store_xpost_matrix_snapshot,
+				stimulus_pulse,
+				name = 'net')
+		else:
+			self.net = Network(
+				self.Input_to_E,
+				self.Input_to_I,
+				self.E,
+				self.I,
+				self.Input_E,
+				self.Input_I,
+				self.E_E,
+				self.E_I,
+				self.I_E,
+				self.Input_to_E_mon,
+				self.Input_to_I_mon,
+				self.E_mon,
+				self.I_mon,
+				self.Input_E_rec,
+				self.Input_I_rec,
+				self.E_rec,
+				self.I_rec,
+				self.E_E_rec,
+				self.E_I_rec,
+				self.I_E_rec,
+				store_rho_matrix_snapshot,
+				store_w_matrix_snapshot,
+				store_xpre_matrix_snapshot,
+				store_xpost_matrix_snapshot,
+				stimulus_pulse,
+				name = 'net')
+
 
 
 
