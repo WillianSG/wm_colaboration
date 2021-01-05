@@ -15,7 +15,7 @@ import setuptools
 import os, sys, pickle
 from brian2 import *
 from numpy import *
-import random # ?
+import random
 
 prefs.codegen.target = 'numpy'
 
@@ -762,6 +762,70 @@ class Network:
 				store_xpost_matrix_snapshot,
 				stimulus_pulse,
 				name = 'net')
+
+	# ========== Results storage ==========
+	def set_simulation_folder(self):
+		self.iter_count = 0  # simulation iteration added to .txt name
+		self.parent_dir = os.path.dirname(os.getcwd()) # parent directory
+		self.simulation_folder = os.path.join(self.parent_dir, 'sim_network')
+
+		if not(os.path.isdir(self.simulation_folder)):
+			os.mkdir(self.simulation_folder)
+
+		self.cwd = os.getcwd()  # current working directory
+		self.idt = localtime()  # local date and time
+
+		if self.id == '':
+			self.id = str(self.idt.tm_year) + \
+			'{:02}'.format(self.idt.tm_mon) + \
+			'{:02}'.format(self.idt.tm_mday)+ '_' + \
+			'{:02}'.format(self.idt.tm_hour)+ \
+			'_' + '{:02}'.format(self.idt.tm_min) + '_' + \
+			'{:02}'.format(self.idt.tm_sec)
+
+		self.path_sim_id = os.path.join(self.simulation_folder, self.id)
+
+		if not(os.path.isdir(self.path_sim_id)):
+			os.mkdir(self.path_sim_id)
+
+		# Rho, Ca and w snapshot's directory
+		self.path_snapshots = os.path.join(self.path_sim_id, 
+			self.id + "_snapshots")
+
+		if not(os.path.isdir(self.path_snapshots)):
+			os.mkdir(self.path_snapshots)
+
+		# Directory for rho_matrix_snapshots 
+		self.path_rho_snapshots = os.path.join(self.path_snapshots, 
+			self.id + "_rho_snapshots")
+
+		if not(os.path.isdir(self.path_rho_snapshots)):
+			os.mkdir(self.path_rho_snapshots)
+
+		# Directory for w_matrix_snapshots 
+		self.path_w_snapshots = os.path.join(self.path_snapshots, 
+			self.id + "_w_matrix_snapshots")
+
+		if not(os.path.isdir(self.path_w_snapshots)):
+			os.mkdir(self.path_w_snapshots)
+
+		# Directory for xpre_matrix_snapshots 
+		self.path_xpre_snapshots = os.path.join(self.path_snapshots, 
+			self.id + "_xpre_snapshots")
+
+		if not(os.path.isdir(self.path_xpre_snapshots)):
+			os.mkdir(self.path_xpre_snapshots)
+
+		# Directory for xpost_matrix_snapshots 
+		self.path_xpost_snapshots = os.path.join(self.path_snapshots, 
+			self.id + "_xpost_snapshots")
+
+		if not(os.path.isdir(self.path_xpost_snapshots)):
+			os.mkdir(self.path_xpost_snapshots)
+
+	# ========== Run simulation ==========
+	def run_net(self, report = 'stdout', period = 1):
+
 
 
 
