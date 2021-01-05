@@ -7,9 +7,11 @@
 Comments:
 - [1] Adaptive threshold of E as in https://brian2.readthedocs.io/en/2.0rc/examples/adaptive_threshold.html
 - What's the "external attractor net"?
-- [IMPORTANT] tag with stuff to fix
 - https://en.wikipedia.org/wiki/Python_syntax_and_semantics#Decorators
 - https://stackoverflow.com/questions/6392739/what-does-the-at-symbol-do-in-python
+- [IMPORTANT] tag with stuff to fix
+- [ALTERED] tag with stuff alterade due to apparent original mistake
+- [ADDED] tag with stuff added due to apparent original mistake
 """
 import setuptools
 import os, sys, pickle
@@ -23,7 +25,7 @@ prefs.codegen.target = 'numpy'
 from load_parameters import *
 from load_stimulus import *
 
-class Network:
+class AttractorNetwork:
 	def __init__(self):
 		# 1 ========== Simulation settings ==========
 
@@ -205,8 +207,8 @@ class Network:
 
 		self.set_weights()
 		self.set_monitors()
-		self.get_namespace()
-		self.get_network_object()
+		self.set_namespace()
+		self.set_network_object()
 
 	# ========== Neurons Initialization ==========
 	def set_neurons(self):
@@ -539,7 +541,7 @@ class Network:
 			name = 'I_E_rec')
 
 	# ========== Network namespace ==========
-	def get_namespace(self):
+	def set_namespace(self):
 
 		self.namespace = {
 			'Vrst_e' : self.Vrst_e,
@@ -567,7 +569,7 @@ class Network:
 		return self.namespace
 
 	# ========== @network_operation functions ==========
-	def get_network_object(self):
+	def set_network_object(self):
 		# ========== Clocks, counters and switches
 		# Rho snapthots
 		self.rho_matrix_snapshot_clock = Clock(
@@ -825,11 +827,204 @@ class Network:
 
 	# ========== Run simulation ==========
 	def run_net(self, report = 'stdout', period = 1):
+		# ========== Storage location
+		if os.path.isdir(self.path_sim_id):
+			pass
+		elif os.path.isdir(self.path_sim):
+			pass
+		else:
+			self.set_simulation_folder()
 
+		# Change path for storage of simulation settings as .txt-file
+		if self.iter_count == 0:
+			self.abs_path_sim_id = self.path_sim_id
+		else:
+			self.abs_path_sim_id = self.path_sim_id + '_' + self.exp_type
 
+		# Initialisation of namespace before storage to have updated version
+		self.set_namespace()
 
+		store_simulation_settings(
+			sim_id = os.path.join(self.abs_path_sim_id, self.id),
+			exp_type = self.exp_type,
+			iter_count = self.iter_count,
+			t_run = self.t_run,
+			int_meth_neur = self.int_meth_neur,
+			int_meth_syn = self.int_meth_syn,
+			dt = self.dt,
+			Input_to_E_mon_record = self.Input_to_E_mon_record,
+			Input_to_I_mon_record = self.Input_to_I_mon_record,
+			E_mon_record = self.E_mon_record,
+			I_mon_record = self.I_mon_record,
+			Ext_att_record = self.Ext_att_record,
+			Input_E_rec_record = self.Input_E_rec_record,
+			Input_E_rec_attributes_orig = self.Input_E_rec_attributes,
+			Input_I_rec_record = self.Input_I_rec_record,
+			Input_I_rec_attributes_orig = self.Input_I_rec_attributes,
+			E_rec_record = self.E_rec_record,
+			E_rec_attributes_orig = self.E_rec_attributes,
+			I_rec_record = self.I_rec_record,
+			I_rec_attributes_orig = self.I_rec_attributes,
+			E_E_rec_record = self.E_E_rec_record,
+			E_E_rec_attributes_orig = self.E_E_rec_attributes,
+			E_I_rec_record = self.E_I_rec_record,
+			E_I_rec_attributes_orig = self.E_I_rec_attributes,
+			I_E_rec_record = self.I_E_rec_record,
+			I_E_rec_attributes_orig = self.I_E_rec_attributes,
+			Ext_att_E_rec_record = self.Ext_att_E_rec_record,
+			Ext_att_E_rec_attributes_orig = self.Ext_att_E_rec_attributes,
+			rec_dt = self.rec_dt,
+			rho_matrix_snapshots = self.rho_matrix_snapshots,
+			rho_matrix_snapshots_step = self.rho_matrix_snapshots_step,
+			w_matrix_snapshots = self.w_matrix_snapshots,
+			w_matrix_snapshots_step = self.w_matrix_snapshots_step,
+			xpre_matrix_snapshots = self.xpre_matrix_snapshots,
+			xpre_matrix_snapshots_step = self.xpre_matrix_snapshots_step,
+			xpost_matrix_snapshots = self.xpost_matrix_snapshots,
+			xpost_matrix_snapshots_step = self.xpost_matrix_snapshots_step,
+			stimulus_pulse = self.stimulus_pulse,
+			stimulus_pulse_duration = self.stimulus_pulse_duration,
+			stimulus_pulse_clock_dt = self.stimulus_pulse_clock_dt,
+			stim_type_e = self.stim_type_e,
+			stim_size_e = self.stim_size_e,
+			stim_freq_e = self.stim_freq_e,
+			stim_type_i = self.stim_type_i,
+			stim_size_i = self.stim_size_i,
+			stim_freq_i = self.stim_freq_i,
+			ext_att_freq = self.ext_att_freq,
+			plasticity_rule = self.plasticity_rule,
+			neuron_type = self.neuron_type,
+			N_input_e = self.N_input_e,
+			N_input_i = self.N_input_i,
+			N_e = self.N_e,
+			Vr_e = self.Vr_e,
+			Vrst_e = self.Vrst_e,
+			Vth_e_init = self.Vth_e_init,
+			tau_Vth_e = self.tau_Vth_e,
+			Vth_e_incr = self.Vth_e_incr,
+			taum_e = self.taum_e,
+			tref_e = self.tref_e,
+			tau_epsp_e = self.tau_epsp_e,
+			tau_ipsp_e = self.tau_ipsp_e,
+			N_i = self.N_i,
+			Vr_i = self.Vr_i,
+			Vrst_i = self.Vrst_i,
+			Vth_i = self.Vth_i,
+			taum_i = self.taum_i,
+			tref_i = self.tref_i,
+			tau_epsp_i = self.tau_epsp_i,
+			tau_ipsp_i = self.tau_ipsp_i,
+			p_e_e = self.p_e_e,
+			p_e_i = self.p_e_i,
+			p_i_e = self.p_i_e,
+			w_input_e = self.w_input_e,
+			w_input_i = self.w_input_i,
+			w_e_e = self.w_e_e,
+			w_e_i = self.w_e_i,
+			w_i_e = self.w_i_e,
+			w_e_e_max = self.w_e_e_max,
+			w_ext_att_e = self.w_ext_att_e,
+			add_Ext_att = self.add_Ext_att,
+			tau_xpre = self.tau_xpre,
+			tau_xpost = self.tau_xpost,
+			tau_rho = self.tau_rho,
+			thr_b_rho = self.thr_b_rho,
+			xpre_jump = self.xpre_jump,
+			xpost_jump = self.xpost_jump,
+			xpre_factor   = self.xpre_factor,
+			rho_dep = self.rho_dep,
+			eqs_e = self.eqs_e,
+			eqs_i = self.eqs_i,
+			model_E_E = self.model_E_E,
+			pre_E_E = self.pre_E_E,
+			post_E_E = self.post_E_E,
+			namespace = self.namespace,
+			net = self.net)
 
+		# go to w_matrix_snapshot folder (?)
+		if self.rho_matrix_snapshots or self.w_matrix_snapshots or self.xpre_matrix_snapshots or self.xpost_matrix_snapshots:
+			pass
 
+		# running simulation
+		self.net.run(self.t_run, report = report,report_period = period*second,
+			namespace = self.init_namespace())
 
+		self.net.stop()
 
+		# (?)
+		if self.iter_count == 0:
+			self.abs_path = self.path_sim_id
+		else:
+			self.abs_path = self.path_sim
 
+		# ========== Delete snap folders if w and/or xpre/xpost not stored
+		if self.rho_matrix_snapshots == False and self.iter_count == 0:
+			self.abs_path_rho_snapshots = os.path.join(self.path_snapshots,
+				self.path_rho_snapshots) # [ADDED]
+
+			shutil.rmtree(self.path_rho_snapshots)
+
+			if self.iter_count == 0:
+				self.abs_path = self.path_sim_id
+				# [ALTERED] - abs_path = self.path_sim_id
+			else:
+				self.abs_path = self.path_sim
+				# [ALTERED] - abs_path = self.path_sim
+
+		if self.w_matrix_snapshots == False and self.iter_count == 0:
+			self.abs_path_w_snapshots = os.path.join(self.path_snapshots, 
+				self.path_w_snapshots)
+
+			shutil.rmtree(self.abs_path_w_snapshots)
+
+			if self.iter_count == 0:
+				self.abs_path = self.path_sim_id
+			else:
+				self.abs_path = self.path_sim
+
+		if self.xpre_matrix_snapshots == False and self.iter_count == 0:
+			self.abs_path_xpre_snapshots = os.path.join(self.path_snapshots,
+				self.path_xpre_snapshots)
+
+			shutil.rmtree(self.abs_path_xpre_snapshots)
+
+			if self.iter_count == 0:
+				self.abs_path = self.path_sim_id
+			else:
+				self.abs_path = self.path_sim
+
+		if self.xpost_matrix_snapshots == False and self.iter_count==0: 
+			abs_path_xpost_snapshots = os.path.join(self.path_snapshots, 
+				self.path_xpost_snapshots)
+
+			shutil.rmtree(abs_path_xpost_snapshots)
+
+			if self.iter_count == 0:
+				self.abs_path = self.path_sim_id
+			else:
+				self.abs_path = self.path_sim
+
+		# Delete snapshot folder if neither rho nor w nor c snapshots were taken
+		if self.rho_matrix_snapshots == False and self.w_matrix_snapshots == False and self.xpre_matrix_snapshots == False and self.xpost_matrix_snapshots == False and self.iter_count == 0:
+			self.abs_path_snapshots = os.path.join(self.path_sim_id, 
+				self.path_snapshots)
+
+			shutil.rmtree(self.abs_path_snapshots)
+
+		# Rename simulation folder: add information about type of experiment
+		if self.iter_count == 0:
+			self.path_sim = self.path_sim_id + '_' + self.exp_type
+			self.abs_path_sim_id = os.path.join(self.simulation_folder, 
+				self.path_sim_id)
+			self.abs_path_sim = os.path.join(self.simulation_folder, 
+				self.path_sim)
+
+			os.rename(self.abs_path_sim_id, self.path_sim) 
+		else:
+			pass
+
+		# Update iter_count
+		self.iter_count += 1
+
+		# Go back to working directory (?) {y commented out?}
+		#os.chdir(self.cwd)
