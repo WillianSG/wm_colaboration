@@ -22,8 +22,14 @@ import random
 prefs.codegen.target = 'numpy'
 
 # Helper modules
-from load_parameters import *
+from store_simulation_settings import *
 from load_stimulus import *
+from load_parameters import *
+from load_synapse_model import *
+from return_w_matrix import *
+from return_rho_matrix import *
+from return_xpre_matrix import *
+from return_xpost_matrix import *
 
 class AttractorNetwork:
 	def __init__(self):
