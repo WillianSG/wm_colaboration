@@ -5,7 +5,8 @@
 @original: adapted from Lehfeldt
 
 Comments:
-- "Ext_attractors is to look at varying stimulus duration for a given maximum weight."
+- Learning of stimulus in an attractor network with different stimulus durations.
+- Ext_attractors is to look at varying stimulus duration for a given maximum weight.
 """
 import setuptools
 import os, sys, pickle
@@ -265,11 +266,7 @@ for i in arange(0, nets, 1):
 		print ('\nSimulation data pickled to ', fn)
 
 		# Move current simulation folder to superior simulation folder
-
-		#moveAllFilesinDir(n.path_sim, path_sim_folder_superior) - [?]
-		#os.chdir(path) - [?]
 		shutil.move(n.path_sim, path_sim_folder_superior)
-		#os.chdir(n.cwd) - [?]
 
 		print ('\n > simulation ', i+1, '/', num_networks)
 
