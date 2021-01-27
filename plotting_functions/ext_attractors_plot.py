@@ -15,16 +15,30 @@ from brian2 import ms, mV, second
 import os, sys, pickle
 import numpy as np
 
-# ================
-# from learning_plot_spiketrains_and_histograms import learning_plot_spiketrains_and_histograms
-# from learning_plot_rho_matrix_snapshots import learning_plot_rho_matrix_snapshots
-# from learning_plot_w_matrix_snapshots import learning_plot_w_matrix_snapshots
-# from learning_plot_xpre_matrix_snapshots import learning_plot_xpre_matrix_snapshots
-# from learning_plot_xpost_matrix_snapshots import learning_plot_xpost_matrix_snapshots
+helper_dir = 'helper_functions'
 
-# from learning_check_attractor_frequency import learning_check_attractor_frequency
-# from learning_plot_performance_analysis import learning_plot_performance_analysis
-# from learning_check_attractor_wmatrix import learning_check_attractor_wmatrix
+# Parent directory
+parent_dir = os.path.dirname(os.getcwd())
+
+# Adding parent dir to list of dirs that the interpreter will search in
+sys.path.append(os.path.join(parent_dir, helper_dir))
+
+# ================
+from learning_plot_spiketrains_and_histograms import *
+
+from learning_plot_rho_matrix_snapshots import *
+
+from learning_plot_w_matrix_snapshots import *
+
+from learning_plot_xpre_matrix_snapshots import *
+
+from learning_plot_xpost_matrix_snapshots import *
+
+from learning_check_attractor_frequency import *
+
+from learning_plot_performance_analysis import *
+
+from learning_check_attractor_wmatrix import *
 
 # from learning_check_for_delay_activity import learning_check_for_delay_activity
 # ================
