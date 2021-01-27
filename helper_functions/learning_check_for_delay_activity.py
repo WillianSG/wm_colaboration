@@ -28,6 +28,14 @@ def learning_check_for_delay_activity(s_tpoints_input_e, n_inds_input_e, s_tpoin
 	import sys
 	from brian2 import second
 
+	plot_func_dir = 'plotting_functions'
+
+	# Parent directory
+	parent_dir = os.path.dirname(os.getcwd())
+
+	# Adding parent dir to list of dirs that the interpreter will search in
+	sys.path.append(os.path.join(parent_dir, plot_func_dir))
+
 	from extract_trial_data import *
 	from find_wmax_for_attractors_plot_spiketrains import *
 
