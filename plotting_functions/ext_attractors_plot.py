@@ -9,6 +9,7 @@ Outputs:
 
 Comments:
 - Plot simulation data with different stimulus durations
+- [WRONG PARAMETER] run and fix
 """
 
 from brian2 import ms, mV, second
@@ -23,25 +24,15 @@ parent_dir = os.path.dirname(os.getcwd())
 # Adding parent dir to list of dirs that the interpreter will search in
 sys.path.append(os.path.join(parent_dir, helper_dir))
 
-# ================
 from learning_plot_spiketrains_and_histograms import *
-
 from learning_plot_rho_matrix_snapshots import *
-
 from learning_plot_w_matrix_snapshots import *
-
 from learning_plot_xpre_matrix_snapshots import *
-
 from learning_plot_xpost_matrix_snapshots import *
-
 from learning_check_attractor_frequency import *
-
 from learning_plot_performance_analysis import *
-
 from learning_check_attractor_wmatrix import *
-
-# from learning_check_for_delay_activity import learning_check_for_delay_activity
-# ================
+from learning_check_for_delay_activity import *
 
 from IPython import get_ipython # [?]
 
@@ -57,7 +48,7 @@ def ext_attractors_plot(
 	check_wmatrices):
 	
 	# Set path and select simulation folder
-	sim_path = 'Simulations/'
+	sim_path = 'Simulations/' # [WRONG PARAMETER]
 	sim_folder = path_sim_folder_superior
 
 	# Choose types of plots
