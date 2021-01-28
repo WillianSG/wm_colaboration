@@ -1,6 +1,8 @@
 **/sim_results
 **/plots_results
+**/net_simulation
 sim_results/
 plots_results/
 *.pickle
+*.txt
 **/__pycache__/
