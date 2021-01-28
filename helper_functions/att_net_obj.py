@@ -14,10 +14,11 @@ Comments:
 - [ADDED] tag with stuff added due to apparent original mistake
 """
 import setuptools
-import os, sys, pickle
+import os, sys, pickle, shutil
 from brian2 import *
 from numpy import *
 import random
+from time import localtime
 
 prefs.codegen.target = 'numpy'
 
@@ -144,8 +145,8 @@ class AttractorNetwork:
 		self.thr_post = None
 		self.thr_pre = None
 		self.rho_init = None
-		self.rho_dep = None
-		self.rho_dep2 = None
+		self.rho_neg = None
+		self.rho_neg2 = None
 		self.rho_min = 0
 		self.rho_max = 1
 		self.bistabilty = True
@@ -332,7 +333,9 @@ class AttractorNetwork:
 				name = 'Ext_att_E')
 
 		# Plastic synapses
-		self.E_E = Synapses(source = self.E, target = self.E, 
+		self.E_E = Synapses(
+			source = self.E, 
+			target = self.E, 
 			model = self.model_E_E, 
 			on_pre = self.pre_E_E,
 			on_post = self.post_E_E,
@@ -370,8 +373,8 @@ class AttractorNetwork:
 			self.tau_xpost,
 			self.xpre_jump,
 			self.xpost_jump,
-			self.rho_dep,
-			self.rho_dep2,
+			self.rho_neg,
+			self.rho_neg2,
 			self.rho_init,
 			self.tau_rho,
 			self.thr_post,
@@ -548,7 +551,6 @@ class AttractorNetwork:
 
 	# ========== Network namespace ==========
 	def set_namespace(self):
-
 		self.namespace = {
 			'Vrst_e' : self.Vrst_e,
 			'Vth_e_init' : self.Vth_e_init,
@@ -567,8 +569,8 @@ class AttractorNetwork:
 			'beta' : self.beta,
 			'xpre_factor' : self.xpre_factor,
 			'thr_b_rho' : self.thr_b_rho,
-			'rho_dep' : self.rho_dep,
-			'rho_dep2' : self.rho_dep2,
+			'rho_neg' : self.rho_neg,
+			'rho_neg2' : self.rho_neg2,
 			'thr_post' : self.thr_post,
 			'thr_pre' : self.thr_pre}
 
@@ -701,7 +703,7 @@ class AttractorNetwork:
 			def stimulus_pulse():
 				if defaultclock.t >= self.stimulus_pulse_duration:
 					self.stim_freq_e = 0*Hz
-					self.init_stimulus_e()
+					self.set_stimulus_e()
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
@@ -938,7 +940,7 @@ class AttractorNetwork:
 			xpre_jump = self.xpre_jump,
 			xpost_jump = self.xpost_jump,
 			xpre_factor   = self.xpre_factor,
-			rho_dep = self.rho_dep,
+			rho_neg = self.rho_neg,
 			eqs_e = self.eqs_e,
 			eqs_i = self.eqs_i,
 			model_E_E = self.model_E_E,
@@ -952,8 +954,11 @@ class AttractorNetwork:
 			pass
 
 		# running simulation
-		self.net.run(self.t_run, report = report,report_period = period*second,
-			namespace = self.init_namespace())
+		self.net.run(
+			self.t_run, 
+			report = report, 
+			report_period = period*second, 
+			namespace = self.set_namespace())
 
 		self.net.stop()
 

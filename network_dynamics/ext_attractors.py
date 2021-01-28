@@ -27,7 +27,7 @@ sys.path.append(os.path.join(parent_dir, helper_dir))
 sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
-from network import AttractorNetwork
+from att_net_obj import AttractorNetwork
 from ext_attractors_plot import *
 
 simulation_folder = os.path.join(parent_dir, 'net_simulation')
@@ -160,11 +160,11 @@ for i in arange(0, nets, 1):
 		n.exp_type = 'learn_network_' + str(i+1)  + '_pulse_dur_'+ str(pulse_durations[d]/second) + 's'
 
 		# Running simulation
-		print ('\nLearning... [net ', i+1 , ' | pulse duration', pulse_durations[d] + 's ]')
+		print('\nLearning... [net ', i+1 , ' | pulse duration', str(pulse_durations[d]) + ']')
 
 		n.run_net()
 
-		print ('Finished learning: net ', i+1)
+		print('Finished learning: net ', i+1)
 
 		# Simulation data storage
 
@@ -281,12 +281,12 @@ for i in arange(0, nets, 1):
 				n_inds_e, 
 				n_inds_i), f)
 
-		print ('\nSimulation data pickled to ', fn)
+		print('\nSimulation data pickled to ', fn)
 
 		# Move current simulation folder to superior simulation folder
 		shutil.move(n.path_sim, path_sim_folder_superior)
 
-		print ('\n > simulation ', i+1, '/', num_networks)
+		print('\n > simulation ', i+1, '/', num_networks)
 
 ext_attractors_plot(
 	path_sim_folder_superior, 
