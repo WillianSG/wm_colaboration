@@ -777,7 +777,7 @@ class AttractorNetwork:
 	def set_simulation_folder(self):
 		self.iter_count = 0  # simulation iteration added to .txt name
 		self.parent_dir = os.path.dirname(os.getcwd()) # parent directory
-		self.simulation_folder = os.path.join(self.parent_dir, 'sim_network')
+		self.simulation_folder = os.path.join(self.parent_dir, 'net_simulation', 'sim_network')
 
 		if not(os.path.isdir(self.simulation_folder)):
 			os.mkdir(self.simulation_folder)

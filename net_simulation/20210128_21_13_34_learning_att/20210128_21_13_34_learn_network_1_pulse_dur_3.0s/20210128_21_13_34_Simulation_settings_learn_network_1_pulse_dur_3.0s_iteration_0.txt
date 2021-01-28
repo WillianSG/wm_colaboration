@@ -1,0 +1,198 @@
+###########################################################################
+#--- C:\Users\willi\PhD_Stuff\learning_rule\net_simulation\sim_network\20210128_21_13_34\20210128_21_13_34 Simulation settings -------------------------------#
+###########################################################################
+
+#--- Experiment : learn_network_1_pulse_dur_3.0s ----------------------------------------#
+
+###########################################################################
+#--- Simulation settings -------------------------------------------------#
+###########################################################################
+#--- General settings ----------------------------------------------------#
+t_run : 10. s               # Duration of simulation
+int_meth_neur : linear      # Numerical integration method of NeuronGroup
+int_meth_syn : euler        # Numerical integration method of E_E synapses
+dt: 100. us                   # Delta t of clock intervals / temporal resolution of simulation 
+
+#--- Spikemonitors -------------------------------------------------------#
+Input_to_E_mon_record : True
+Input_to_I_mon_record : True
+E_mon_record: True
+I_mon_record: True
+Ext_att_record: False
+
+#--- Statemonitors -------------------------------------------------------#
+Input_E_rec_record: False
+Input_E_rec_attributes: ['w']
+Input_I_rec_record: False
+Input_I_rec_attributes: ['w']
+E_rec_record: False
+E_rec_attributes: ['Vm', 'Vepsp', 'Vipsp']
+I_rec_record: False
+I_rec_attributes: ['Vm', 'Vepsp', 'Vipsp']
+E_E_rec_record: False
+E_E_rec_attributes: ['w']
+E_I_rec_record: False
+E_I_rec_attributes: ['w']
+I_E_rec_record: False
+I_E_rec_attributes: ['w']
+Ext_att_E_rec_record: False
+Ext_att_E_rec_attributes: ['w']
+rec_dt: 100. us # Delta t of state variable recording 
+
+#--- @network_operation settings -----------------------------------------#
+# Rho snapshots 
+rho_matrix_snapshots: False
+rho_matrix_snapshots_step: 1. s
+
+# Weight snapshots 
+w_matrix_snapshots: False
+w_matrix_snapshots_step: 1. s
+
+# Xpre snapshots 
+xpre_matrix_snapshots: False
+xpre_matrix_snapshots_step: 1. s
+
+# Xpost snapshots 
+xpost_matrix_snapshots: False
+xpost_matrix_snapshots_step: 1. s
+
+# Switches of stimulation protocols for testing attractors
+# Stimulus pulse
+stimulus_pulse: True
+stimulus_pulse_duration: 3. s
+stimulus_pulse_clock_dt: 3. s
+
+###########################################################################
+#--- Stimulus settings ---------------------------------------------------#
+###########################################################################
+#--- Stimulus to E -------------------------------------------------------#
+stim_type_e : flat_to_E_fixed_size     
+stim_size_e : 64     
+stim_freq_e : 3.9 kHz    
+#--- Stimulus to I -------------------------------------------------------#
+stim_type_i : flat_to_I     
+stim_size_i : 64     
+stim_freq_i : 5. kHz    # Stimulus frequency to I 
+#--- Activation frequency of external attractor --------------------------#
+ext_att_freq : 0. Hz 
+
+###########################################################################
+#--- Learning and noise settings -----------------------------------------#
+###########################################################################
+#--- Plasticity rule: calcium_original, calcium_adjusted, none -----------#
+plasticity_rule : LR2 
+
+###########################################################################
+#--- Neuron parameters ---------------------------------------------------#
+###########################################################################
+#--- Neuron type: LIF, poisson, spikegenerators --------------------------#
+neuron_type : LIF      
+
+#--- Optional external population (copy of E_E wit fixed attractor) ------#
+add_Ext_att : False  # If True: add Ext_att population for testing of ETF functionn
+
+#--- Input population ----------------------------------------------------#
+N_input_e : 256        # Number of input neurons to E 
+N_input_i : 64         # Number of input neurons to I 
+
+#--- Excitatory population -----------------------------------------------#
+N_e : 256              # Number of excitatory neurons
+Vr_e : -65. mV         # Resting potential of excitatory neruons
+Vrst_e : -65. mV       # Re  set potential of excitatory neruons
+Vth_e_init : -52. mV   # Initial threshold voltage of excitatory neruons
+Vth_e_incr : 5. mV     # Post-spike threshold voltage increase
+tau_Vth_e : 20. ms     # Time constant of threshold decay
+taum_e : 20. ms        # Membrane time constant of excitatory neruons
+tref_e : 2. ms         # Refractory period of excitatory neruons
+tau_epsp_e : 3.5 ms    # Time constant of EPSP in excitatory neruons
+tau_ipsp_e : 5.5 ms    # Time constant of IPSP in excitatory neruons
+
+#--- Inhibitory population -----------------------------------------------#
+N_i : 64                # Number of inhibitory neurons
+Vr_i : -60. mV          # Resting voltage of inhibitory neurons
+Vrst_i : -60. mV        # Re  set potential of inhibitory neurons
+Vth_i : -40. mV         # Threshold voltage of inhibitory neurons
+taum_i : 10. ms         # Membrane time constant of inhibitory neurons
+tref_i : 1. ms          # Refractory period of inhibitory neurons
+tau_epsp_i : 3.5 ms     # Time constant of EPSP in inhibitory neurons
+tau_ipsp_i : 5.5 ms     # Time constant of IPSP in inhibitory neurons
+
+###########################################################################
+#--- Synapse parameters --------------------------------------------------#
+###########################################################################
+#--- Connection probabilities --------------------------------------------#
+p_e_e : 0.4              # Probability excitatory to excitatory
+p_e_i : 0.25             # Probability excitatory to inhibitory
+p_i_e : 0.25             # Probability inhibitory to excitatory
+
+#--- Connection weights --------------------------------------------------#
+w_input_e : 1. mV        # Weight input to excitatory
+w_input_i : 1. mV        # Weight input to inhibitory
+w_e_e : 0.5 mV            # Weight excitatory to excitatory
+w_e_i : 1. mV            # Weight excitatory to inhibitory
+w_i_e : 1. mV            # Weight inhibitory to excitatory
+
+#--- Other connection weight variables -----------------------------------#
+w_e_e_max : 7.25 mV           # Upper synaptic weight boundary for E_E connections
+w_ext_att_e : 0. V            # Weight external attractor to attractor in E 
+
+###########################################################################
+#--- New learning rule parameters ------------------------------------#
+###########################################################################
+#--- X parameters --------------------------------------------------# 
+#--- Synaptic efficacy parameters ----------------------------------------#
+tau_rho : 0.35 ks    # Time constant of synaptic efficacy (rho) changes 
+thr_b_rho : 0.5  # Threshold of bistabiltiy of synaptic efficacy 
+
+#--- Parameters for adjusted calcium-based rule --------------------------# 
+xpre_jump : 1        # X_pre Jumpsize
+xpost_jump : 1      # X_post Jumpsize
+tau_xpre: 13. ms           # Time constant of x_pre variable changes 
+tau_xpost: 33. ms         # Time constant of x_post variable changes 
+tau_xpre: 0.21        # Scaling factor for xpre variable that adds to efficacy 
+tau_xpost: -0.008          # fixed negative synaptic efficacy (rho) change variable 
+###########################################################################
+#--- Neurons: Neuron model equations -------------------------------------#
+###########################################################################
+
+#--- Excitatory neurons: LIF with adaptive threshold ---------------------#
+eqs_e : dVepsp/dt = -Vepsp / (3.5 * msecond) : V
+dVipsp/dt = -Vipsp / (5.5 * msecond) : V
+dVm/dt = (Vepsp - Vipsp - (Vm - (-65. * mvolt))) / (20. * msecond) : V (unless refractory)
+dVth_e/dt = ((-52. * mvolt) - Vth_e) / (20. * msecond) : V
+
+#--- Inhibitory neurons: LIF with constant threshold ---------------------#
+eqs_i : dVepsp/dt = -Vepsp / (3.5 * msecond) : V
+dVipsp/dt = -Vipsp / (5.5 * msecond) : V
+dVm/dt = (Vepsp - Vipsp - (Vm - (-60. * mvolt))) / (10. * msecond) : V (unless refractory)
+
+###########################################################################
+#--- Synapses: E_E synapse model equations -------------------------------#
+###########################################################################
+
+model_E_E :  
+		w : volt
+		dxpre/dt = -xpre / tau_xpre : 1 (clock-driven)
+		dxpost/dt = -xpost / tau_xpost : 1 (clock-driven) 
+		drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha -
+		int(rho <= thr_b_rho) * beta * int(rho > rho_min)) / tau_rho 
+			: 1  (clock-driven)
+
+pre_E_E : {'w_update': ' w = rho * w_max', 'rho_update_pre': 'rho = clip(rho + rho_neg *int(xpost > thr_post), rho_min, rho_max)', 'xpre_update': 'xpre = xpre + xpre_jump', 'Vepsp_transmission': 'Vepsp += w'}
+
+post_E_E : xpost = xpost + xpost_jump
+		rho = clip(rho + xpre * xpre_factor+ rho_neg2 *int(xpre < thr_pre) * int(xpre > 0), rho_min, rho_max)
+		w = rho*w_max
+
+###########################################################################
+#--- Namespace -----------------------------------------------------------#
+###########################################################################
+
+namespace : {'Vrst_e': -65. * mvolt, 'Vth_e_init': -52. * mvolt, 'Vrst_i': -60. * mvolt, 'Vth_i': -40. * mvolt, 'Vth_e_incr': 5. * mvolt, 'w_max': 7.25 * mvolt, 'xpre_jump': 1, 'xpost_jump': 1, 'tau_xpre': 13. * msecond, 'tau_xpost': 33. * msecond, 'tau_rho': 0.35 * ksecond, 'rho_min': 0.0, 'rho_max': 1, 'alpha': 1, 'beta': 1, 'xpre_factor': 0.21, 'thr_b_rho': 0.5, 'rho_neg': -0.008, 'rho_neg2': -0.08, 'thr_post': 0.4, 'thr_pre': 0.5}
+
+###########################################################################
+#--- Network -------------------------------------------------------------#
+###########################################################################
+
+net : <Network at time t=0. s, containing objects: <SpikeMonitor, recording from I_mon>, Thresholder(clock=Clock(dt=100. * usecond, name='defaultclock'), when=thresholds, order=0, name='E_thresholder'), Thresholder(clock=Clock(dt=100. * usecond, name='defaultclock'), when=thresholds, order=0, name='I_thresholder'), Resetter(clock=Clock(dt=100. * usecond, name='defaultclock'), when=resets, order=0, name='I_resetter'), Synapses(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='Input_I'), NetworkOperation(clock=Clock(dt=1. * second, name='clk_xpost_snap'), when=start, order=0, name='networkoperation_3'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='Input_E_pre'), StateUpdater(clock=Clock(dt=100. * usecond, name='defaultclock'), when=groups, order=0, name='Input_to_I_stateupdater'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=1, name='E_E_post'), Synapses(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='E_E'), <SpikeMonitor, recording from E_mon>, NeuronGroup(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='E'), Synapses(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='E_I'), <SpikeMonitor, recording from Input_to_I_mon>, Thresholder(clock=Clock(dt=100. * usecond, name='defaultclock'), when=thresholds, order=0, name='Input_to_I_thresholder'), StateUpdater(clock=Clock(dt=100. * usecond, name='defaultclock'), when=groups, order=0, name='E_E_stateupdater'), Resetter(clock=Clock(dt=100. * usecond, name='defaultclock'), when=resets, order=0, name='E_resetter'), <StateMonitor, recording ['w'] from E_E>, <StateMonitor, recording ['w'] from Input_I>, <SpikeMonitor, recording from Input_to_E_mon>, <StateMonitor, recording ('Vm', 'Vepsp', 'Vipsp') from E>, SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='E_E_w_update'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='E_E_Vepsp_transmission'), NetworkOperation(clock=Clock(dt=3. * second, name='clk_stim_pulse'), when=start, order=0, name='networkoperation_4'), NeuronGroup(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='I'), StateUpdater(clock=Clock(dt=100. * usecond, name='defaultclock'), when=groups, order=0, name='E_stateupdater'), NetworkOperation(clock=Clock(dt=1. * second, name='clk_xpre_snap'), when=start, order=0, name='networkoperation_2'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='I_E_pre'), <StateMonitor, recording ['w'] from Input_E>, Synapses(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='Input_E'), StateUpdater(clock=Clock(dt=100. * usecond, name='defaultclock'), when=groups, order=0, name='Input_to_E_stateupdater'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='E_E_xpre_update'), <StateMonitor, recording ('Vm', 'Vepsp', 'Vipsp') from I>, NeuronGroup(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='Input_to_E'), <StateMonitor, recording ['w'] from I_E>, NeuronGroup(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='Input_to_I'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='E_E_rho_update_pre'), Synapses(clock=Clock(dt=100. * usecond, name='defaultclock'), when=start, order=0, name='I_E'), StateUpdater(clock=Clock(dt=100. * usecond, name='defaultclock'), when=groups, order=0, name='I_stateupdater'), Thresholder(clock=Clock(dt=100. * usecond, name='defaultclock'), when=thresholds, order=0, name='Input_to_E_thresholder'), NetworkOperation(clock=Clock(dt=1. * second, name='clk_rho_snap'), when=start, order=0, name='networkoperation'), <StateMonitor, recording ['w'] from E_I>, NetworkOperation(clock=Clock(dt=1. * second, name='clk_w_snap'), when=start, order=0, name='networkoperation_1'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='E_I_pre'), SynapticPathway(clock=Clock(dt=100. * usecond, name='defaultclock'), when=synapses, order=-1, name='Input_I_pre')>
+

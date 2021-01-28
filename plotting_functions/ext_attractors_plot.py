@@ -34,7 +34,7 @@ from learning_plot_performance_analysis import *
 from learning_check_attractor_wmatrix import *
 from learning_check_for_delay_activity import *
 
-from IPython import get_ipython
+# from IPython import get_ipython
 
 def ext_attractors_plot(
 	path_sim_folder_superior, 
@@ -115,7 +115,8 @@ def ext_attractors_plot(
 
 		print('\nPlotting simulation data...\n')
 
-		get_ipython().run_line_magic('matplotlib', 'inline') # [?]
+		# ip = get_ipython()
+		# ip.run_line_magic('matplotlib', 'inline') # [?]
 
 		# Spiketrains and histograms
 		if spiketrains_and_histograms:

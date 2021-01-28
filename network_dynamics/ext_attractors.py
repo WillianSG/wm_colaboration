@@ -9,7 +9,7 @@ Comments:
 - Ext_attractors is to look at varying stimulus duration for a given maximum weight.
 """
 import setuptools
-import os, sys, pickle
+import os, sys, pickle, shutil
 from brian2 import *
 from numpy import *
 from time import localtime
@@ -244,7 +244,7 @@ for i in arange(0, nets, 1):
 			pickle.dump((
 				path_sim, 
 				sim_id, 
-				num_networks,
+				nets,
 				simulation_flag_pulse_duration,
 				t_run, 
 				exp_type,
@@ -286,7 +286,7 @@ for i in arange(0, nets, 1):
 		# Move current simulation folder to superior simulation folder
 		shutil.move(n.path_sim, path_sim_folder_superior)
 
-		print('\n > simulation ', i+1, '/', num_networks)
+		print('\n > simulation ', i+1, '/', nets)
 
 ext_attractors_plot(
 	path_sim_folder_superior, 
