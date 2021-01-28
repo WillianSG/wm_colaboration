@@ -226,16 +226,16 @@ for i in arange(0, nets, 1):
 		rho_matrix_snapshots_step = n.rho_matrix_snapshots_step
 
 		folder_snaps = os.path.split(n.path_snapshots)[1]
-		path_rho = n.path_snapshots# + '/' + n.path_rho_snapshots
+		path_rho = n.path_snapshots
 		
 		w_matrix_snapshots_step = n.w_matrix_snapshots_step
-		path_w = n.path_snapshots# + '/' + n.path_w_snapshots
+		path_w = n.path_snapshots
 
 		xpre_matrix_snapshots_step = n.xpre_matrix_snapshots_step
-		path_xpre = n.path_snapshots# + '/' + n.path_xpre_snapshots
+		path_xpre = n.path_snapshots
 		xpost_matrix_snapshots_step = n.xpost_matrix_snapshots_step
 		
-		path_xpost = n.path_snapshots# + '/' + n.path_xpost_snapshots
+		path_xpost = n.path_snapshots
 		plasticity_rule = n.plasticity_rule
 
 		fn = os.path.join(n.path_sim, n.id +'_' + n.exp_type + '.pickle')

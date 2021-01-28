@@ -48,7 +48,6 @@ def ext_attractors_plot(
 	check_wmatrices):
 	
 	# Set path and select simulation folder
-	sim_path = 'Simulations/' # [WRONG PARAMETER]
 	sim_folder = path_sim_folder_superior
 
 	# Choose types of plots
@@ -120,14 +119,14 @@ def ext_attractors_plot(
 
 		# Spiketrains and histograms
 		if spiketrains_and_histograms:
-			print(' > Plotting spiketrains and histograms...')
+			print(' > Plotting spiketrains and histograms... ')
 
 			learning_plot_spiketrains_and_histograms(
 				sim_id = sim_id,
 				path_sim = os.path.join(
 					path_sim_folder_superior, 
 					sim_folders_list[i]),
-				stim_size = len_stim_inds_original_E[0],
+				stim_size = len_stim_inds_original_E,
 				N = [N_input_e, N_input_i, N_e, N_i],
 				s_tpoints = [s_tpoints_input_e, s_tpoints_input_i, s_tpoints_e, s_tpoints_i],
 				n_inds = [n_inds_input_e, n_inds_input_i, n_inds_e, n_inds_i],
@@ -216,7 +215,7 @@ def ext_attractors_plot(
 				n_inds_e = n_inds_e, 
 				t_run = t_run,
 				stim_pulse_duration = stim_pulse_duration,
-				size_attractor = len_stim_inds_original_E[0],
+				size_attractor = len_stim_inds_original_E,
 				plot_spiketrains = False,
 				sim_id = sim_id,
 				path_sim = os.path.join(
@@ -230,7 +229,7 @@ def ext_attractors_plot(
 				n_inds = n_inds_e, 
 				t_run = t_run,
 				stim_pulse_duration = stim_pulse_duration,
-				size_attractor = len_stim_inds_original_E[0])
+				size_attractor = len_stim_inds_original_E)
 
 			attractor_frequencies[sim_folders_list[i]] = attractor_frequency_temp
 
