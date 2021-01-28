@@ -19,10 +19,6 @@ prefs.codegen.target = 'numpy'
 helper_dir = 'helper_functions'
 plotting_funcs_dir = 'plotting_functions'
 
-# Helper modules
-from network import AttractorNetwork
-from ext_attractors_plot import *
-
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())
 
@@ -30,13 +26,35 @@ parent_dir = os.path.dirname(os.getcwd())
 sys.path.append(os.path.join(parent_dir, helper_dir))
 sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
+# Helper modules
+from network import AttractorNetwork
+from ext_attractors_plot import *
+
+simulation_folder = os.path.join(parent_dir, 'net_simulation')
+
+if not(os.path.isdir(simulation_folder)):
+	os.mkdir(simulation_folder)
+
+idt = localtime()  
+
+simulation_id = str(idt.tm_year) + '{:02}'.format(idt.tm_mon) + \
+	'{:02}'.format(idt.tm_mday) + '_'+ '{:02}'.format(idt.tm_hour) + '_' + \
+	'{:02}'.format(idt.tm_min) + '_' + '{:02}'.format(idt.tm_sec)
+
 # Starts a new scope for magic functions
 start_scope()
 
 # 1 ========== Execution parameters ==========
 
+exp_name = '_learning_att'
+
+# results destination folder
+path_sim_folder_superior = os.path.join(simulation_folder, simulation_id + exp_name)
+if not(os.path.isdir(path_sim_folder_superior)):
+	os.mkdir(path_sim_folder_superior)
+
 nets = 1 # number of networks ('?')
-t_run = 10*second # simulation time
+sim_duration = 10*second # simulation time
 w_max = 7.25*mV # max weight in EE connections
 
 # Stimulus pulse setttings (?)
@@ -112,7 +130,7 @@ for i in arange(0, nets, 1):
 	n.w_i_e = 1*mV
 
 	# Other connection weight variables
-	n.w_e_e_max = wmax
+	n.w_e_e_max = w_max
 
 	n.fixed_attractor = False # [?]
 	n.fixed_attractor_wmax = 'all_max' # [?]

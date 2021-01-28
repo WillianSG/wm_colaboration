@@ -34,7 +34,7 @@ from learning_plot_performance_analysis import *
 from learning_check_attractor_wmatrix import *
 from learning_check_for_delay_activity import *
 
-from IPython import get_ipython # [?]
+from IPython import get_ipython
 
 def ext_attractors_plot(
 	path_sim_folder_superior, 
@@ -63,10 +63,10 @@ def ext_attractors_plot(
 	# Loading data
 
 	cwd = os.getcwd()
-    sim_folders_list = sorted(os.listdir(path_sim_folder_superior))
+	sim_folders_list = sorted(os.listdir(path_sim_folder_superior))
 
-    for i in np.arange(0, len(sim_folders_list[0:-1]), 1):
-    	sim_data = os.path.join(path_sim_folder_superior, sim_folders_list[i], sim_folders_list[i] + '.pickle')
+	for i in np.arange(0, len(sim_folders_list[0:-1]), 1):
+		sim_data = os.path.join(path_sim_folder_superior, sim_folders_list[i], sim_folders_list[i] + '.pickle')
 
 		with open(sim_data,'rb') as f:(
 			path_sim, 
@@ -152,21 +152,21 @@ def ext_attractors_plot(
 		# Weight matrix snapshot
 		if w_matrix_snapshots:
 			print(' > Plotting weight matrix snapshots...')  
-				learning_plot_w_matrix_snapshots(
-					cwd = cwd,
-					sim_id = sim_id,
-					path_sim =  os.path.join(
-						path_sim_folder_superior, 
-						sim_folders_list[i]),
-					path_w =  os.path.join(
-						path_snaps, 
-						sim_id + '_w_matrix_snaps'),
-					w_matrix_snapshots_step = w_matrix_snapshots_step,
-					t_run = t_run,
-					wmin = 0,
-					wmax = w_e_e_max/mV,
-					N_e = N_e,
-					N_i = N_i)
+			learning_plot_w_matrix_snapshots(
+				cwd = cwd,
+				sim_id = sim_id,
+				path_sim =  os.path.join(
+					path_sim_folder_superior, 
+					sim_folders_list[i]),
+				path_w =  os.path.join(
+					path_snaps, 
+					sim_id + '_w_matrix_snaps'),
+				w_matrix_snapshots_step = w_matrix_snapshots_step,
+				t_run = t_run,
+				wmin = 0,
+				wmax = w_e_e_max/mV,
+				N_e = N_e,
+				N_i = N_i)
 
 		# Xpre matrix snapshots
 		if xpre_matrix_snapshots:
@@ -275,7 +275,7 @@ def ext_attractors_plot(
 
 		fn = os.path.join(
 			path_sim_folder_superior, 
-			sim_i d + '_' + '_learning_performance_data.pickle')
+			sim_id + '_' + '_learning_performance_data.pickle')
 
 		with open(fn, 'wb') as f:  
 			pickle.dump((

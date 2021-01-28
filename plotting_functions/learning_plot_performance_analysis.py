@@ -41,15 +41,15 @@ def learning_plot_performance_analysis(path_sim, sim_id, exp_type, num_networks,
 
 		# No delay activity
 		if dataset_temp.count(True) == 0:
-		count_no_da[flag_pulse_duration_pos] += 1
+			count_no_da[flag_pulse_duration_pos] += 1
 
 		# Fading delay activity    
 		if dataset_temp.count(True) == 1:
-		count_fading_da[flag_pulse_duration_pos] += 1
+			count_fading_da[flag_pulse_duration_pos] += 1
 
 		# Delay activity
 		if dataset_temp.count(True) == 2:
-		count_da[flag_pulse_duration_pos] += 1
+			count_da[flag_pulse_duration_pos] += 1
 
 	all_counts_concatenated = np.concatenate((count_da, count_fading_da,
 		count_no_da), axis = 0) 

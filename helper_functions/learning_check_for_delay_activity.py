@@ -23,21 +23,21 @@ Comments:
 - Classifies a recorded spike train to 'No delay activity' (delay_activities = [False, False]), 'Fading delay activity' (delay_activities = [True, False]) and 'Delay activity' (delay_activities = [True, True]). 
 - The function checks for a user-defined critical number of active neuron indices in a user-defined temporal window after simulus offset and in a same temporal window before the end of the simulation.
 """
+import sys, os
+from brian2 import second
 
-def learning_check_for_delay_activity(s_tpoints_input_e, n_inds_input_e, s_tpoints_e, n_inds_e, t_run, stim_pulse_duration, size_attractor, plot_spiketrains, sim_id, path_sim):
-	import sys
-	from brian2 import second
+plot_func_dir = 'plotting_functions'
 
-	plot_func_dir = 'plotting_functions'
+# Parent directory
+parent_dir = os.path.dirname(os.getcwd())
 
-	# Parent directory
-	parent_dir = os.path.dirname(os.getcwd())
+# Adding parent dir to list of dirs that the interpreter will search in
+sys.path.append(os.path.join(parent_dir, plot_func_dir))
 
-	# Adding parent dir to list of dirs that the interpreter will search in
-	sys.path.append(os.path.join(parent_dir, plot_func_dir))
+from extract_trial_data import *
+from find_wmax_for_attractors_plot_spiketrains import *
 
-	from extract_trial_data import *
-	from find_wmax_for_attractors_plot_spiketrains import *
+def learning_check_for_delay_activity(s_tpoints_input_e, n_inds_input_e,s_tpoints_e, n_inds_e, t_run, stim_pulse_duration, size_attractor,plot_spiketrains, sim_id, path_sim):
 
 	# User-defined critical number of active indices within the observed period
 	critical_num_inds_active = size_attractor / 2

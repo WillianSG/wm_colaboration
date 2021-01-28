@@ -703,9 +703,9 @@ class AttractorNetwork:
 					self.stim_freq_e = 0*Hz
 					self.init_stimulus_e()
 		else:
-		@network_operation(clock = self.stimulus_pulse_clock)
-		def stimulus_pulse():
-			pass
+			@network_operation(clock = self.stimulus_pulse_clock)
+			def stimulus_pulse():
+				pass
 
 		# ========== Network object
 		defaultclock.dt = self.dt
