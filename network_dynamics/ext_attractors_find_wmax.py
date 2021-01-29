@@ -67,7 +67,7 @@ wmax_range = np.arange(wmax_min, wmax_max, wmax_step)*mV
 
 
 # 3 - Net initialization
-for i in np.arange(0,num_networks,1):
+for i in np.arange(0, num_networks, 1):
 	print('Simulating net ', i+1, '/', num_networks)
 	    
 	n = AttractorNetwork()
@@ -107,6 +107,7 @@ for i in np.arange(0,num_networks,1):
 
 	# Learning rule 
 	n.plasticity_rule = 'LR2' # 'LR1', 'LR2'
+	n.parameter = '2.4'
 	n.neuron_type = 'LIF'
 	n.net_size = 'net'
 	n.bistability = True
@@ -131,7 +132,7 @@ for i in np.arange(0,num_networks,1):
 
 	# 3.1 - Pulse duration loop
 
-	for w in np.arange(0,len(wmax_range),1):
+	for w in np.arange(0, len(wmax_range), 1):
 		# Restore network state with loaded learning rule parameters       
 		n.net.restore(name = 'network_initial_state', filename = os.path.join(sim_results_folder, 'network_initial_state'))
 
@@ -140,8 +141,7 @@ for i in np.arange(0,num_networks,1):
 		# === Set wmax of fixed attractor
 
 		n.w_e_e_max = wmax_range[w]
-		n.init_weights()
-		print(max(n.E_E.w)/mV)
+		n.set_weights()
 
 		simulation_flag_wmax = [w, n.w_e_e_max] # Simulation flags
 
@@ -151,7 +151,7 @@ for i in np.arange(0,num_networks,1):
 
 		n.run_net()
 
-		print ('[finished] | ', i+1, '- wmax fixed attractor ', n.w_e_e_max)
+		print('[finished] | ', i+1, '- wmax fixed attractor ', n.w_e_e_max)
 
 
 		# === Storing simulation data
@@ -268,4 +268,6 @@ ext_attractors_find_wmax_plot(
 	exp_type, 
 	spiketrains_and_histograms = True,
 	w_matrix_snapshots = False)
+
+print('\next_attractors_find_wmax.py - END.\n')
 

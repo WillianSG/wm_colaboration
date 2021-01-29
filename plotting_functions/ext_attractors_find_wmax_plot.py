@@ -51,12 +51,12 @@ def ext_attractors_find_wmax_plot(path_sim_folder_superior, sim_id, exp_type,spi
 	# 2 - Loading data
 
 	cwd = os.getcwd()
-	sim_folder_list = sorted(os.listdir(path_sim_folder_superior))
+	sim_folders_list = sorted(os.listdir(path_sim_folder_superior))
 
 	counter = 1
 
 	# [?] - y leaving the last file out?
-	for i in np.arange(0, len(sim_folder_list[0:-1]), 1):
+	for i in np.arange(0, len(sim_folders_list[0:-1]), 1):
 		sim_data = os.path.join(path_sim_folder_superior, sim_folders_list[i], sim_folders_list[i] + '.pickle')
 
 		with open(sim_data,'rb') as f:(
@@ -113,7 +113,7 @@ def ext_attractors_find_wmax_plot(path_sim_folder_superior, sim_id, exp_type,spi
 			learning_plot_spiketrains_and_histograms(
 				sim_id = sim_id,
 				path_sim = os.path.join(path_sim_folder_superior, sim_folders_list[i]),
-				stim_size = len_stim_inds_original_E[0], # [wrong] - not array
+				stim_size = len_stim_inds_original_E, # [wrong] - not array
 				N = [N_input_e, N_input_i, N_e, N_i],
 				s_tpoints = [s_tpoints_input_e, s_tpoints_input_i, s_tpoints_e, s_tpoints_i],
 				n_inds = [n_inds_input_e, n_inds_input_i, n_inds_e, n_inds_i],
@@ -123,7 +123,7 @@ def ext_attractors_find_wmax_plot(path_sim_folder_superior, sim_id, exp_type,spi
 
 		# Weight matrix snapshots
 		if w_matrix_snapshots:
-			print(' > lotting w matrix snapshots' )
+			print(' > plotting w matrix snapshots' )
 
 			learning_plot_w_matrix_snapshots(
 				cwd = cwd, 
@@ -140,7 +140,7 @@ def ext_attractors_find_wmax_plot(path_sim_folder_superior, sim_id, exp_type,spi
 		# Evaluation of learning performance
 
 		if learning_performance:  
-			print('> performing performance analysis')
+			print(' > performing performance analysis')
 
 			delay_activities_temp = learning_check_for_delay_activity(
 				s_tpoints_input_e = s_tpoints_input_e,
@@ -149,7 +149,7 @@ def ext_attractors_find_wmax_plot(path_sim_folder_superior, sim_id, exp_type,spi
 				n_inds_e = n_inds_e, 
 				t_run = t_run,
 				stim_pulse_duration = stim_pulse_duration,
-				size_attractor = len_stim_inds_original_E[0], # [wrong] - not array
+				size_attractor = len_stim_inds_original_E, # [wrong] - not array
 				plot_spiketrains = False,
 				sim_id = sim_id,
 				path_sim = os.path.join(path_sim_folder_superior, sim_folders_list[i]))
@@ -161,7 +161,7 @@ def ext_attractors_find_wmax_plot(path_sim_folder_superior, sim_id, exp_type,spi
 				n_inds = n_inds_e, 
 				t_run = t_run,
 				stim_pulse_duration = stim_pulse_duration,
-				size_attractor = len_stim_inds_original_E[0]) # [wrong] - not array
+				size_attractor = len_stim_inds_original_E) # [wrong] - not array
 
 			attractor_frequencies[sim_folders_list[i]] = attractor_frequency_temp
 

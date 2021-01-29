@@ -366,7 +366,7 @@ class AttractorNetwork:
 
 	# ========== Rule's parameters loader ==========
 	def set_learning_rule_parameters(self):
-		if self.plasticity_rule == 'LR1' or  self.plasticity_rule =='LR2':
+		if self.plasticity_rule == 'LR1' or self.plasticity_rule =='LR2':
 			self.num_E_E_synapses = len(self.E_E.i)
 
 			[self.tau_xpre,

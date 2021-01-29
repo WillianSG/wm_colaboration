@@ -127,12 +127,14 @@ def find_wmax_for_attractors_plot_performance_analysis(path_sim, sim_id, exp_typ
 	std_freqs_da = []
 
 	for k in np.arange(0, len(attractor_frequencies_no_da), 1):
-		mean_freqs_no_da.append(mean(attractor_frequencies_no_da[k]))
+		mean_freqs_no_da.append(np.mean(attractor_frequencies_no_da[k]))
 		std_freqs_no_da.append(std(attractor_frequencies_no_da[k]))
-		mean_freqs_fading_da.append(mean(attractor_frequencies_fading_da[k]))
-		std_freqs_fading_da.append(std(attractor_frequencies_fading_da[k]))
-		mean_freqs_da.append(mean(attractor_frequencies_da[k]))
-		std_freqs_da.append(std(attractor_frequencies_da[k]))
+
+		mean_freqs_fading_da.append(np.mean(attractor_frequencies_fading_da[k]))
+		std_freqs_fading_da.append(np.std(attractor_frequencies_fading_da[k]))
+		
+		mean_freqs_da.append(np.mean(attractor_frequencies_da[k]))
+		std_freqs_da.append(np.std(attractor_frequencies_da[k]))
 
 	os.chdir(path_sim)
 

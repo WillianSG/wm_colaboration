@@ -44,6 +44,6 @@ def learning_check_attractor_wmatrix(cwd, sim_id, path_sim, path_w, w_matrix_sna
 	wmat = np.loadtxt(os.path.join(path_w,files_list[file_ind[0][0]]), delimiter = ',')
 
 	# take mean
-	mean_wmat = mean(wmat)
+	mean_wmat = 0 if np.isnan(np.mean(wmat)) else np.mean(wmat) 
 
 	return mean_wmat

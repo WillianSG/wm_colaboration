@@ -63,7 +63,7 @@ pulse_duration_max = 3
 pulse_duration_step = 1
 pulse_durations = arange(pulse_duration_min, pulse_duration_max+pulse_duration_step, pulse_duration_step)*second
 
-# 2 ========== Initialize and store network (?) ==========
+# 2 ========== Initialize and store network ==========
 
 for i in arange(0, nets, 1):
 	print('Simulating network ', i, ' of ', nets)
