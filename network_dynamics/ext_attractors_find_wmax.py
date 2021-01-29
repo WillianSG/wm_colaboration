@@ -11,9 +11,12 @@ Comments:
 """
 import setuptools
 import os, sys, pickle, shutil
+import warnings
 from brian2 import *
 from numpy import *
 from time import localtime
+
+warnings.filterwarnings('ignore') 
 
 prefs.codegen.target = 'numpy'
 
