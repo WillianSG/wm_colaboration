@@ -16,7 +16,7 @@ Output:
 Comments:
 - Plot the inter spike interval histograms of the netdyn experiments.
 """
-import os,sys
+import os, sys
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from brian2 import mV, Hz
