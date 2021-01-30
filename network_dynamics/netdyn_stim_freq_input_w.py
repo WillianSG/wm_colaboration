@@ -10,7 +10,7 @@ Comments:
 - Network dynamics with changing stimulus frequency and input weight.
 """
 from brian2 import *
-import os, sys, shutil, pickle, socket
+import os, sys, shutil, pickle
 from time import localtime
 import shutil
 import warnings
@@ -32,10 +32,11 @@ sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
 from att_net_obj import AttractorNetwork
+
 from netdyn_create_temp_folders import *
 from netdyn_store_temp_data import *
 from netdyn_store_as_dict import *
-from netdyn_stimfreq_inputweight_makeplots import *
+from netdyn_stim_freq_input_w_makeplots import *
 
 # 1 - Simulation settings
 
