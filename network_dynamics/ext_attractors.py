@@ -50,23 +50,25 @@ exp_name = '_learning_att'
 
 # results destination folder
 path_sim_folder_superior = os.path.join(simulation_folder, simulation_id + exp_name)
+
 if not(os.path.isdir(path_sim_folder_superior)):
 	os.mkdir(path_sim_folder_superior)
 
-nets = 1 # number of networks ('?')
+nets = 1 # number of networks
 sim_duration = 10*second # simulation time
 w_max = 7.25*mV # max weight in EE connections
 
-# Stimulus pulse setttings (?)
+# STIMULUS pulse setttings
 pulse_duration_min = 3 # zero seconds not possible
 pulse_duration_max = 3
 pulse_duration_step = 1
+
 pulse_durations = arange(pulse_duration_min, pulse_duration_max+pulse_duration_step, pulse_duration_step)*second
 
 # 2 ========== Initialize and store network ==========
 
 for i in arange(0, nets, 1):
-	print('Simulating network ', i, ' of ', nets)
+	print('\n> Simulating network ', i+1, '/', nets)
 
 	n = AttractorNetwork() # network class
 
@@ -82,7 +84,6 @@ for i in arange(0, nets, 1):
 	n.stim_offset_e = 96
 
 	n.stim_type_i = 'flat_to_I'
-
 	n.stim_size_i = n.N_i
 	n.stim_freq_i = 5000*Hz
 
@@ -138,22 +139,22 @@ for i in arange(0, nets, 1):
 	n.init_network_modules() # creates/initializes all objects/parameters/mons
 
 	n.net.store(
-		name = 'network_initial_state', 
+		name = 'network_' + simulation_id + '_initial_state', 
 		filename = os.path.join(
 			path_sim_folder_superior,
-			'network_initial_state'
+			'network_' + simulation_id + '_initial_state'
 			)
-	) # [?] - net.store (from network obj in Brian2)
+	)
 
 	# ======= Loop : pulse duration
 	for d in np.arange(0, len(pulse_durations), 1):
 		# Restore network state with loaded learning rule parameters
-		n.net.restore(name = 'network_initial_state', filename = os.path.join(path_sim_folder_superior, 'network_initial_state'))
+		n.net.restore(name = 'network_' + simulation_id + '_initial_state', filename = os.path.join(path_sim_folder_superior, 'network_' + simulation_id + '_initial_state'))
 
 		# Set pulse duration
 		n.stimulus_pulse_duration = pulse_durations[d]
 
-		# Simulation flag of pulse duration - [?]
+		# Simulation flag of pulse duration
 		simulation_flag_pulse_duration = [d, n.stimulus_pulse_duration]
 
 		# Name of simulation
