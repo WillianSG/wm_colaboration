@@ -131,13 +131,13 @@ for i in np.arange(0, num_networks, 1):
 	n.init_network_modules() # creates/initializes all objects/parameters/mons
 	  
 	# Store initial network state
-	n.net.store(name = 'network_initial_state', filename = os.path.join(sim_results_folder, 'network_initial_state'))
+	n.net.store(name = 'network_' + simulation_id + '_initial_state', filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
 
 	# 3.1 - Pulse duration loop
 
 	for w in np.arange(0, len(wmax_range), 1):
 		# Restore network state with loaded learning rule parameters       
-		n.net.restore(name = 'network_initial_state', filename = os.path.join(sim_results_folder, 'network_initial_state'))
+		n.net.restore(name = 'network_' + simulation_id + '_initial_state', filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
 
 		n.exp_type = 'learning_network_' + str(i+1) + '_wmax_' + str(wmax_range[w])
 
