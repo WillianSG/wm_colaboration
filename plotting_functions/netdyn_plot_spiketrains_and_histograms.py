@@ -45,11 +45,11 @@ from firing_rate_histograms import *
 def netdyn_plot_spiketrains_and_histograms(full_path, sim_id, N, stim_size,var_range, s_tpoints, n_inds, t_run, bin_width_desired, exp_type, flag_savefig):
 
 	# General style settings
-  lwdth=2.5
-  s1=30
-  s2=70
-  mpl.rcParams['axes.linewidth'] = lwdth
-    
+	lwdth=2.5
+	s1=30
+	s2=70
+	mpl.rcParams['axes.linewidth'] = lwdth
+
 	for var_outer, freq in enumerate(var_range[0]):
 		for var_inner, weight in enumerate(var_range[1]):
 			# 1 - Resolving histograms
