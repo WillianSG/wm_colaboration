@@ -14,7 +14,7 @@ Output:
 Comments:
 - Gets the inter spike intervals of the populations for every loop iteration of the netdyn experiments.
 """
-import sys
+import sys, os
 
 helper_dir = 'helper_functions'
 
