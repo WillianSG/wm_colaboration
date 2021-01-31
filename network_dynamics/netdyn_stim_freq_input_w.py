@@ -64,7 +64,7 @@ n.exp_type = exp_type + simulation_flag
 # 1.1 - Simulation results settings
 
 # Create folders for temporary storage of simulation data
-n.init_simulation_folder()
+n.set_simulation_folder()
 sim_paths_temp = netdyn_create_temp_folders(path_id = n.path_sim_id,
 add_Ext_att = False)
 sim_path_folder = n.path_sim_id + '_' + n.exp_type 
@@ -131,18 +131,18 @@ for freq in f_range:
 		# E_only: Initialise stimulus and input weight
 		if simulation_flag == 'E_only':    
 			n.stim_freq_e = freq
-			n.init_stimulus_e()
+			n.set_stimulus_e()
 
 			n.w_input_e = weight
-			n.init_weights()
+			n.set_weights()
 
 		# I_only: Initialise stimulus and input weight  
 		if simulation_flag == 'I_only':  
 			n.stim_freq_i = freq
-			n.init_stimulus_i()
+			n.set_stimulus_i()
 
 			n.w_input_i = weight
-			n.init_weights()
+			n.set_weights()
 
 		# Run simulation
 		n.run_net(report = None)
