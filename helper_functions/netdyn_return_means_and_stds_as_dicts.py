@@ -17,7 +17,7 @@ rates of a population
 Comments:
 - Returns dictionaries of mean firing rates (derived from neuron_resolved histograms) and standard deviations of firing rates.
 """
-import sys
+import sys, os
 from brian2 import mean, std
 
 helper_dir = 'helper_functions'
