@@ -24,13 +24,13 @@ def inter_spike_intervals(n,inds,tpoints):
 		# Identify index positions where neuron was active
 		temp_inds = numpy.where(inds == i)
 
+		# 2) Calculate isi of neuron
 		# Only if more than one spike
 		if len(temp_inds[0]) > 1:
 			temp_tpoints = tpoints[temp_inds[0]] # Get spikes time points
-				# 2) Calculate isi of neuron
-				# loop through spike times
-				for j in np.arange(0, len(temp_tpoints)-1):
-					isi_temp = temp_tpoints[j+1]-temp_tpoints[j] # calc. isi
-					isi_list.append(isi_temp) # append interval to list
+			# loop through spike times
+			for j in np.arange(0, len(temp_tpoints)-1):
+				isi_temp = temp_tpoints[j+1]-temp_tpoints[j] # calc. isi
+				isi_list.append(isi_temp) # append interval to list
 
 	return isi_list
