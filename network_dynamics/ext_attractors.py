@@ -301,4 +301,6 @@ ext_attractors_plot(
 	learning_performance = False, 
 	check_wmatrices = False)
 
+print('\next_attractors.py - END.\n')
+
 

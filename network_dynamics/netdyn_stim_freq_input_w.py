@@ -8,6 +8,7 @@ Output:
 
 Comments:
 - Network dynamics with changing stimulus frequency and input weight.
+- The netdyn_* scripts are in regard to the network dynamic for setting up the general network activity.
 """
 from brian2 import *
 import os, sys, shutil, pickle
@@ -51,7 +52,7 @@ f_end = 10000
 f_step = 300
 f_range = np.arange(f_start, f_end, f_step)*Hz
 
-# Weight range
+# Input weight range
 
 w_start = 1
 w_end = 1.1
@@ -99,7 +100,7 @@ n.stim_freq_i = 0*Hz
 
 # 1.3 - Learning rule settings
 
-n.plasticity_rule = 'none' # Learning rule
+n.plasticity_rule = 'LR2'
 n.neuron_type = 'LIF'
 n.bistability = False  
 n.parameter = '2.1'
@@ -127,6 +128,8 @@ for freq in f_range:
 	for weight in w_range:
 		# Restore initial network configuration        
 		n.net.restore()
+
+		print('> starting iteration # ', count+1, '... [', count+1, '/', len(f_range)*len(w_range), ']')
 
 		# E_only: Initialise stimulus and input weight
 		if simulation_flag == 'E_only':    
@@ -180,16 +183,16 @@ for freq in f_range:
 		count += 1
 
 		if simulation_flag == 'E_only': 
-			print( '\nStimulus frequency: ', n.stim_freq_e)
+			print( 'Stimulus frequency: ', n.stim_freq_e)
 			print( 'Input weight: ', n.w_input_e)
 			print( 'Finished iteration ', count, '/', 
-				len(f_range)*len(w_range))
+				len(f_range)*len(w_range), '\n')
 
 		if simulation_flag == 'I_only':
 			print( '\nStimulus frequency: ', n.stim_freq_i)
 			print( 'Input weight: ', n.w_input_i)
 			print( 'Finished iteration ', count, '/', 
-				len(f_range)*len(w_range))
+				len(f_range)*len(w_range), '\n')
 
 # After simulation: move stored data to dictionaries      
 [s_tpoints_input_e, 
@@ -269,4 +272,6 @@ for d in range(0,len(sim_paths_temp)):
 	shutil.rmtree(sim_paths_temp[d]) 
 
 netdyn_stimfreq_inputweight_makeplots(path_sim, sim_id, exp_type)
+
+print('\nnetdyn_stim_freq_input_w.py - END.\n')
 

@@ -110,7 +110,7 @@ for i in np.arange(0, num_networks, 1):
 
 	# Learning rule 
 	n.plasticity_rule = 'LR2' # 'LR1', 'LR2'
-	n.parameter = '2.4'
+	n.parameter = '2.1'
 	n.neuron_type = 'LIF'
 	n.net_size = 'net'
 	n.bistability = True
