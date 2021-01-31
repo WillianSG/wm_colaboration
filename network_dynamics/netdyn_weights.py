@@ -101,6 +101,7 @@ n.stim_freq_i = 5000*Hz
 
 # Learning rule
 n.plasticity_rule = 'LR2'
+n.parameter = '2.1'
 n.neuron_type = 'LIF' 
 n.bistability = False
 
@@ -124,7 +125,7 @@ sim_paths_temp = netdyn_create_temp_folders(path_id = n.path_sim_id, add_Ext_att
 
 sim_path_folder = n.path_sim_id + '_' + n.exp_type
 
-counter = 0
+count = 0
 
 # Loop through defined range frequencies and weights
 for w1 in w1_range:
@@ -174,7 +175,7 @@ for w1 in w1_range:
 			data_temp = sim_data_temp)
 
 
-		counter += 1
+		count += 1
 
 		if simulation_flag == 'weight_wee': 
 			print('\nE to E weight: ', n.w_e_e)
@@ -257,3 +258,5 @@ for d in range(0, len(sim_paths_temp)):
 	shutil.rmtree(sim_paths_temp[d])
 
 netdyn_weights_makeplots(path_sim, sim_id, exp_type)
+
+print('\nnetdyn_weights.py - END.\n')

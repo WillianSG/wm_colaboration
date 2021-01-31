@@ -37,8 +37,7 @@ def netdyn_weights_makeplots(path_sim, sim_id, exp_type):
 	# Set path, select simulation folder and data, define figure name for result plot
 
 	sim_path = os.path.join(parent_dir, net_sim_dir)
-    sim_folder = path_sim
-    sim_data =  os.path.join(path_sim, sim_id + '_' + exp_type + '.pickle')
+	sim_data =  os.path.join(path_sim, sim_id + '_' + exp_type + '.pickle')
 
 	# Load data from simulation
 	with open(sim_data,'rb') as f:
@@ -75,12 +74,12 @@ def netdyn_weights_makeplots(path_sim, sim_id, exp_type):
 	# Plotting
 	
 	mean_rates_and_stds = True
-    spiketrains_and_histograms = False
-    input_output_curve = True
-    inter_spike_intervals = False
+	spiketrains_and_histograms = False
+	input_output_curve = True
+	inter_spike_intervals = False
 
     # Spike-trains and firing rates histograms
-    if spiketrains_and_histograms:
+	if spiketrains_and_histograms:
 		netdyn_plot_spiketrains_and_histograms(
 			full_path = path_sim, 
 			sim_id = sim_id,
@@ -95,7 +94,7 @@ def netdyn_weights_makeplots(path_sim, sim_id, exp_type):
 			flag_savefig = 'weight_weight')
 
 	# Return neuron_resolved firing rates as dictionary
-    if mean_rates_and_stds or input_output_curve:
+	if mean_rates_and_stds or input_output_curve:
 		# Get mean values and standard deviations
 		[rates_mean_input_e, 
 		rates_std_input_e, 
