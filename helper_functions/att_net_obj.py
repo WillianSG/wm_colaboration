@@ -18,6 +18,7 @@ import os, sys, pickle, shutil
 from brian2 import *
 from numpy import *
 import random
+import numpy as np
 from time import localtime
 
 prefs.codegen.target = 'numpy'
@@ -54,7 +55,7 @@ class AttractorNetwork:
 
 		self.Input_to_E_mon_record = False
 		self.Input_to_I_mon_record = False
-		self.E_mon_record = False
+		self.E_mon_record = True
 		self.I_mon_record = False
 		self.Ext_att_record = False
 
@@ -181,6 +182,9 @@ class AttractorNetwork:
 		self.tau_epsp_i = 3.5*ms # time constant of EPSP
 		self.tau_ipsp_i = 5.5*ms # time constant of IPSP
 
+		# 2.2.3 - Population for spontaneous activity
+		self.F_s = 0.08*Hz
+
 		# 2.3 ========== Synapses
 
 		self.syn_delay_Vepsp_e_e = 0*ms 
@@ -280,6 +284,11 @@ class AttractorNetwork:
 			refractory = self.tref_i,
 			method = self.int_meth_neur, 
 			name = 'I')
+
+		# "Spontaneoys activity" population
+		self.S = PoissonGroup(N = self.N_e,
+			rates = self.F_s,
+			name = 'S')
 
 		# 3 ========== Neuronal Attributes ==========
 		# Adaptive threshold of E
@@ -495,6 +504,9 @@ class AttractorNetwork:
 			name = 'E_mon')
 
 		self.I_mon = SpikeMonitor(source = self.I, record = self.I_mon_record,name = 'I_mon')
+
+		self.S_mon = SpikeMonitor(source = self.S, record = True,
+			name = 'S_mon')
 
 		if self.add_Ext_att:
 			self.Ext_att_mon = SpikeMonitor(source = self.Ext_att,
@@ -718,6 +730,7 @@ class AttractorNetwork:
 				self.Input_to_I,
 				self.E,
 				self.I,
+				self.S,
 				self.Ext_att,
 				self.Input_E,
 				self.Input_I,
@@ -729,6 +742,7 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
+				self.S_mon,
 				self.Ext_att_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
@@ -750,6 +764,7 @@ class AttractorNetwork:
 				self.Input_to_I,
 				self.E,
 				self.I,
+				self.S,
 				self.Input_E,
 				self.Input_I,
 				self.E_E,
@@ -759,6 +774,7 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
+				self.S_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
 				self.E_rec,
