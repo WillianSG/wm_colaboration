@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 """
 @author: wgirao
-@based-on: asonntag
-@original: adapted from Lehfeldt
 
 Comments:
-- Learning of stimulus in an attractor network with different stimulus durations.
-- Ext_attractors is to look at varying stimulus duration for a given maximum weight.
+- Learning of stimulus in an attractor network.
 """
 import setuptools
 import os, sys, pickle, shutil
 from brian2 import *
 from numpy import *
 from time import localtime
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 
 prefs.codegen.target = 'numpy'
 
@@ -55,8 +55,8 @@ if not(os.path.isdir(path_sim_folder_superior)):
 	os.mkdir(path_sim_folder_superior)
 
 nets = 1 # number of networks
-sim_duration = 10*second # simulation time
-w_max = 7.25*mV # max weight in EE connections
+sim_duration = 4*second # simulation time
+w_max = 7.5*mV # max weight in EE connections
 
 # STIMULUS pulse setttings
 pulse_duration = 3*second # zero seconds not possible
@@ -73,11 +73,11 @@ n.id = simulation_id
 
 n.int_meth_neur = 'linear'
 n.int_meth_syn = 'euler'
-n.stim_type_e = 'square' # Stimulus type (square, circle, triangle, cross,...)
+n.stim_type_e = 'flat_to_E_fixed_size' # Stimulus type (square, circle, triangle, cross,...)
 
 n.stim_size_e = 64
 n.stim_freq_e = 3900*Hz
-n.stim_offset_e = 96
+n.stim_offset_e = 0
 
 n.stim_type_i = 'flat_to_I'
 n.stim_size_i = n.N_i
@@ -120,11 +120,11 @@ n.neuron_type = 'LIF' #
 n.bistability = True
 
 # Connection weights
-n.w_input_e = 1*mV
-n.w_input_i = 1*mV
-n.w_e_e = 0.5*mV
-n.w_e_i = 1*mV        
-n.w_i_e = 1*mV
+n.w_input_e = 1*mV # 1
+n.w_input_i = 1*mV # 1
+n.w_e_e = 0.5*mV # 0.5
+n.w_e_i = 1*mV # 1
+n.w_i_e = 1*mV # 1
 
 # Other connection weight variables
 n.w_e_e_max = w_max
@@ -280,17 +280,33 @@ print('\nSimulation data pickled to ', fn)
 # Move current simulation folder to superior simulation folder
 shutil.move(n.path_sim, path_sim_folder_superior)
 
-ext_attractors_plot(
-	path_sim_folder_superior, 
-	sim_id, 
-	exp_type, 
-	spiketrains_and_histograms = True,
-	rho_matrix_snapshots = False, 
-	w_matrix_snapshots = False, 
-	xpre_matrix_snapshots = False, 
-	xpost_matrix_snapshots = False,
-	learning_performance = False, 
-	check_wmatrices = False)
+# ext_attractors_plot(
+# 	path_sim_folder_superior, 
+# 	sim_id, 
+# 	exp_type, 
+# 	spiketrains_and_histograms = True,
+# 	rho_matrix_snapshots = False, 
+# 	w_matrix_snapshots = False, 
+# 	xpre_matrix_snapshots = False, 
+# 	xpost_matrix_snapshots = False,
+# 	learning_performance = False, 
+# 	check_wmatrices = False)
+
+# Neuron activity rasterplot
+plt.plot(n.S_mon.t/ms, n.S_mon.i, '.k')
+plt.title('Spontaneous activity')
+plt.xlabel('Time (ms)')
+plt.ylabel('Neuron index')
+# plt.savefig('e_pop_activity.png')
+plt.show()
+# plt.close('all')
+
+# spk_trains = n.E_mon.spike_trains()
+
+# print('\nPrinting spk trains: \n')
+
+# for x in range(len(spk_trains)):
+# 	print('id: ', x, ' | # spks: ', len(spk_trains[x]))
 
 print('\nlearn_stimulus.py - END.\n')
 
