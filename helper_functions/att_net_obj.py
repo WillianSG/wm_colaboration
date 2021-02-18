@@ -183,7 +183,8 @@ class AttractorNetwork:
 		self.tau_ipsp_i = 5.5*ms # time constant of IPSP
 
 		# 2.2.3 - Population for spontaneous activity
-		self.F_s = 0.08*Hz
+		self.F_se = 1*Hz
+		self.F_si = 2*Hz
 
 		# 2.3 ========== Synapses
 
@@ -204,6 +205,7 @@ class AttractorNetwork:
 		self.w_e_e = 0*mV # excitatory to excitatory
 		self.w_e_i = 0*mV # excitatory to inhibitory
 		self.w_i_e = 0*mV # inhibitory to excitatory
+		self.w_input_s = 0*mV # input to the spontaneous activity population
 
 	# ========== Network Initialization ==========
 	def init_network_modules(self):
@@ -260,6 +262,16 @@ class AttractorNetwork:
 			threshold = 'rand()<rates*dt', 
 			name = 'Input_to_I')
 
+		# E "Spontaneoys activity" population
+		self.SE = PoissonGroup(N = self.N_e,
+			rates = self.F_se,
+			name = 'SE')
+
+		# I "Spontaneoys activity" population
+		self.SI = PoissonGroup(N = self.N_i,
+			rates = self.F_si,
+			name = 'SI')
+
 		# External attractor network (conditional)
 		if self.add_Ext_att:
 			self.N_ext_att = self.N_e 
@@ -284,11 +296,6 @@ class AttractorNetwork:
 			refractory = self.tref_i,
 			method = self.int_meth_neur, 
 			name = 'I')
-
-		# "Spontaneoys activity" population
-		self.S = PoissonGroup(N = self.N_e,
-			rates = self.F_s,
-			name = 'S')
 
 		# 3 ========== Neuronal Attributes ==========
 		# Adaptive threshold of E
@@ -320,10 +327,20 @@ class AttractorNetwork:
 			on_pre = 'Vepsp += w', 
 			name = 'Input_E')
 
+		self.S_input_E = Synapses(source = self.SE, target = self.E, 
+			model = 'w : volt', 
+			on_pre = 'Vepsp += w', 
+			name = 'S_input_E')
+
 		self.Input_I = Synapses(source = self.Input_to_I, target = self.I, 
 			model = 'w : volt', 
 			on_pre = 'Vepsp += w', 
 			name = 'Input_I')
+
+		self.S_input_I = Synapses(source = self.SI, target = self.I, 
+			model = 'w : volt', 
+			on_pre = 'Vepsp += w', 
+			name = 'S_input_I')
 
 		self.E_I = Synapses(source = self.E, target = self.I, 
 			model = 'w : volt', 
@@ -354,6 +371,10 @@ class AttractorNetwork:
 		# 3 ========== Creating connections ==========
 		self.Input_E.connect(j = 'i')
 		self.Input_I.connect(j = 'i')
+
+		self.S_input_E.connect(j = 'i')
+		self.S_input_I.connect(j = 'i')
+
 		self.E_E.connect('i!=j', p = self.p_e_e) # no self-connections
 		self.E_I.connect(True, p = self.p_e_i)
 		self.I_E.connect(True, p = self.p_i_e)
@@ -430,6 +451,10 @@ class AttractorNetwork:
 		# Assign synaptic weights
 		self.Input_E.w = self.w_input_e
 		self.Input_I.w = self.w_input_i
+
+		self.S_input_E.w = self.w_input_s
+		self.S_input_I.w = self.w_input_s
+
 		self.E_E.w = self.w_e_e
 		self.E_I.w = self.w_e_i
 		self.I_E.w = self.w_i_e
@@ -505,8 +530,11 @@ class AttractorNetwork:
 
 		self.I_mon = SpikeMonitor(source = self.I, record = self.I_mon_record,name = 'I_mon')
 
-		self.S_mon = SpikeMonitor(source = self.S, record = True,
-			name = 'S_mon')
+		self.SE_mon = SpikeMonitor(source = self.SE, record = True,
+			name = 'SE_mon')
+
+		self.SI_mon = SpikeMonitor(source = self.SI, record = True,
+			name = 'SI_mon')
 
 		if self.add_Ext_att:
 			self.Ext_att_mon = SpikeMonitor(source = self.Ext_att,
@@ -525,11 +553,23 @@ class AttractorNetwork:
 			dt = self.rec_dt,
 			name = 'Input_E_rec')
 
+		self.S_input_E_rec = StateMonitor(source = self.S_input_E,
+			variables = self.Input_E_rec_attributes,
+			record = True,
+			dt = self.rec_dt,
+			name = 'S_input_E_rec')
+
 		self.Input_I_rec = StateMonitor(source = self.Input_I,
 			variables = self.Input_I_rec_attributes,
 			record = self.Input_I_rec_record,
 			dt = self.rec_dt,
 			name = 'Input_I_rec')
+
+		self.S_input_I_rec = StateMonitor(source = self.S_input_I,
+			variables = self.Input_I_rec_attributes,
+			record = True,
+			dt = self.rec_dt,
+			name = 'S_input_I_rec')
 
 		self.E_rec = StateMonitor(source = self.E,
 			variables = self.E_rec_attributes,
@@ -730,10 +770,13 @@ class AttractorNetwork:
 				self.Input_to_I,
 				self.E,
 				self.I,
-				self.S,
+				self.SE,
+				self.SI,
 				self.Ext_att,
 				self.Input_E,
 				self.Input_I,
+				self.S_input_E,
+				self.S_input_I,
 				self.E_E,
 				self.E_I,
 				self.I_E,
@@ -742,10 +785,13 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
-				self.S_mon,
+				self.SE_mon,
+				self.SI_mon,
 				self.Ext_att_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
+				self.S_input_E_rec,
+				self.S_input_I_rec,
 				self.E_rec,
 				self.I_rec,
 				self.E_E_rec,
@@ -764,9 +810,12 @@ class AttractorNetwork:
 				self.Input_to_I,
 				self.E,
 				self.I,
-				self.S,
+				self.SE,
+				self.SI,
 				self.Input_E,
 				self.Input_I,
+				self.S_input_E,
+				self.S_input_I,
 				self.E_E,
 				self.E_I,
 				self.I_E,
@@ -774,9 +823,12 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
-				self.S_mon,
+				self.SE_mon,
+				self.SI_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
+				self.S_input_E_rec,
+				self.S_input_I_rec,
 				self.E_rec,
 				self.I_rec,
 				self.E_E_rec,

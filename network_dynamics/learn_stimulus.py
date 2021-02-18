@@ -55,12 +55,12 @@ if not(os.path.isdir(path_sim_folder_superior)):
 	os.mkdir(path_sim_folder_superior)
 
 nets = 1 # number of networks
-sim_duration = 4*second # simulation time
+sim_duration = 10*second # simulation time
 w_max = 7.5*mV # max weight in EE connections
 
 # STIMULUS pulse setttings
-pulse_duration = 3*second # zero seconds not possible
-pulse_duration_max = 3
+pulse_duration = 1*second # zero seconds not possible
+pulse_duration_max = 1
 pulse_duration_step = 1
 
 # 2 ========== Initialize and store network ==========
@@ -76,12 +76,12 @@ n.int_meth_syn = 'euler'
 n.stim_type_e = 'flat_to_E_fixed_size' # Stimulus type (square, circle, triangle, cross,...)
 
 n.stim_size_e = 64
-n.stim_freq_e = 3900*Hz
+n.stim_freq_e = 0*Hz # 3900*Hz
 n.stim_offset_e = 0
 
 n.stim_type_i = 'flat_to_I'
 n.stim_size_i = n.N_i
-n.stim_freq_i = 5000*Hz
+n.stim_freq_i = 0*Hz # 5000*Hz
 
 # Spikemonitors
 n.Input_to_E_mon_record = True
@@ -109,7 +109,7 @@ n.xpost_matrix_snapshots_step = 1000*ms
 
 # variables for @network_operation function for stimulus change
 n.stimulus_pulse = True
-n.stimulus_pulse_clock_dt = 3*second
+n.stimulus_pulse_clock_dt = pulse_duration
 
 n.stim_freq_original = n.stim_freq_e
 
@@ -125,6 +125,7 @@ n.w_input_i = 1*mV # 1
 n.w_e_e = 0.5*mV # 0.5
 n.w_e_i = 1*mV # 1
 n.w_i_e = 1*mV # 1
+n.w_input_s = 75*mV # 1
 
 # Other connection weight variables
 n.w_e_e_max = w_max
@@ -280,26 +281,24 @@ print('\nSimulation data pickled to ', fn)
 # Move current simulation folder to superior simulation folder
 shutil.move(n.path_sim, path_sim_folder_superior)
 
-# ext_attractors_plot(
-# 	path_sim_folder_superior, 
-# 	sim_id, 
-# 	exp_type, 
-# 	spiketrains_and_histograms = True,
-# 	rho_matrix_snapshots = False, 
-# 	w_matrix_snapshots = False, 
-# 	xpre_matrix_snapshots = False, 
-# 	xpost_matrix_snapshots = False,
-# 	learning_performance = False, 
-# 	check_wmatrices = False)
+ext_attractors_plot(
+	path_sim_folder_superior, 
+	sim_id, 
+	exp_type, 
+	spiketrains_and_histograms = True,
+	rho_matrix_snapshots = False, 
+	w_matrix_snapshots = False, 
+	xpre_matrix_snapshots = False, 
+	xpost_matrix_snapshots = False,
+	learning_performance = False, 
+	check_wmatrices = False)
 
 # Neuron activity rasterplot
-plt.plot(n.S_mon.t/ms, n.S_mon.i, '.k')
-plt.title('Spontaneous activity')
-plt.xlabel('Time (ms)')
-plt.ylabel('Neuron index')
-# plt.savefig('e_pop_activity.png')
-plt.show()
-# plt.close('all')
+# plt.plot(n.SE_mon.t/ms, n.SE_mon.i, '.k')
+# plt.title('E Spontaneous activity')
+# plt.xlabel('Time (ms)')
+# plt.ylabel('Neuron index')
+# plt.show()
 
 # spk_trains = n.E_mon.spike_trains()
 
