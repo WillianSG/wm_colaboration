@@ -184,7 +184,7 @@ class AttractorNetwork:
 
 		# 2.2.3 - Population for spontaneous activity
 		self.F_se = 1*Hz
-		self.F_si = 2*Hz
+		self.F_si = 10*Hz
 
 		# 2.3 ========== Synapses
 
@@ -212,7 +212,7 @@ class AttractorNetwork:
 		self.set_neurons()
 		self.set_synapses()
 		self.set_learning_rule_parameters()
-		self.set_stimulus_e()
+		# self.set_stimulus_e()
 		self.set_stimulus_i()
 
 		if self.add_Ext_att:
@@ -753,9 +753,14 @@ class AttractorNetwork:
 		if self.stimulus_pulse:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
-				if defaultclock.t >= self.stimulus_pulse_duration:
+				if defaultclock.t >= 1*second and defaultclock.t < 4*second:
+					self.set_stimulus_e()
+				if defaultclock.t >= 4*second:
 					self.stim_freq_e = 0*Hz
 					self.set_stimulus_e()
+				# if defaultclock.t >= self.stimulus_pulse_duration:
+				# 	self.stim_freq_e = 0*Hz
+				# 	self.set_stimulus_e()
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():

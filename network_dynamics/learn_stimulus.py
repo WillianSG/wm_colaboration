@@ -55,11 +55,11 @@ if not(os.path.isdir(path_sim_folder_superior)):
 	os.mkdir(path_sim_folder_superior)
 
 nets = 1 # number of networks
-sim_duration = 10*second # simulation time
+sim_duration = 20*second # simulation time
 w_max = 7.5*mV # max weight in EE connections
 
 # STIMULUS pulse setttings
-pulse_duration = 1*second # zero seconds not possible
+pulse_duration = 3*second # zero seconds not possible
 pulse_duration_max = 1
 pulse_duration_step = 1
 
@@ -76,12 +76,12 @@ n.int_meth_syn = 'euler'
 n.stim_type_e = 'flat_to_E_fixed_size' # Stimulus type (square, circle, triangle, cross,...)
 
 n.stim_size_e = 64
-n.stim_freq_e = 0*Hz # 3900*Hz
-n.stim_offset_e = 0
+n.stim_offset_e = 80
+n.stim_freq_e = 3900*Hz # 3900*Hz
 
 n.stim_type_i = 'flat_to_I'
 n.stim_size_i = n.N_i
-n.stim_freq_i = 0*Hz # 5000*Hz
+n.stim_freq_i = 5000*Hz # 5000*Hz
 
 # Spikemonitors
 n.Input_to_E_mon_record = True
@@ -125,7 +125,11 @@ n.w_input_i = 1*mV # 1
 n.w_e_e = 0.5*mV # 0.5
 n.w_e_i = 1*mV # 1
 n.w_i_e = 1*mV # 1
-n.w_input_s = 75*mV # 1
+n.w_input_s = 67*mV # 1
+
+# Firing rates for spontaneous activity in E and I
+n.F_se = 4*Hz
+n.F_si = 4*Hz
 
 # Other connection weight variables
 n.w_e_e_max = w_max
