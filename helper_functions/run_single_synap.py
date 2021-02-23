@@ -32,7 +32,7 @@ output:
 Comments:
 """
 from brian2 import Synapses,StateMonitor, SpikeMonitor, defaultclock, Network, second
-from poisson_spiking_gen import *
+from poisson_spiking_gen_noseed import *
 from load_neurons import *
 from numpy import mean
 
@@ -68,18 +68,15 @@ def run_single_synap(
 	pre_E_E, 
 	post_E_E, 
 	int_meth_syn = 'euler',
-	isi_correlation = 'random', 
-	job_seed = 0):
+	isi_correlation = 'random'):
 
 	# Spike time arrays
-	pre_spikes_t, post_spikes_t = poisson_spiking_gen(
+	pre_spikes_t, post_spikes_t = poisson_spiking_gen_noseed(
 		rate_pre = pre_rate, 
 		rate_post = post_rate, 
 		t_run = t_run, 
 		dt = dt_resolution, 
-		noise = noise,
-		job_seed = job_seed,
-		correlation = isi_correlation)
+		noise = noise)
 
 	# Brian2's NeuronGroup
 	Pre, Post = load_neurons(

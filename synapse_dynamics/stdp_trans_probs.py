@@ -19,12 +19,6 @@ prefs.codegen.target = 'numpy'
 
 helper_dir = 'helper_functions'
 
-# get run id as seed for random gens
-try:
-	job_seed = int(sys.argv[1])
-except:
-	job_seed = int(0)
-
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())
 
@@ -48,6 +42,7 @@ N_Post = 1
 plasticity_rule = 'LR2'			# 'none', 'LR1', 'LR2'
 parameter_set = '2.4'			# '2.1', '2.4'
 bistability = False
+w_init = 0.0					# '0.0' to test LTD, '1.0' to test LTP
 
 neuron_type = 'spikegenerator'	# 'poisson', 'LIF' , 'spikegenerator'
 int_meth_syn = 'euler'			# Synaptic integration method
@@ -83,21 +78,22 @@ f_pos = np.arange(min_freq, max_freq + 0.1, step)
 	alpha,
 	beta,
 	xpre_factor,
-	w_max] = load_rule_params(plasticity_rule, parameter_set)
+	w_max] = load_rule_params(
+		plasticity_rule = plasticity_rule, 
+		parameter_set = parameter_set,
+		efficacy_init = w_init)
 
 # loading synaptic rule equations
 [model_E_E,
 	pre_E_E,
 	post_E_E] = load_synapse_model(plasticity_rule, neuron_type, bistability)
 
-
-
 # Starts a new scope for magic functions
 start_scope()
 
 result = run_single_synap(
-	pre_rate = f_pre[1], 
-	post_rate = f_pos[1], 
+	pre_rate = f_pre[6], 
+	post_rate = f_pos[2], 
 	t_run = t_run, 
 	dt_resolution = dt_resolution, 
 	plasticity_rule = plasticity_rule, 
@@ -126,8 +122,7 @@ result = run_single_synap(
 	model_E_E = model_E_E, 
 	pre_E_E = pre_E_E, 
 	post_E_E = post_E_E, 
-	int_meth_syn = int_meth_syn,
-	job_seed = job_seed)
+	int_meth_syn = int_meth_syn)
 
 print('\n final efficacy (w): ', result)
 
