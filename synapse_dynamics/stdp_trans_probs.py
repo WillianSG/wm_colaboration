@@ -10,7 +10,7 @@ Comments:
 - Run single synapse simulations to get transition probabilities for LTP and LTD.
 """
 import setuptools
-import os, sys
+import os, sys, pickle
 from brian2 import *
 from scipy import *
 from numpy import *
@@ -46,12 +46,13 @@ N_Post = 1
 plasticity_rule = 'LR2'			# 'none', 'LR1', 'LR2'
 parameter_set = '2.4'			# '2.1', '2.4'
 bistability = False
-w_init = 0.0					# '0.0' to test LTP, '1.0' to test LTD
+
+w_init = float(sys.argv[1])		# '0.0' to test LTP, '1.0' to test LTD
 
 neuron_type = 'spikegenerator'	# 'poisson', 'LIF' , 'spikegenerator'
 int_meth_syn = 'euler'			# Synaptic integration method
 
-exp_type = 'stdp_trans_probabi_' + str(w_init)
+exp_type = 'stdp_trans_probabi_'
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
@@ -140,17 +141,46 @@ for x in range(0, len(f_pos)):
 
 	transition_probabilities.append(result/sim_loop_rep)
 
-plt.plot(f_pos, np.array(transition_probabilities))
+# plt.plot(f_pos, np.array(transition_probabilities))
 
-if w_init == 0.0:
-	plt.title('LTP Transition Probability')
-else:
-	plt.title('LTD Transition Probability')
+# if w_init == 0.0:
+# 	plt.title('LTP Transition Probability')
+# else:
+# 	plt.title('LTD Transition Probability')
 
-plt.xlabel('Postsynaptic frequency (Hz)')
-plt.ylabel('Probability')
+# plt.xlabel('Postsynaptic frequency (Hz)')
+# plt.ylabel('Probability')
 
-plt.savefig(exp_type + '_.png')
+# plt.savefig(exp_type + '_.png')
+
+fn = exp_type + '_' + str(w_init) + '_w_final.pickle'
+
+fnopen = os.path.join(os.getcwd(), fn)
+
+with open(fnopen,'wb') as f:
+	pickle.dump((
+		w_init,
+		sim_loop_rep,
+		np.array(transition_probabilities),
+		f_pre,
+		f_pos,
+		min_freq,
+		max_freq,
+		step,
+		exp_type,
+		plasticity_rule,
+		parameter_set,
+		bistability,
+		dt_resolution,
+		t_run,
+		noise,
+		int_meth_syn)
+		, f)
+
+# exp_data = pickle.load(open(fnopen, "rb" ))
+
+# print(exp_data[0])
+# print(exp_data[2])
 
 print('\nstdp_trans_probs.py - END.\n')
 
