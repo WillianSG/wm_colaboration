@@ -1,38 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 @author: wgirao
-"""
 
-# ?
-"""
 input:
-- path_sim_id: paths for plots
-- path_sim_data: paths for plots
-- sim_id: simulation id
-- exp_type: type of experiment
-- pre_rate: required firing frequency
-- post_rate: required firing frequency
-- t_run(int): time of execution (seconds)
-- dt_resolution(float): simulation time step
-- plasticity_rule(str): 
-- neuron_type(str):
-- noise(float): used to calculate the shift for spike-pair generation
-- bistability(bool):
-- N_Pre: number of neurons in group
-- N_Post: number of neurons in group
-- [tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_dep, rho_dep2, rho_init,
-	tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max] <- load_rule_params()
-- [model_E_E, pre_E_E, post_E_E] <- load_synapse_model()
 
 output:
--
--
--
 
 Comments:
 """
-from brian2 import Synapses,StateMonitor, SpikeMonitor, defaultclock, Network, second
-from poisson_spiking_gen_noseed import *
+from brian2 import *
 from load_neurons import *
 from numpy import mean
 
@@ -68,26 +44,15 @@ def run_single_synap(
 	pre_E_E, 
 	post_E_E, 
 	int_meth_syn = 'euler',
-	isi_correlation = 'random'):
+	w_init = 0.5):
 
-	# Spike time arrays
-	pre_spikes_t, post_spikes_t = poisson_spiking_gen_noseed(
-		rate_pre = pre_rate, 
-		rate_post = post_rate, 
-		t_run = t_run, 
-		dt = dt_resolution, 
-		noise = noise)
+	Pre = PoissonGroup(
+		N = N_Pre,
+		rates = pre_rate*Hz)
 
-	# Brian2's NeuronGroup
-	Pre, Post = load_neurons(
-		N_Pre, N_Post, neuron_type,
-		spikes_t_Pre = pre_spikes_t,
-		spikes_t_Post = post_spikes_t,
-		pre_rate = pre_rate,
-		post_rate =  post_rate)
-
-	# Synapse connection
-	int_meth_neur = None
+	Post = PoissonGroup(
+		N = N_Post,
+		rates = post_rate*Hz)
 
 	Pre_Post = Synapses(
 		source = Pre,
@@ -132,8 +97,17 @@ def run_single_synap(
 		synaptic_mon, 
 		name = 'net')
 
-	print('> pos: ', post_rate, 'Hz | pre: ', pre_rate, 'Hz')
-
 	net.run(t_run*second) # simulating (running network)
 
-	return Pre_Post.rho[0] # last value of 'rho' at the end of the ex.
+	if w_init == 0.0: # assessing LTP probability
+		if Pre_Post.rho[0] > 0.5:
+			return 1
+		else:
+			return 0
+	elif w_init == 1.0: # assessing LTD probability
+		if Pre_Post.rho[0] < 0.5:
+			return 1
+		else:
+			return 0
+	else:
+		return Pre_Post.rho[0] # last value of 'rho' at the end of the ex.
