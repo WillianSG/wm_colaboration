@@ -139,7 +139,41 @@ def learning_plot_spiketrains_and_histograms(
 	plt.yticks(size = s1)
 	plt.xticks(size = s1)
 
-	# Excitatory population: spiking
+	# Spont Inhibitory population: spiking
+	ax1 = fig.add_subplot(gs[2, 0])
+
+	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'green')
+	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
+
+	ax1.set_yticks(np.arange(0, N[3]+1, N[3]/2))
+	ax1.set_xticklabels([])
+
+	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10, pad = 10)
+	plt.ylim(0,N[3])
+	plt.yticks(size = s1)
+	plt.xticks(size = s1)
+	plt.xlim(0, t_run/second)
+
+	# Spont Inhibitory population: histogram
+	ax2 = fig.add_subplot(gs[3, 0])
+
+	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'green', color = 'white', linewidth = lwdth)
+	plt.ylabel('$\\nu_{I}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
+	plt.xlim(0, t_run/second)
+	plt.ylim(0, max(i_t_hist_fr)*1.1)
+
+	yticks = np.linspace(0, max(i_t_hist_fr)*1.1, 3)
+
+	ax2.set_yticks(yticks)
+	ax2.set_yticklabels(np.around(yticks))
+	ax2.set_xticklabels([])
+
+	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10,
+		pad = 10)
+	plt.yticks(size = s1)
+	plt.xticks(size = s1)
+
+	# == Excitatory population: spiking
 	ax3 = fig.add_subplot(gs[5, 0])
 
 	plt.plot(s_tpoints[2],n_inds[2], '.', color = 'mediumblue')
