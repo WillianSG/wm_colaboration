@@ -11,6 +11,7 @@ Comments:
 from brian2 import *
 from load_neurons import *
 from numpy import mean
+# from poisson_spiking_gen_noseed import *
 
 def run_single_synap(
 	pre_rate, 
@@ -53,6 +54,22 @@ def run_single_synap(
 	Post = PoissonGroup(
 		N = N_Post,
 		rates = post_rate*Hz)
+
+	# Spike time arrays
+	# pre_spikes_t, post_spikes_t = poisson_spiking_gen_noseed(
+	# 	rate_pre = pre_rate, 
+	# 	rate_post = post_rate, 
+	# 	t_run = t_run, 
+	# 	dt = dt_resolution, 
+	# 	noise = noise)
+
+	# # Brian2's NeuronGroup
+	# Pre, Post = load_neurons(
+	# 	N_Pre, N_Post, neuron_type,
+	# 	spikes_t_Pre = pre_spikes_t,
+	# 	spikes_t_Post = post_spikes_t,
+	# 	pre_rate = pre_rate,
+	# 	post_rate =  post_rate)
 
 	Pre_Post = Synapses(
 		source = Pre,

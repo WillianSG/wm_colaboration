@@ -8,6 +8,7 @@ Output:
 
 Comments:
 - Run single synapse simulations to get transition probabilities for LTP and LTD.
+- [REFACTOR]: use multithreading for frequencies loop.
 """
 import setuptools
 import os, sys, pickle
@@ -34,18 +35,18 @@ from run_single_synap import *
 
 # == 1 - Simulation run variables ==========
 
-sim_loop_rep = 25
+sim_loop_rep = 5
 
 dt_resolution = 0.0001 # 0.1ms | step of simulation time step resolution
-t_run = 0.3 # 300ms | simulation time (seconds)
+t_run = 5 # 0.3 | 300ms | simulation time (seconds)
 noise = 0.75 # introduced noise (diff) between spk times betweem pre- and post-
 
 N_Pre = 1
 N_Post = 1
 
 plasticity_rule = 'LR2'			# 'none', 'LR1', 'LR2'
-parameter_set = '2.4'			# '2.1', '2.4'
-bistability = False
+parameter_set = '2.2'			# '2.1', '2.2', '2.4'
+bistability = True
 
 w_init = float(sys.argv[1])		# '0.0' to test LTP, '1.0' to test LTD
 
@@ -56,7 +57,7 @@ exp_type = 'stdp_trans_probabi_'
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 120
+max_freq = 100
 
 step = 5
 
@@ -68,6 +69,9 @@ f_pos = np.arange(min_freq, max_freq + 0.1, step)
 transition_probabilities = []
 
 # == 2 - Brian2 simulation settings ==========
+
+# Starts a new scope for magic functions
+start_scope()
 
 # loading learning rule parameters
 [tau_xpre,
@@ -96,62 +100,57 @@ transition_probabilities = []
 	pre_E_E,
 	post_E_E] = load_synapse_model(plasticity_rule, neuron_type, bistability)
 
-# Starts a new scope for magic functions
-start_scope()
-
+# [REFACTOR] - use multithreading for frequencies loop.
 for x in range(0, len(f_pos)):
-	for y in range(0, len(f_pre)):
-		result = 0
-		print('> pos: ', f_pos[x], 'Hz | pre: ', f_pre[y], 'Hz')
+	if x != 0:
+		outer_result = 0
 
-		for i in range(0, sim_loop_rep):
-			result += run_single_synap(
-				pre_rate = f_pre[y],
-				post_rate = f_pos[x],
-				t_run = t_run,
-				dt_resolution = dt_resolution,
-				plasticity_rule = plasticity_rule,
-				neuron_type = neuron_type,
-				noise = noise,
-				bistability = bistability,
-				N_Pre = N_Pre,
-				N_Post = N_Post,
-				tau_xpre = tau_xpre,
-				tau_xpost = tau_xpost,
-				xpre_jump = xpre_jump,
-				xpost_jump = xpost_jump,
-				rho_neg = rho_neg,
-				rho_neg2 = rho_neg2,
-				rho_init = rho_init,
-				tau_rho = tau_rho,
-				thr_post = thr_post,
-				thr_pre = thr_pre,
-				thr_b_rho = thr_b_rho,
-				rho_min = rho_min,
-				rho_max = rho_max,
-				alpha = alpha,
-				beta = beta,
-				xpre_factor = xpre_factor,
-				w_max = w_max,
-				model_E_E = model_E_E,
-				pre_E_E = pre_E_E,
-				post_E_E = post_E_E,
-				int_meth_syn = int_meth_syn,
-				w_init = w_init)
+		for y in range(0, len(f_pre)):
+			if y != 0:				
+				print('> pos: ', f_pos[x], 'Hz | pre: ', f_pre[y], 'Hz')
 
-	transition_probabilities.append(result/sim_loop_rep)
+				inner_result = 0
 
-# plt.plot(f_pos, np.array(transition_probabilities))
+				for i in range(0, sim_loop_rep):
+					inner_result += run_single_synap(
+						pre_rate = f_pre[y],
+						post_rate = f_pos[x],
+						t_run = t_run,
+						dt_resolution = dt_resolution,
+						plasticity_rule = plasticity_rule,
+						neuron_type = neuron_type,
+						noise = noise,
+						bistability = bistability,
+						N_Pre = N_Pre,
+						N_Post = N_Post,
+						tau_xpre = tau_xpre,
+						tau_xpost = tau_xpost,
+						xpre_jump = xpre_jump,
+						xpost_jump = xpost_jump,
+						rho_neg = rho_neg,
+						rho_neg2 = rho_neg2,
+						rho_init = rho_init,
+						tau_rho = tau_rho,
+						thr_post = thr_post,
+						thr_pre = thr_pre,
+						thr_b_rho = thr_b_rho,
+						rho_min = rho_min,
+						rho_max = rho_max,
+						alpha = alpha,
+						beta = beta,
+						xpre_factor = xpre_factor,
+						w_max = w_max,
+						model_E_E = model_E_E,
+						pre_E_E = pre_E_E,
+						post_E_E = post_E_E,
+						int_meth_syn = int_meth_syn,
+						w_init = w_init)
 
-# if w_init == 0.0:
-# 	plt.title('LTP Transition Probability')
-# else:
-# 	plt.title('LTD Transition Probability')
+				outer_result += inner_result/sim_loop_rep
 
-# plt.xlabel('Postsynaptic frequency (Hz)')
-# plt.ylabel('Probability')
-
-# plt.savefig(exp_type + '_.png')
+		transition_probabilities.append(outer_result/(len(f_pre)-1))
+	else:
+		transition_probabilities.append(0.0)
 
 fn = exp_type + '_' + str(w_init) + '_w_final.pickle'
 
@@ -176,11 +175,6 @@ with open(fnopen,'wb') as f:
 		noise,
 		int_meth_syn)
 		, f)
-
-# exp_data = pickle.load(open(fnopen, "rb" ))
-
-# print(exp_data[0])
-# print(exp_data[2])
 
 print('\nstdp_trans_probs.py - END.\n')
 

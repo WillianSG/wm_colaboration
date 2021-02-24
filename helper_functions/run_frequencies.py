@@ -34,7 +34,7 @@ output:
 Comments:
 - mon stands for monitor
 """
-from brian2 import Synapses,StateMonitor, SpikeMonitor, defaultclock, Network, second
+from brian2 import Synapses,StateMonitor, SpikeMonitor, defaultclock, Network, second, PoissonGroup
 from poisson_spiking_gen import *
 from load_neurons import *
 from numpy import mean
@@ -42,23 +42,31 @@ from numpy import mean
 def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn = 'euler',
 	isi_correlation='random', drho_all_metric='original', job_seed = 0):
 
-	# Spike time arrays
-	pre_spikes_t, post_spikes_t = poisson_spiking_gen(
-		rate_pre = pre_rate, 
-		rate_post = post_rate, 
-		t_run = t_run, 
-		dt = dt_resolution, 
-		noise = noise,
-		job_seed = job_seed,
-		correlation = isi_correlation)
+	# # Spike time arrays
+	# pre_spikes_t, post_spikes_t = poisson_spiking_gen(
+	# 	rate_pre = pre_rate, 
+	# 	rate_post = post_rate, 
+	# 	t_run = t_run, 
+	# 	dt = dt_resolution, 
+	# 	noise = noise,
+	# 	job_seed = job_seed,
+	# 	correlation = isi_correlation)
 
-	# Brian2's NeuronGroup
-	Pre, Post = load_neurons(
-		N_Pre, N_Post, neuron_type,
-		spikes_t_Pre = pre_spikes_t,
-		spikes_t_Post = post_spikes_t,
-		pre_rate = pre_rate,
-		post_rate =  post_rate)
+	# # Brian2's NeuronGroup
+	# Pre, Post = load_neurons(
+	# 	N_Pre, N_Post, neuron_type,
+	# 	spikes_t_Pre = pre_spikes_t,
+	# 	spikes_t_Post = post_spikes_t,
+	# 	pre_rate = pre_rate,
+	# 	post_rate =  post_rate)
+
+	Pre = PoissonGroup(
+		N = N_Pre,
+		rates = pre_rate*Hz)
+
+	Post = PoissonGroup(
+		N = N_Post,
+		rates = post_rate*Hz)
 
 	# Synapse connection
 	int_meth_neur = None

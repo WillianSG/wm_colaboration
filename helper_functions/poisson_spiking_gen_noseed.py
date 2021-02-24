@@ -26,8 +26,7 @@ Comments:
 - Change name to 'poisson_spiking_tgen_rate'
 """
 import numpy as np
-from numpy.random import Generator, PCG64, SeedSequence
-import logging
+from brian2 import uniform, rand, size
 from shift_close_spikes import *
 
 def poisson_spiking_gen_noseed(rate_pre, rate_post, t_run, dt, noise):
@@ -55,7 +54,7 @@ def poisson_spiking_gen_noseed(rate_pre, rate_post, t_run, dt, noise):
 		times = np.arange(0, t_run, dt)
 
 		# random number (in [0,1)) for each time step (membrane threshold for spike gen?)
-		vt_highrate = np.random.rand(np.size(times))
+		vt_highrate = rand(size(times))
 
 		# Indexes where spike happened
 		spikes_highrate = (spikes_per_s * dt) > vt_highrate
@@ -71,21 +70,27 @@ def poisson_spiking_gen_noseed(rate_pre, rate_post, t_run, dt, noise):
 		elif rate_low > 0:
 			spike_prob = rate_low / rate_high
 
-			rand_num = np.random.rand(len(highrate_spikes_t))
+			rand_num = rand(len(highrate_spikes_t))
 			# Array containing the spike times of the neuron spiking at the lower rate.
 			"""
 			Only gets the values 'highrate_spikes_t[x]', where x is the index of 'rand_num' for which the value is smaller than 'spike_prob'.
 			"""
 			lowrate_spikes_t = highrate_spikes_t[rand_num < spike_prob]
+			
+			# if len(lowrate_spikes_t) == 0:
+			# 	lowrate_spikes_t = np.array(highrate_spikes_t[0])
 
 			# @TODO we should think about not making the distribution adaptive, but fixed to 1-3* STDP time constant?
 			# be aware of impact on correlation
 			avg_interval = 1.0 / spikes_per_s
 			
-			shifts = np.random.uniform(-avg_interval * noise, avg_interval * noise, len(lowrate_spikes_t))
+			shifts = uniform(-avg_interval * noise, avg_interval * noise, len(lowrate_spikes_t))
 
 			# 'lowrate_spikes_t' has now some of the same spike times as 'highrate_spikes_t' but with a shifted value (for more or for less)
 			lowrate_spikes_t = lowrate_spikes_t.flatten() + shifts
+
+			print(highrate_spikes_t)
+			print(lowrate_spikes_t)
 
 			time_shift = abs(np.min(lowrate_spikes_t))
 

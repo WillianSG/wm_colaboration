@@ -55,13 +55,13 @@ from run_frequencies import *
 
 # Simulation run variables
 dt_resolution = 0.1/1000 # = 0.0001 sconds (0.1ms) | step of simulation time step resolution
-t_run = 5 # simulation time (seconds)
+t_run = 5 # 5 | simulation time (seconds)
 noise = 0.75 # used to introduce difference between spike times betweem pre- and post-
 
 N_Pre = 1
 N_Post = 1
 
-isi_correlation = 'negative' # "random", "positive", "negative"
+isi_correlation = 'random' # "random", "positive", "negative"
 plasticity_rule = 'LR2' # 'none', 'LR1', 'LR2'
 parameter_set = '2.2' # '2.1'
 neuron_type = 'spikegenerator' # 'poisson', 'LIF' , 'spikegenerator'
@@ -77,7 +77,7 @@ plot_single_trial = False  # True = plot single simulations
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 5
+max_freq = 100
 step = 5
 
 # Frequency activity ranges (for pre and post neurons)
