@@ -35,11 +35,10 @@ from run_single_synap import *
 
 # == 1 - Simulation run variables ==========
 
-sim_loop_rep = 5
+sim_rep = 1
 
-dt_resolution = 0.0001 # 0.1ms | step of simulation time step resolution
-t_run = 5 # 0.3 | 300ms | simulation time (seconds)
-noise = 0.75 # introduced noise (diff) between spk times betweem pre- and post-
+dt_resolution = 0.0001		# 0.1ms | step of simulation time step resolution
+t_run = 2					# simulation time (seconds)
 
 N_Pre = 1
 N_Post = 1
@@ -57,7 +56,7 @@ exp_type = 'stdp_trans_probabi_'
 
 # Range of pre- and postsynaptic frequencies (Hz)
 min_freq = 0
-max_freq = 100
+max_freq = 10
 
 step = 5
 
@@ -66,6 +65,7 @@ step = 5
 f_pre = np.arange(min_freq, max_freq + 0.1, step)
 f_pos = np.arange(min_freq, max_freq + 0.1, step)
 
+resul_per_pre_rate = []
 transition_probabilities = []
 
 # == 2 - Brian2 simulation settings ==========
@@ -101,25 +101,25 @@ start_scope()
 	post_E_E] = load_synapse_model(plasticity_rule, neuron_type, bistability)
 
 # [REFACTOR] - use multithreading for frequencies loop.
-for x in range(0, len(f_pos)):
+for x in range(0, len(f_pre)):
 	if x != 0:
 		outer_result = 0
+		print('pre: ', f_pre[x], 'Hz')
 
-		for y in range(0, len(f_pre)):
-			if y != 0:				
-				print('> pos: ', f_pos[x], 'Hz | pre: ', f_pre[y], 'Hz')
+		for y in range(0, len(f_pos)):
+			if y != 0:		
+				print(' - pos: ', f_pos[y], 'Hz')
 
-				inner_result = 0
+				transition_event_count = 0
 
-				for i in range(0, sim_loop_rep):
-					inner_result += run_single_synap(
-						pre_rate = f_pre[y],
-						post_rate = f_pos[x],
+				for i in range(0, sim_rep):
+					transition_event_count += run_single_synap(
+						pre_rate = f_pre[x],
+						post_rate = f_pos[y],
 						t_run = t_run,
 						dt_resolution = dt_resolution,
 						plasticity_rule = plasticity_rule,
 						neuron_type = neuron_type,
-						noise = noise,
 						bistability = bistability,
 						N_Pre = N_Pre,
 						N_Post = N_Post,
@@ -146,35 +146,39 @@ for x in range(0, len(f_pos)):
 						int_meth_syn = int_meth_syn,
 						w_init = w_init)
 
-				outer_result += inner_result/sim_loop_rep
+				# transition prob for post- @ yHz
+				transition_probabilities.append(transition_event_count/sim_rep)
+			else:
+				transition_probabilities.append(0.0)
 
-		transition_probabilities.append(outer_result/(len(f_pre)-1))
-	else:
-		transition_probabilities.append(0.0)
+		resul_per_pre_rate.append(transition_probabilities)
+		transition_probabilities = []
 
-fn = exp_type + '_' + str(w_init) + '_w_final.pickle'
+# fn = exp_type + '_' + str(w_init) + '_w_final.pickle'
 
-fnopen = os.path.join(os.getcwd(), fn)
+# fnopen = os.path.join(os.getcwd(), fn)
 
-with open(fnopen,'wb') as f:
-	pickle.dump((
-		w_init,
-		sim_loop_rep,
-		np.array(transition_probabilities),
-		f_pre,
-		f_pos,
-		min_freq,
-		max_freq,
-		step,
-		exp_type,
-		plasticity_rule,
-		parameter_set,
-		bistability,
-		dt_resolution,
-		t_run,
-		noise,
-		int_meth_syn)
-		, f)
+# with open(fnopen,'wb') as f:
+# 	pickle.dump((
+# 		w_init,
+# 		sim_rep,
+# 		np.array(transition_probabilities),
+# 		f_pre,
+# 		f_pos,
+# 		min_freq,
+# 		max_freq,
+# 		step,
+# 		exp_type,
+# 		plasticity_rule,
+# 		parameter_set,
+# 		bistability,
+# 		dt_resolution,
+# 		t_run,
+# 		noise,
+# 		int_meth_syn)
+# 		, f)
+
+print(resul_per_pre_rate)
 
 print('\nstdp_trans_probs.py - END.\n')
 
