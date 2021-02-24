@@ -104,10 +104,10 @@ start_scope()
 for x in range(0, len(f_pre)):
 	if x != 0:
 		outer_result = 0
-		print('pre: ', f_pre[x], 'Hz')
+		print('\npre: ', f_pre[x], 'Hz')
 
 		for y in range(0, len(f_pos)):
-			if y != 0:		
+			if y != 0:
 				print(' - pos: ', f_pos[y], 'Hz')
 
 				transition_event_count = 0
@@ -154,31 +154,32 @@ for x in range(0, len(f_pre)):
 		resul_per_pre_rate.append(transition_probabilities)
 		transition_probabilities = []
 
-# fn = exp_type + '_' + str(w_init) + '_w_final.pickle'
+fn = exp_type + '_' + \
+	str(w_init) + '_' + \
+	parameter_set + '_' + \
+	str(bistability) + '_' + \
+	'_last_rho.pickle'
 
-# fnopen = os.path.join(os.getcwd(), fn)
+fnopen = os.path.join(os.getcwd(), fn)
 
-# with open(fnopen,'wb') as f:
-# 	pickle.dump((
-# 		w_init,
-# 		sim_rep,
-# 		np.array(transition_probabilities),
-# 		f_pre,
-# 		f_pos,
-# 		min_freq,
-# 		max_freq,
-# 		step,
-# 		exp_type,
-# 		plasticity_rule,
-# 		parameter_set,
-# 		bistability,
-# 		dt_resolution,
-# 		t_run,
-# 		noise,
-# 		int_meth_syn)
-# 		, f)
-
-print(resul_per_pre_rate)
+with open(fnopen,'wb') as f:
+	pickle.dump((
+		w_init,
+		sim_rep,
+		np.array(resul_per_pre_rate),
+		f_pre,
+		f_pos,
+		min_freq,
+		max_freq,
+		step,
+		exp_type,
+		plasticity_rule,
+		parameter_set,
+		bistability,
+		dt_resolution,
+		t_run,
+		int_meth_syn)
+		, f)
 
 print('\nstdp_trans_probs.py - END.\n')
 
