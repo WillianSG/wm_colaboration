@@ -48,14 +48,18 @@ def learning_check_for_delay_activity(s_tpoints_input_e, n_inds_input_e,s_tpoint
 	delay_activity_p1 = False
 	delay_activity_p2 = False    
 
-	# === Period 1: check after stimulus offset
+	# === Period 1: check right after stimulus removal
 
 	# Define start and end time point  
 	t_start_p1 = stim_pulse_duration
 	t_end_p1 = stim_pulse_duration + period_duration
 
 	# Extract trial data in temporal window
-	[inds_temp_p1, tpoints_temp_p1] = extract_trial_data(t_start = t_start_p1,t_end = t_end_p1,	inds = n_inds_e, tpoints = s_tpoints_e)
+	[inds_temp_p1, tpoints_temp_p1] = extract_trial_data(
+		t_start = t_start_p1,
+		t_end = t_end_p1, 
+		inds = n_inds_e, 
+		tpoints = s_tpoints_e)
 
 	# Remove dublicates in inds_temp
 	inds_temp_no_dublicates_p1 = set(inds_temp_p1)

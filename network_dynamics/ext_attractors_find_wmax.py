@@ -58,12 +58,12 @@ if not(os.path.isdir(sim_results_folder)):
 
 num_networks = 1
 
-sim_duration = 10*second # Duration of each simulation
+sim_duration = 1*second # Duration of each simulation
 pulse_duration = 1*second # Stimulus pulse duration
 
 # Wmax setttings of fixed attractor
 
-wmax_min = 7.25
+wmax_min = 7.50
 wmax_max = 7.75
 wmax_step = 0.25
 wmax_range = np.arange(wmax_min, wmax_max, wmax_step)*mV
@@ -110,7 +110,7 @@ for i in np.arange(0, num_networks, 1):
 
 	# Learning rule 
 	n.plasticity_rule = 'LR2' # 'LR1', 'LR2'
-	n.parameter = '2.1'
+	n.parameter = '2.4'
 	n.neuron_type = 'LIF'
 	n.net_size = 'net'
 	n.bistability = True

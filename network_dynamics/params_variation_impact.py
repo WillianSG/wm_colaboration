@@ -32,7 +32,7 @@ sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
 from att_net_obj import AttractorNetwork
-# from ext_attractors_find_wmax_plot import *
+from varying_params_attractor_analysis_plot import *
 
 # 1 - Simulation results folder
 
@@ -144,6 +144,8 @@ for i in np.arange(0, num_networks, 1):
 
 		n.set_varying_param(varying_params[p])
 
+		simulation_flag = [p, varying_params[p]]
+
 		print('  > varying ', varying_params[p], ' [', n.w_e_e_max, ']')
 
 		n.run_net()
@@ -217,7 +219,7 @@ for i in np.arange(0, num_networks, 1):
 			stim_size_i,
 			stim_freq_i,
 			stim_pulse_duration,#
-			np.array(varying_params),
+			varying_params,
 			N_input_e, 
 			N_input_i, 
 			N_e, 
@@ -230,7 +232,8 @@ for i in np.arange(0, num_networks, 1):
 			s_tpoints_input_e, #
 			s_tpoints_e, #
 			n_inds_input_e, #
-			n_inds_e), f) #
+			n_inds_e,
+			simulation_flag), f) #
 
 		print('\nSimulation data pickled to ', fn)
 
@@ -239,12 +242,10 @@ for i in np.arange(0, num_networks, 1):
 
 	# =====================================================================
 
-# ext_attractors_find_wmax_plot(
-# 	sim_results_folder, 
-# 	sim_id, 
-# 	exp_type, 
-# 	spiketrains_and_histograms = True,
-# 	w_matrix_snapshots = False)
+varying_params_attractor_analysis_plot(
+	sim_results_folder, 
+	sim_id, 
+	exp_type)
 
 print('\nparams_variation_impact.py - END.\n')
 
