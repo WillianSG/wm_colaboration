@@ -35,7 +35,7 @@ from run_single_synap import *
 
 # == 1 - Simulation run variables ==========
 
-sim_rep = 10
+sim_rep = 20
 
 dt_resolution = 0.0001		# 0.1ms | step of simulation time step resolution
 t_run = 1					# simulation time (seconds)
