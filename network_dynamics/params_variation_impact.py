@@ -1,158 +1,250 @@
 # -*- coding: utf-8 -*-
 """
-@author: wgirao
+@author: wgirao (partially adapted from asonntag)
 
 Input:
 
 Output:
 
 Comments:
-- Run single synapse simulations to get transition probabilities for LTP and LTD.
-- [REFACTOR]: use multithreading for frequencies loop.
+- Investigates the best maximum weight.
 """
 import setuptools
-import os, sys, pickle
+import os, sys, pickle, shutil
+import warnings
 from brian2 import *
-from scipy import *
 from numpy import *
+from time import localtime
 
-import matplotlib.pyplot as plt
+warnings.filterwarnings('ignore') 
 
 prefs.codegen.target = 'numpy'
 
 helper_dir = 'helper_functions'
+plotting_funcs_dir = 'plotting_functions'
 
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())
 
 # Adding parent dir to list of dirs that the interpreter will search in
 sys.path.append(os.path.join(parent_dir, helper_dir))
+sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
-from load_parameters import *
-from load_synapse_model import *
-from run_single_synap import *
+from att_net_obj import AttractorNetwork
+# from ext_attractors_find_wmax_plot import *
 
-# == 1 - Simulation run variables ==========
+# 1 - Simulation results folder
 
-sim_rep = 10
+exp_name = '_param_variation_'
+varying_params = ['wmax']
 
-dt_resolution = 0.0001		# 0.1ms | step of simulation time step resolution
-t_run = 1					# simulation time (seconds)
+simulation_folder = os.path.join(parent_dir, 'network_results')
 
-N_Pre = 2
-N_Post = 2
+if not(os.path.isdir(simulation_folder)):
+	os.mkdir(simulation_folder)
 
-plasticity_rule = 'LR2'			# 'none', 'LR1', 'LR2'
-parameter_set = '2.2'			# '2.1', '2.2', '2.4'
-bistability = True
+idt = localtime()  
 
-neuron_type = 'spikegenerator'	# 'poisson', 'LIF' , 'spikegenerator'
-int_meth_syn = 'euler'			# Synaptic integration method
+simulation_id = str(idt.tm_year) + '{:02}'.format(idt.tm_mon) + \
+	'{:02}'.format(idt.tm_mday) + '_'+ '{:02}'.format(idt.tm_hour) + '_' + \
+	'{:02}'.format(idt.tm_min) + '_' + '{:02}'.format(idt.tm_sec)
 
-exp_type = 'stdp_trans_probabi_'
+sim_results_folder = os.path.join(simulation_folder, simulation_id + exp_name)
 
-# Range of pre- and postsynaptic frequencies (Hz)
-min_freq = 0
-max_freq = 100
+if not(os.path.isdir(sim_results_folder)):
+	os.mkdir(sim_results_folder)
 
-step = 5
+# 2 - Simulation settings
 
-# == 1.1 - neurons' firing rates
+num_networks = 1
 
-f_pre = np.arange(min_freq, max_freq + 0.1, step)
-f_pos = np.arange(min_freq, max_freq + 0.1, step)
+sim_duration = 1*second			# Duration of each simulation
+pulse_duration = 1*second		# Stimulus pulse duration
 
-resul_per_pre_rate = []
-transition_probabilities = []
+sim_rep = 1
 
-# == 2 - Brian2 simulation settings ==========
+# 3 - Net initialization
+for i in np.arange(0, num_networks, 1):
+	print('\n- Simulating network | ', i+1, '/', num_networks)
+	    
+	n = AttractorNetwork()
 
-# Starts a new scope for magic functions
-start_scope()
+	n.t_run = sim_duration 
+	n.id = simulation_id
 
-# loading learning rule parameters
-[tau_xpre,
-	tau_xpost,
-	xpre_jump,
-	xpost_jump,
-	rho_neg,
-	rho_neg2,
-	rho_init,
-	tau_rho,
-	thr_post,
-	thr_pre,
-	thr_b_rho,
-	rho_min,
-	rho_max,
-	alpha,
-	beta,
-	xpre_factor,
-	w_max] = load_rule_params(
-		plasticity_rule = plasticity_rule, 
-		parameter_set = parameter_set)
+	n.int_meth_neur = 'linear'
+	n.int_meth_syn = 'euler' 
 
-# loading synaptic rule equations
-[model_E_E,
-	pre_E_E,
-	post_E_E] = load_synapse_model(plasticity_rule, neuron_type, bistability)
+	n.stim_type_e = 'flat_to_E_fixed_size'
+	n.stim_size_e = 64
+	n.stim_freq_e = 3900*Hz 
+	n.stim_offset_e = 96
 
-Pre = PoissonGroup(
-	N = N_Pre,
-	rates = 5*Hz)
+	n.stim_type_i = 'flat_to_I'
+	n.stim_size_i = n.N_i
+	n.stim_freq_i = 5000*Hz
+	  
+	# Spikemonitors
+	n.Input_to_E_mon_record = True
+	n.Input_to_I_mon_record = True
+	n.E_mon_record = True
+	n.I_mon_record = True
 
-Post = PoissonGroup(
-	N = N_Post,
-	rates = 5*Hz)
+	# @network_operation settings
 
-Pre_Post = Synapses(
-	source = Pre,
-	target = Post,
-	model = model_E_E,
-	on_pre = pre_E_E,
-	on_post = post_E_E,
-	method = int_meth_syn,
-	name = 'Pre_Post')
+	# Weight snapshots
+	n.w_matrix_snapshots = False
+	# n.w_matrix_snapshots_step = 1000*ms   
 
-Pre_Post.connect(j = 'i') # each in source connected to one in target
+	# variables for @network_operation function for stimulus change
+	n.stimulus_pulse = True
+	n.stimulus_pulse_clock_dt = pulse_duration
 
-# - Initialization of synaptic variables
-Pre_Post.rho = rho_init
-num_Pre_Post_synaspes = len(Pre_Post.i)
+	n.stim_freq_original = n.stim_freq_e
 
-print('init: ', rho_init)
+	# Learning rule 
+	n.plasticity_rule = 'LR2' # 'LR1', 'LR2'
+	n.parameter = '2.4'
+	n.neuron_type = 'LIF'
+	n.net_size = 'net'
+	n.bistability = True
 
-Pre_Post.rho[1 , 1] = 0.23
+	# Connection weights
+	n.w_input_e = 1*mV      
+	n.w_input_i = 1*mV
+	n.w_e_e = 0.5*mV          
+	n.w_e_i = 1*mV          
+	n.w_i_e = 1*mV          
 
-print('i0 j0: ', Pre_Post.rho[0 , 0])
-print('i1 j1: ', Pre_Post.rho[1 , 1])
+	# Other connection weight variables
+	n.w_e_e_max = 7.5*mV
 
-# - Monitors
-# synaptic_mon = StateMonitor(
-# 	Pre_Post, 
-# 	['xpre', 'xpost', 'rho', 'w'], 
-# 	record = True)
+	n.fixed_attractor = True              
+	n.fixed_attractor_wmax = 'all_max'  
 
-# Pre_mon = SpikeMonitor(
-# 	source = Pre, 
-# 	record = True, 
-# 	name = 'Pre_mon')
+	n.init_network_modules() # creates/initializes all objects/parameters/mons
+	  
+	# Store initial network state
+	n.net.store(name = 'network_' + simulation_id + '_initial_state', filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
 
-# Post_mon = SpikeMonitor( 
-# 	source = Post,
-# 	record = True,
-# 	name = 'Post_mon')
+	# =====================================================================
 
-# # Network
-# defaultclock.dt = dt_resolution*second
+	# 3.1 - Parameter variation loop
 
-# net = Network(
-# 	Pre, 
-# 	Post, 
-# 	Pre_Post, 
-# 	Pre_mon, 
-# 	Post_mon, 
-# 	synaptic_mon, 
-# 	name = 'net')
+	# restoring network state
+	for p in range(0, len(varying_params)):
+		n.net.restore(
+			name = 'network_' + simulation_id + '_initial_state', 
+			filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
 
-# net.run(t_run*second) # simulating (running network)
+		n.exp_type = 'learning_net_' + str(i+1) + '_varying_' + str(varying_params[p])
+
+		# 3.1.1 Vary parameter and simulate
+
+		n.set_varying_param(varying_params[p])
+
+		print('  > varying ', varying_params[p], ' [', n.w_e_e_max, ']')
+
+		n.run_net()
+
+		# 3.1.2 Storing simulation data
+
+		# a - Timepoints of spikes (s_tpoints) and neuron indices (n_inds)
+
+		# Input_to_E population 
+		s_tpoints_input_e = n.Input_to_E_mon.t[:]
+		n_inds_input_e = n.Input_to_E_mon.i[:]
+
+		# Input_to_I population 
+
+		# Excitatory population
+		s_tpoints_e = n.E_mon.t[:]
+		n_inds_e = n.E_mon.i[:]
+
+		# Inhibitory population
+
+		s_tpoints = [s_tpoints_input_e, s_tpoints_e]
+
+		n_inds = [n_inds_input_e, n_inds_e]
+
+		# Pickling (store structure)
+
+		path_sim = n.path_sim
+		sim_id = n.id
+		t_run = n.t_run
+		exp_type = n.exp_type
+
+		stim_type_e = n.stim_type_e
+		stim_size_e = n.stim_size_e
+		stim_freq_e = n.stim_freq_e
+		stim_offset_e = n.stim_offset_e
+		stim_type_i = n.stim_type_i
+		stim_size_i = n.stim_size_i
+		stim_freq_i = n.stim_freq_i
+		stim_pulse_duration = n.stimulus_pulse_duration
+
+		N_input_e = n.N_input_e
+		N_input_i = n.N_input_i
+		N_e = n.N_e
+		N_i = n.N_i
+
+		len_stim_inds_original_E = len(n.stim_inds_original_E)
+		w_e_e_max = n.w_e_e_max
+
+		path_rho = n.path_snapshots
+		path_w = n.path_snapshots
+
+		path_xpre = n.path_snapshots
+		path_xpost = n.path_snapshots
+		plasticity_rule = n.plasticity_rule
+
+		fn = os.path.join(n.path_sim, n.id + '_' + n.exp_type + '.pickle')
+
+		with open(fn, 'wb') as f:
+			pickle.dump((
+			path_sim, 
+			sim_id,
+			num_networks,
+			t_run,
+			exp_type,
+			stim_type_e, 
+			stim_type_e,
+			stim_size_e,
+			stim_freq_e,
+			stim_offset_e,
+			stim_type_i,
+			stim_size_i,
+			stim_freq_i,
+			stim_pulse_duration,#
+			np.array(varying_params),
+			N_input_e, 
+			N_input_i, 
+			N_e, 
+			N_i,
+			len_stim_inds_original_E,#
+			w_e_e_max, 
+			path_w, 
+			path_xpre,
+			path_xpost,
+			s_tpoints_input_e, #
+			s_tpoints_e, #
+			n_inds_input_e, #
+			n_inds_e), f) #
+
+		print('\nSimulation data pickled to ', fn)
+
+		# Move current simulation folder to superior simulation folder
+		shutil.move(n.path_sim, sim_results_folder)
+
+	# =====================================================================
+
+# ext_attractors_find_wmax_plot(
+# 	sim_results_folder, 
+# 	sim_id, 
+# 	exp_type, 
+# 	spiketrains_and_histograms = True,
+# 	w_matrix_snapshots = False)
+
+print('\nparams_variation_impact.py - END.\n')
+
