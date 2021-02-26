@@ -95,7 +95,6 @@ for i in np.arange(0, num_networks, 1):
 
 	# Weight snapshots
 	n.w_matrix_snapshots = False
-	# n.w_matrix_snapshots_step = 1000*ms   
 
 	# variables for @network_operation function for stimulus change
 	n.stimulus_pulse = True

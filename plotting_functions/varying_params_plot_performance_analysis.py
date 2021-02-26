@@ -56,7 +56,6 @@ def varying_params_plot_performance_analysis(path_sim, sim_id, exp_type, num_net
 	counts['Fading delay activity'] = count_fading_da
 	counts['Delay activity'] = count_da
 	counts['Parameters'] = varying_params
-	# counts['Wmax range (mV)'] = wmax_range
 
 	# 2.1 Plotting counts as bar charts
 
