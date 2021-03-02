@@ -204,6 +204,14 @@ class AttractorNetwork:
 		self.w_e_i = 0*mV # excitatory to inhibitory
 		self.w_i_e = 0*mV # inhibitory to excitatory
 
+		# 2.4 attractor tunned parameters (paremeterset 2.4)
+		self.w_e_e_max_tunned = 7.5 		# max E to E weight
+		self.xpre_factor_tunned = 0.21		# positive w increase factor
+		self.tau_xpre_tunned = 13			# time constant x_pre 
+		self.tau_xpost_tunned = 33 			# time constant x_post
+		self.rho_neg_tunned = 0.008			# negative efficacy change
+		self.rho_neg2_tunned = 0.08	 		# additional neg efficacy change
+
 	# ========== Network Initialization ==========
 	def init_network_modules(self):
 		self.set_neurons()
@@ -590,15 +598,54 @@ class AttractorNetwork:
 	# [new]
 	def set_varying_param(self, parameter = 'wmax', i = 0):
 		if parameter == 'wmax':
-			mu = 7.5		 						# mean (tunned max weight)
-			sigma = (7.5*15)/100					# standard deviation
-			s = np.random.normal(mu, sigma, 1)		# new value
+			sigma = (self.w_e_e_max_tunned*15)/100	# standard deviation
 
-			sin_flag = [i, self.w_e_e_max]
+			# sampling from new dist.
+			s = np.random.normal(self.w_e_e_max_tunned, sigma, 1)
 
-			self.w_e_e_max = s[0]*mV
+			self.w_e_e_max = round(s[0], 4)*mV
 
-			return sin_flag
+			print('  > varying ', parameter, ' [', self.w_e_e_max, '|', self.w_e_e_max_tunned, ']')
+		elif parameter == 'c':
+			sigma = (self.xpre_factor_tunned*15)/100
+
+			s = np.random.normal(self.xpre_factor_tunned, sigma, 1)
+
+			self.xpre_factor = round(s[0], 4)
+
+			print('  > varying ', parameter, ' [', self.xpre_factor, '|', self.xpre_factor_tunned, ']')
+		elif parameter == 'tau_pre':
+			sigma = (self.tau_xpre_tunned*15)/100
+
+			s = np.random.normal(self.tau_xpre_tunned, sigma, 1)
+
+			self.tau_xpre = round(s[0], 4)*ms
+
+			print('  > varying ', parameter, ' [', self.tau_xpre, '|', self.tau_xpre_tunned, ']')
+		elif parameter == 'tau_post':
+			sigma = (self.tau_xpost_tunned*15)/100
+
+			s = np.random.normal(self.tau_xpost_tunned, sigma, 1)
+
+			self.tau_xpost = round(s[0], 4)*ms
+
+			print('  > varying ', parameter, ' [', self.tau_xpost, '|', self.tau_xpost_tunned, ']')
+		elif parameter == 'rho_neg':
+			sigma = (self.rho_neg_tunned*15)/100
+
+			s = np.random.normal(self.rho_neg_tunned, sigma, 1)
+
+			self.rho_neg = round(s[0], 4)*-1
+
+			print('  > varying ', parameter, ' [', self.rho_neg, '|', self.rho_neg_tunned, ']')
+		elif parameter == 'rho_neg2':
+			sigma = (self.rho_neg2_tunned*15)/100
+
+			s = np.random.normal(self.rho_neg2_tunned, sigma, 1)
+
+			self.rho_neg2 = round(s[0], 4)*-1
+
+			print('  > varying ', parameter, ' [', self.rho_neg2, '|', self.rho_neg2_tunned, ']')
 		else:
 			pass
 
