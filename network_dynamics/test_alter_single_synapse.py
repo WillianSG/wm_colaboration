@@ -14,9 +14,9 @@ import setuptools
 import os, sys, pickle
 from brian2 import *
 from scipy import *
-from numpy import *
+import numpy as np
 
-import matplotlib.pyplot as plt
+from matplotlib.pyplot import *
 
 prefs.codegen.target = 'numpy'
 
@@ -35,13 +35,11 @@ from run_single_synap import *
 
 # == 1 - Simulation run variables ==========
 
-sim_rep = 10
-
 dt_resolution = 0.0001		# 0.1ms | step of simulation time step resolution
 t_run = 1					# simulation time (seconds)
 
-N_Pre = 2
-N_Post = 2
+N_Pre = 3
+N_Post = 3
 
 plasticity_rule = 'LR2'			# 'none', 'LR1', 'LR2'
 parameter_set = '2.2'			# '2.1', '2.2', '2.4'
@@ -114,45 +112,79 @@ Pre_Post = Synapses(
 	method = int_meth_syn,
 	name = 'Pre_Post')
 
-Pre_Post.connect(j = 'i') # each in source connected to one in target
+Pre_Post.connect(i = [0, 0, 0, 1, 2], j = [0, 1, 2, 1, 2])
 
-# - Initialization of synaptic variables
+# Initializating value to all synapses
 Pre_Post.rho = rho_init
-num_Pre_Post_synaspes = len(Pre_Post.i)
 
-print('init: ', rho_init)
+# creating matrix from connections
+W = np.full((len(Pre), len(Post)), np.nan)
+W[Pre_Post.i[:], Pre_Post.j[:]] = Pre_Post.rho[:]
 
-Pre_Post.rho[1 , 1] = 0.23
+for pre_id in range(0, len(Pre)):
+	for post_id in range(0, len(Post)):
+		if np.isnan(W[pre_id][post_id]) == False:
+			print(pre_id, post_id, ' = ', Pre_Post.rho[pre_id , post_id])
 
-print('i0 j0: ', Pre_Post.rho[0 , 0])
-print('i1 j1: ', Pre_Post.rho[1 , 1])
+print('\n')
 
-# - Monitors
-# synaptic_mon = StateMonitor(
-# 	Pre_Post, 
-# 	['xpre', 'xpost', 'rho', 'w'], 
-# 	record = True)
+# ========== altering single synapses ==========
 
-# Pre_mon = SpikeMonitor(
-# 	source = Pre, 
-# 	record = True, 
-# 	name = 'Pre_mon')
 
-# Post_mon = SpikeMonitor( 
-# 	source = Post,
-# 	record = True,
-# 	name = 'Post_mon')
+for pre_id in range(0, len(Pre)):
+	for post_id in range(0, len(Post)):
+		if isnan(W[pre_id][post_id]) == False:
+			sigma = (rho_init*15)/100					# standard deviation
+			s = np.random.normal(rho_init, sigma, 1)	# sampling new val.
 
-# # Network
-# defaultclock.dt = dt_resolution*second
+			Pre_Post.rho[pre_id , post_id] = s[0]
 
-# net = Network(
-# 	Pre, 
-# 	Post, 
-# 	Pre_Post, 
-# 	Pre_mon, 
-# 	Post_mon, 
-# 	synaptic_mon, 
-# 	name = 'net')
+for pre_id in range(0, len(Pre)):
+	for post_id in range(0, len(Post)):
+		if isnan(W[pre_id][post_id]) == False:
+			print(pre_id, post_id, ' = ', Pre_Post.rho[pre_id , post_id])
 
-# net.run(t_run*second) # simulating (running network)
+# print('init: ', rho_init)
+
+# print('i0 j0: ', Pre_Post.rho[0 , 0])
+# print('i1 j1: ', Pre_Post.rho[1 , 1])
+
+print('\n')
+
+W = np.full((len(Pre), len(Post)), np.nan)
+W[Pre_Post.i[:], Pre_Post.j[:]] = Pre_Post.rho[:]
+
+print(W)
+
+# for pre_id in range(0, len(Pre)):
+# 	for post_id in range(0, len(Post)):
+# 		if isnan(W[pre_id][post_id]) == False:
+# 			print(pre_id, post_id)
+
+# ========== plotting ==========
+
+Ns = len(Pre_Post.source)
+Nt = len(Pre_Post.target)
+
+figure(figsize=(10, 4))
+
+subplot(121)
+
+plot(zeros(Ns), arange(Ns), 'ok', ms=10)
+plot(ones(Nt), arange(Nt), 'ok', ms=10)
+
+for i, j in zip(Pre_Post.i, Pre_Post.j):
+    plot([0, 1], [i, j], '-k')
+
+xticks([0, 1], ['Source', 'Target'])
+ylabel('Neuron index')
+xlim(-0.1, 1.1)
+ylim(-1, max(Ns, Nt))
+subplot(122)
+plot(Pre_Post.i, Pre_Post.j, 'ok')
+xlim(-1, Ns)
+ylim(-1, Nt)
+xlabel('Source neuron index')
+ylabel('Target neuron index')
+
+show()
