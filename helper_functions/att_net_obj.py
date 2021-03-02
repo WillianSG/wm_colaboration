@@ -211,6 +211,8 @@ class AttractorNetwork:
 		self.tau_xpost_tunned = 33 			# time constant x_post
 		self.rho_neg_tunned = 0.008			# negative efficacy change
 		self.rho_neg2_tunned = 0.08	 		# additional neg efficacy change
+		self.thr_post_tunned = 0.4
+		self.thr_pre_tunned = 0.5
 
 	# ========== Network Initialization ==========
 	def init_network_modules(self):
@@ -664,7 +666,7 @@ class AttractorNetwork:
 						sigma = (self.w_e_e_max_tunned*15)/100
 						s = np.random.normal(self.w_e_e_max_tunned, sigma, 1)
 						
-						self.w_e_e_max = round(s[0], 3)*mV
+						self.w_e_e_max = round(s[0], 4)*mV
 		elif parameter == 'c':
 			for pre_id in range(0, len(self.E)):
 				for post_id in range(0, len(self.E)):
@@ -705,6 +707,22 @@ class AttractorNetwork:
 						s = np.random.normal(self.rho_neg2_tunned, sigma, 1)
 
 						self.rho_neg2 = round(s[0], 4)*-1
+		elif parameter == 'thr_post':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.thr_post_tunned*15)/100
+						s = np.random.normal(self.thr_post_tunned, sigma, 1)
+
+						self.thr_post = round(s[0], 4)*-1
+		elif parameter == 'thr_pre':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.thr_pre_tunned*15)/100
+						s = np.random.normal(self.thr_pre_tunned, sigma, 1)
+
+						self.thr_pre = round(s[0], 4)*-1
 		else:
 			pass
 
