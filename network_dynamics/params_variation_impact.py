@@ -57,10 +57,10 @@ if not(os.path.isdir(sim_results_folder)):
 
 # 2 - Simulation settings
 
-num_networks = 1
+num_networks = 50
 
-sim_duration = 1*second			# Duration of each simulation
-pulse_duration = 1*second			# Stimulus pulse duration
+sim_duration = 10*second			# Duration of each simulation
+pulse_duration = 3*second			# Stimulus pulse duration
 
 # 3 - Net initialization
 for i in np.arange(0, num_networks, 1):
