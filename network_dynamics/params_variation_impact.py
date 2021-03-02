@@ -127,8 +127,6 @@ for i in np.arange(0, num_networks, 1):
 	# Store initial network state
 	n.net.store(name = 'network_' + simulation_id + '_initial_state', filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
 
-	# =====================================================================
-
 	# 3.1 - Parameter variation loop
 
 	# restoring network state
@@ -238,8 +236,6 @@ for i in np.arange(0, num_networks, 1):
 
 		# Move current simulation folder to superior simulation folder
 		shutil.move(n.path_sim, sim_results_folder)
-
-	# =====================================================================
 
 varying_params_attractor_analysis_plot(
 	sim_results_folder, 

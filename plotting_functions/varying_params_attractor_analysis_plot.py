@@ -81,8 +81,6 @@ def varying_params_attractor_analysis_plot(
 			simulation_flag   
 			) = pickle.load(f)
 
-		# path_snaps = os.path.join(path_sim_folder_superior, sim_id  + '_' +exp_type, folder_snaps)
-
 		# 3 - Plotting
 
 		# Evaluation of learning performance
