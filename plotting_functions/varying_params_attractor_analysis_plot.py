@@ -4,6 +4,7 @@
 @original: Lehfeldt
 
 Input:
+- path_sim_folder_superior: pickled simulation data location folder
 
 Output:
 
@@ -26,7 +27,12 @@ sys.path.append(os.path.join(parent_dir, helper_dir))
 from varying_params_plot_performance_analysis import *
 from learning_check_for_delay_activity import *
 
-def varying_params_attractor_analysis_plot(path_sim_folder_superior, sim_id, exp_type,spiketrains_and_histograms = False, w_matrix_snapshots = False):
+def varying_params_attractor_analysis_plot(
+	path_sim_folder_superior, 
+	sim_id, 
+	exp_type,
+	spiketrains_and_histograms = False, 
+	w_matrix_snapshots = False):
 
 	# 1 - Choose types of plots
 	attractor_wmatrices = {}
@@ -38,8 +44,6 @@ def varying_params_attractor_analysis_plot(path_sim_folder_superior, sim_id, exp
 
 	cwd = os.getcwd()
 	sim_folders_list = sorted(os.listdir(path_sim_folder_superior))
-
-	counter = 1
 
 	# [?] - y leaving the last file out?
 	for i in np.arange(0, len(sim_folders_list[0:-1]), 1):
@@ -84,6 +88,7 @@ def varying_params_attractor_analysis_plot(path_sim_folder_superior, sim_id, exp
 		# Evaluation of learning performance
 		print(' > performing performance analysis')
 
+		# [Bool, Bool] - 0 activity after stimulus remove | 1 activity till end
 		delay_activities_temp = learning_check_for_delay_activity(
 			s_tpoints_input_e = s_tpoints_input_e,
 			n_inds_input_e = n_inds_input_e,
@@ -91,7 +96,7 @@ def varying_params_attractor_analysis_plot(path_sim_folder_superior, sim_id, exp
 			n_inds_e = n_inds_e, 
 			t_run = t_run,
 			stim_pulse_duration = stim_pulse_duration,
-			size_attractor = len_stim_inds_original_E, # [wrong] - not array
+			size_attractor = len_stim_inds_original_E,
 			plot_spiketrains = False,
 			sim_id = sim_id,
 			path_sim = os.path.join(path_sim_folder_superior, sim_folders_list[i]))
@@ -119,8 +124,6 @@ def varying_params_attractor_analysis_plot(path_sim_folder_superior, sim_id, exp
 			delay_activities,
 			simulation_flags_params,
 			counts), f)
-
-	counter += 1
 
 
 
