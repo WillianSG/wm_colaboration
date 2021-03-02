@@ -57,10 +57,10 @@ if not(os.path.isdir(sim_results_folder)):
 
 # 2 - Simulation settings
 
-num_networks = 1
+num_networks = 5
 
-sim_duration = 1*second			# Duration of each simulation
-pulse_duration = 1*second		# Stimulus pulse duration
+sim_duration = 5*second			# Duration of each simulation
+pulse_duration = 1*second			# Stimulus pulse duration
 
 # 3 - Net initialization
 for i in np.arange(0, num_networks, 1):
@@ -137,7 +137,8 @@ for i in np.arange(0, num_networks, 1):
 
 		# 3.1.1 Vary parameter and simulate
 
-		n.set_varying_param(varying_params[p])
+		# n.set_varying_param(varying_params[p]) # all params with same new val
+		n.vary_param_per_synapse(varying_params[p]) # each synapse with new val
 
 		simulation_flag = [p, varying_params[p]]
 

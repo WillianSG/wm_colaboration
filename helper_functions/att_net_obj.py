@@ -380,6 +380,10 @@ class AttractorNetwork:
 			self.E_E.xpost = 0
 			self.E_E.rho = 0
 
+		# 4 ========== Creating matrix M from E to E connections ==========
+		self.M_ee = np.full((len(self.E), len(self.E)), np.nan)
+		self.M_ee[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
+
 	# ========== Rule's parameters loader ==========
 	def set_learning_rule_parameters(self):
 		if self.plasticity_rule == 'LR1' or self.plasticity_rule =='LR2':
@@ -595,7 +599,10 @@ class AttractorNetwork:
 
 		return self.namespace
 
-	# [new]
+	# ========== Network namespace ==========
+	#  Varies network parameter by sampling it from a gaussian with
+	# mean centered at the tunned value and with standard deviation
+	# of 15% of the tunned value.
 	def set_varying_param(self, parameter = 'wmax', i = 0):
 		if parameter == 'wmax':
 			sigma = (self.w_e_e_max_tunned*15)/100	# standard deviation
@@ -646,6 +653,58 @@ class AttractorNetwork:
 			self.rho_neg2 = round(s[0], 4)*-1
 
 			print('  > varying ', parameter, ' [', self.rho_neg2, '|', self.rho_neg2_tunned, ']')
+		else:
+			pass
+
+	def vary_param_per_synapse(self, parameter = 'wmax'):		
+		if parameter == 'wmax':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.w_e_e_max_tunned*15)/100
+						s = np.random.normal(self.w_e_e_max_tunned, sigma, 1)
+						
+						self.w_e_e_max = round(s[0], 3)*mV
+		elif parameter == 'c':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.xpre_factor_tunned*15)/100
+						s = np.random.normal(self.xpre_factor_tunned, sigma, 1)
+
+						self.xpre_factor = round(s[0], 4)
+		elif parameter == 'tau_pre':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.tau_xpre_tunned*15)/100
+						s = np.random.normal(self.tau_xpre_tunned, sigma, 1)
+
+						self.tau_xpre = round(s[0], 4)*ms
+		elif parameter == 'tau_post':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.tau_xpost_tunned*15)/100
+						s = np.random.normal(self.tau_xpost_tunned, sigma, 1)
+
+						self.tau_xpost = round(s[0], 4)*ms
+		elif parameter == 'rho_neg':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.rho_neg_tunned*15)/100
+						s = np.random.normal(self.rho_neg_tunned, sigma, 1)
+
+						self.rho_neg = round(s[0], 4)*-1
+		elif parameter == 'rho_neg2':
+			for pre_id in range(0, len(self.E)):
+				for post_id in range(0, len(self.E)):
+					if isnan(self.M_ee[pre_id][post_id]) == False:
+						sigma = (self.rho_neg2_tunned*15)/100
+						s = np.random.normal(self.rho_neg2_tunned, sigma, 1)
+
+						self.rho_neg2 = round(s[0], 4)*-1
 		else:
 			pass
 
