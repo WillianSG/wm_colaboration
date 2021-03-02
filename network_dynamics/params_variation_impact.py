@@ -37,7 +37,7 @@ from varying_params_attractor_analysis_plot import *
 # 1 - Simulation results folder
 
 exp_name = '_param_variation'
-varying_params = ['wmax', 'c', 'tau_pre', 'tau_post', 'rho_neg', 'rho_neg2']
+varying_params = ['wmax', 'c', 'tau_pre', 'tau_post', 'rho_neg', 'rho_neg2', 'thr_post', 'thr_pre']
 
 simulation_folder = os.path.join(parent_dir, 'network_results')
 
@@ -57,9 +57,9 @@ if not(os.path.isdir(sim_results_folder)):
 
 # 2 - Simulation settings
 
-num_networks = 5
+num_networks = 1
 
-sim_duration = 5*second			# Duration of each simulation
+sim_duration = 1*second			# Duration of each simulation
 pulse_duration = 1*second			# Stimulus pulse duration
 
 # 3 - Net initialization

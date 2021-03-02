@@ -29,6 +29,7 @@ def varying_params_plot_performance_analysis(
 	delay_activities):
 
 	lwdth = 2
+	s0 = 20
 	s1 = 30
 	s2 = 60
 	mpl.rcParams['axes.linewidth'] = lwdth
@@ -55,6 +56,10 @@ def varying_params_plot_performance_analysis(
 		if dataset_temp.count(True) == 2:
 			count_da[flag_pos] += 1
 
+	count_no_da = count_no_da/num_networks
+	count_fading_da = count_fading_da/num_networks
+	count_da = count_da/num_networks
+
 	all_counts_concatenated = np.concatenate((count_da, count_fading_da, count_no_da))
 
 	counts = {}
@@ -80,11 +85,11 @@ def varying_params_plot_performance_analysis(
 
 	ax0 = fig.add_subplot(1, 1, 1)
 
-	p1 = ax0.bar(r1, count_no_da, bar_width, color = 'white', edgecolor = 'black', hatch = '', linewidth = lwdth)
+	p1 = ax0.bar(r1, count_no_da, bar_width, color = 'lightcoral', edgecolor = 'black', hatch = '', linewidth = lwdth)
 
-	p2 = ax0.bar(r2, count_fading_da, bar_width, color = 'lightgrey', edgecolor = 'black', linewidth = lwdth)
+	p2 = ax0.bar(r2, count_fading_da, bar_width, color = 'lightblue', edgecolor = 'black', linewidth = lwdth)
 
-	p3 = ax0.bar(r3, count_da, bar_width, color = 'dimgray', edgecolor = 'black',  linewidth = lwdth)
+	p3 = ax0.bar(r3, count_da, bar_width, color = 'deepskyblue', edgecolor = 'black',  linewidth = lwdth)
 
 	ax0.legend(
 		(p1[0],p2[0],p3[0]), 
@@ -94,7 +99,7 @@ def varying_params_plot_performance_analysis(
 		ncol = 3)
 
 	plt.xlabel('Parameters', size = s1, labelpad = 15)
-	plt.ylabel('Count', size = s1, labelpad = 15)
+	plt.ylabel('Achieved percentage', size = s1, labelpad = 15)
 
 	plt.yticks(size = s1)
 	plt.xticks([r + bar_width for r in range(len(varying_params))], [str(x) for x in varying_params], size = s1)
