@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-@author: wgirao (partially adapted from asonntag)
+@author: wgirao
 
 Input:
 
 Output:
 
 Comments:
-- Investigates the best maximum weight.
 """
 import setuptools
 import os, sys, pickle, shutil
@@ -57,10 +56,10 @@ if not(os.path.isdir(sim_results_folder)):
 
 # 2 - Simulation settings
 
-num_networks = 50
+num_networks = 10
 
-sim_duration = 10*second			# Duration of each simulation
-pulse_duration = 3*second			# Stimulus pulse duration
+sim_duration = 8*second			# Duration of each simulation
+pulse_duration = 1*second			# Stimulus pulse duration
 
 # 3 - Net initialization
 for i in np.arange(0, num_networks, 1):
