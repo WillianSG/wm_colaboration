@@ -55,11 +55,11 @@ if not(os.path.isdir(path_sim_folder_superior)):
 	os.mkdir(path_sim_folder_superior)
 
 nets = 1 # number of networks
-sim_duration = 4*second # simulation time
+sim_duration = 1*second # simulation time
 w_max = 7.5*mV # max weight in EE connections
 
 # STIMULUS pulse setttings
-pulse_duration = 3*second # zero seconds not possible
+pulse_duration = 1*second # zero seconds not possible
 pulse_duration_max = 1
 pulse_duration_step = 1
 
@@ -151,174 +151,143 @@ print('\n> Simulating network...')
 
 n.run_net()
 
-# # =========================================================================
+n.t_run = 2*second
 
-# delay_activity = learning_check_for_delay_activity(
-# 	s_tpoints_input_e = n.Input_to_E_mon.t[:],
-# 	n_inds_input_e = n.Input_to_E_mon.i[:],
-# 	s_tpoints_e = n.E_mon.t[:],
-# 	n_inds_e = n.E_mon.i[:], 
-# 	t_run = n.t_run,
-# 	stim_pulse_duration = n.stimulus_pulse_duration,
-# 	size_attractor = len(n.stim_inds_original_E),
-# 	plot_spiketrains = False,
-# 	sim_id = n.id)
+n.stimulus_pulse_clock_dt = 1*second
+n.stimulus_pulse_duration = 1*second
 
-# # store network state if DA has been found
-# if delay_activity[1]:
-# 	print('\nDELAY ACTIVITY FOUND')
+n.run_net()
 
-# 	n.net.store(
-# 		name = 'network_' + simulation_id + '_final_state', 
-# 		filename = os.path.join(
-# 			path_sim_folder_superior,
-# 			'network_' + simulation_id + '_final_state'
-# 			)
-# 		)
+# Input_to_E population 
+s_tpoints_input_e = n.Input_to_E_mon.t[:]
+n_inds_input_e = n.Input_to_E_mon.i[:]
 
-# 	print('\n  - re-simulating network...')
+# Input_to_I population 
+s_tpoints_input_i = n.Input_to_I_mon.t[:]
+n_inds_input_i = n.Input_to_I_mon.i[:]
 
-# 	n.stimulus_pulse_clock_dt = 1*second
-# 	n.stimulus_pulse_duration = 1*second
+# Excitatory population
+s_tpoints_e = n.E_mon.t[:]
+n_inds_e = n.E_mon.i[:]
 
-# 	n.stim_freq_e = 0*Hz
-# 	n.set_stimulus_e()
+# Inhibitory population
+s_tpoints_i = n.I_mon.t[:]
+n_inds_i = n.I_mon.i[:]
 
-# 	# Name of simulation
-# 	n.exp_type = exp_name + '_pulse_dur_'+ str(n.stimulus_pulse_clock_dt/second) + 's'
+s_tpoints = [
+	s_tpoints_input_e, 
+	s_tpoints_input_i, 
+	s_tpoints_e,
+	s_tpoints_i
+]
 
-# 	n.run_net()
+n_inds = [
+	n_inds_input_e,
+	n_inds_input_i,
+	n_inds_e,
+	n_inds_i
+]
 
-# 	# Input_to_E population 
-# 	s_tpoints_input_e = n.Input_to_E_mon.t[:]
-# 	n_inds_input_e = n.Input_to_E_mon.i[:]
+# Pickling
+path_sim = n.path_sim
+sim_id = n.id
+t_run = n.t_run
+exp_type = n.exp_type
 
-# 	# Input_to_I population 
-# 	s_tpoints_input_i = n.Input_to_I_mon.t[:]
-# 	n_inds_input_i = n.Input_to_I_mon.i[:]
+stim_type_e = n.stim_type_e
+stim_size_e = n.stim_size_e
+stim_freq_e = n.stim_freq_e
+stim_offset_e = n.stim_offset_e
+stim_type_i = n.stim_type_i
+stim_size_i = n.stim_size_i
+stim_freq_i = n.stim_freq_i
+stim_pulse_duration = n.stimulus_pulse_duration
 
-# 	# Excitatory population
-# 	s_tpoints_e = n.E_mon.t[:]
-# 	n_inds_e = n.E_mon.i[:]
+N_input_e = n.N_input_e
+N_input_i = n.N_input_i
 
-# 	# Inhibitory population
-# 	s_tpoints_i = n.I_mon.t[:]
-# 	n_inds_i = n.I_mon.i[:]
+N_e = n.N_e
+N_i = n.N_i
 
-# 	s_tpoints = [
-# 		s_tpoints_input_e, 
-# 		s_tpoints_input_i, 
-# 		s_tpoints_e,
-# 		s_tpoints_i
-# 	]
+len_stim_inds_original_E = len(n.stim_inds_original_E)
+w_e_e_max = n.w_e_e_max
+rho_matrix_snapshots_step = n.rho_matrix_snapshots_step
 
-# 	n_inds = [
-# 		n_inds_input_e,
-# 		n_inds_input_i,
-# 		n_inds_e,
-# 		n_inds_i
-# 	]
+folder_snaps = os.path.split(n.path_snapshots)[1]
+path_rho = n.path_snapshots
 
-# 	# Pickling
-# 	path_sim = n.path_sim
-# 	sim_id = n.id
-# 	t_run = n.t_run
-# 	exp_type = n.exp_type
+w_matrix_snapshots_step = n.w_matrix_snapshots_step
+path_w = n.path_snapshots
 
-# 	stim_type_e = n.stim_type_e
-# 	stim_size_e = n.stim_size_e
-# 	stim_freq_e = n.stim_freq_e
-# 	stim_offset_e = n.stim_offset_e
-# 	stim_type_i = n.stim_type_i
-# 	stim_size_i = n.stim_size_i
-# 	stim_freq_i = n.stim_freq_i
-# 	stim_pulse_duration = n.stimulus_pulse_duration
+xpre_matrix_snapshots_step = n.xpre_matrix_snapshots_step
+path_xpre = n.path_snapshots
+xpost_matrix_snapshots_step = n.xpost_matrix_snapshots_step
 
-# 	N_input_e = n.N_input_e
-# 	N_input_i = n.N_input_i
+path_xpost = n.path_snapshots
+plasticity_rule = n.plasticity_rule
 
-# 	N_e = n.N_e
-# 	N_i = n.N_i
+# =====================================================================
 
-# 	len_stim_inds_original_E = len(n.stim_inds_original_E)
-# 	w_e_e_max = n.w_e_e_max
-# 	rho_matrix_snapshots_step = n.rho_matrix_snapshots_step
+fn = os.path.join(n.path_sim, n.id +'_' + n.exp_type + '.pickle')
 
-# 	folder_snaps = os.path.split(n.path_snapshots)[1]
-# 	path_rho = n.path_snapshots
+with open(fn, 'wb') as f:
+	pickle.dump((
+		path_sim, 
+		sim_id, 
+		nets,
+		simulation_flag_pulse_duration,
+		t_run, 
+		exp_type,
+		stim_type_e, 
+		stim_type_e,
+		stim_size_e,
+		stim_freq_e,
+		stim_offset_e,
+		stim_type_i,
+		stim_size_i,
+		stim_freq_i,
+		stim_pulse_duration,
+		[],
+		N_input_e, 
+		N_input_i, 
+		N_e, 
+		N_i,
+		len_stim_inds_original_E,
+		w_e_e_max, 
+		rho_matrix_snapshots_step,
+		folder_snaps,
+		w_matrix_snapshots_step, 
+		path_w,
+		xpre_matrix_snapshots_step, 
+		path_xpre,
+		xpost_matrix_snapshots_step, 
+		path_xpost,
+		s_tpoints_input_e, 
+		s_tpoints_input_i, 
+		s_tpoints_e, 
+		s_tpoints_i,
+		n_inds_input_e,
+		n_inds_input_i,
+		n_inds_e, 
+		n_inds_i), f)
 
-# 	w_matrix_snapshots_step = n.w_matrix_snapshots_step
-# 	path_w = n.path_snapshots
+print('\nSimulation data pickled to ', fn)
 
-# 	xpre_matrix_snapshots_step = n.xpre_matrix_snapshots_step
-# 	path_xpre = n.path_snapshots
-# 	xpost_matrix_snapshots_step = n.xpost_matrix_snapshots_step
+# Move current simulation folder to superior simulation folder
+shutil.move(n.path_sim, path_sim_folder_superior)
 
-# 	path_xpost = n.path_snapshots
-# 	plasticity_rule = n.plasticity_rule
+print('\nNO delay activity')
 
-# 	# =====================================================================
-
-# 	fn = os.path.join(n.path_sim, n.id +'_' + n.exp_type + '.pickle')
-
-# 	with open(fn, 'wb') as f:
-# 		pickle.dump((
-# 			path_sim, 
-# 			sim_id, 
-# 			nets,
-# 			simulation_flag_pulse_duration,
-# 			t_run, 
-# 			exp_type,
-# 			stim_type_e, 
-# 			stim_type_e,
-# 			stim_size_e,
-# 			stim_freq_e,
-# 			stim_offset_e,
-# 			stim_type_i,
-# 			stim_size_i,
-# 			stim_freq_i,
-# 			stim_pulse_duration,
-# 			[],
-# 			N_input_e, 
-# 			N_input_i, 
-# 			N_e, 
-# 			N_i,
-# 			len_stim_inds_original_E,
-# 			w_e_e_max, 
-# 			rho_matrix_snapshots_step,
-# 			folder_snaps,
-# 			w_matrix_snapshots_step, 
-# 			path_w,
-# 			xpre_matrix_snapshots_step, 
-# 			path_xpre,
-# 			xpost_matrix_snapshots_step, 
-# 			path_xpost,
-# 			s_tpoints_input_e, 
-# 			s_tpoints_input_i, 
-# 			s_tpoints_e, 
-# 			s_tpoints_i,
-# 			n_inds_input_e,
-# 			n_inds_input_i,
-# 			n_inds_e, 
-# 			n_inds_i), f)
-
-# 	print('\nSimulation data pickled to ', fn)
-
-# 	# Move current simulation folder to superior simulation folder
-# 	shutil.move(n.path_sim, path_sim_folder_superior)
-# else:
-# 	print('\nNO delay activity')
-
-# ext_attractors_plot(
-# 	path_sim_folder_superior, 
-# 	sim_id, 
-# 	exp_type, 
-# 	spiketrains_and_histograms = True,
-# 	rho_matrix_snapshots = False, 
-# 	w_matrix_snapshots = False, 
-# 	xpre_matrix_snapshots = False, 
-# 	xpost_matrix_snapshots = False,
-# 	learning_performance = False, 
-# 	check_wmatrices = False)
+ext_attractors_plot(
+	path_sim_folder_superior, 
+	sim_id, 
+	exp_type, 
+	spiketrains_and_histograms = True,
+	rho_matrix_snapshots = False, 
+	w_matrix_snapshots = False, 
+	xpre_matrix_snapshots = False, 
+	xpost_matrix_snapshots = False,
+	learning_performance = False, 
+	check_wmatrices = False)
 
 print('\nattractor_stability.py - END.\n')

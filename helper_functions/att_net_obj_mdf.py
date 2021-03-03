@@ -34,6 +34,7 @@ from return_xpost_matrix import *
 
 class AttractorNetwork:
 	def __init__(self):
+		self.iter_count = 0
 		# 1 ========== Simulation settings ==========
 
 		self.path_sim_id = ''
@@ -851,15 +852,19 @@ class AttractorNetwork:
 		if self.stimulus_pulse:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
-				if defaultclock.t < 1*second:
+				if defaultclock.t >= self.stimulus_pulse_duration:
 					self.stim_freq_e = 0*Hz
 					self.set_stimulus_e()
-				elif defaultclock.t >= 1*second and defaultclock.t < 2*second:
-					self.stim_freq_e = 3900*Hz
-					self.set_stimulus_e()
-				elif defaultclock.t >= 2*second:
-					self.stim_freq_e = 0*Hz
-					self.set_stimulus_e()
+			# def stimulus_pulse():
+			# 	if defaultclock.t < 1*second:
+			# 		self.stim_freq_e = 0*Hz
+			# 		self.set_stimulus_e()
+			# 	elif defaultclock.t >= 1*second and defaultclock.t < 2*second:
+			# 		self.stim_freq_e = 3900*Hz
+			# 		self.set_stimulus_e()
+			# 	elif defaultclock.t >= 2*second:
+			# 		self.stim_freq_e = 0*Hz
+			# 		self.set_stimulus_e()
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
@@ -938,7 +943,7 @@ class AttractorNetwork:
 		self.iter_count = 0  # simulation iteration added to .txt name
 		self.parent_dir = os.path.dirname(os.getcwd()) # parent directory
 		self.simulation_folder = os.path.join(
-			self.parent_dir, 'net_simulation')
+			self.parent_dir, 'network_results')
 
 		if not(os.path.isdir(self.simulation_folder)):
 			os.mkdir(self.simulation_folder)
@@ -1200,3 +1205,15 @@ class AttractorNetwork:
 
 		# Go back to working directory (?) {y commented out?}
 		#os.chdir(self.cwd)
+
+	def run_network(self, report = 'stdout', period = 1):
+		self.set_namespace()
+
+		# running simulation
+		self.net.run(
+			self.t_run, 
+			report = report, 
+			report_period = period*second, 
+			namespace = self.set_namespace())
+
+		self.net.stop()

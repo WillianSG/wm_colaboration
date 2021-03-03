@@ -4,6 +4,13 @@
 
 Comments:
 - Learning of stimulus in an attractor network.
+- https://brian2.readthedocs.io/en/stable/user/running.html
+
+-------- TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+- Use "net = Network(collect())"
+- Use to switch plasticity on or off S = Synapses(..., '''...
+                     plastic : boolean (shared)
+                     ...''')
 """
 import setuptools
 import os, sys, pickle, shutil
@@ -28,12 +35,23 @@ sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
 from att_net_obj_mdf import AttractorNetwork
-from ext_attractors_plot import *
+from control_plot_learned_attractor import *
 
-simulation_folder = os.path.join(parent_dir, 'net_simulation')
+# 1 ========== Results/experiment folders ==========
 
-if not(os.path.isdir(simulation_folder)):
-	os.mkdir(simulation_folder)
+network_sim_dir = os.path.join(
+	parent_dir, 
+	'network_results')
+
+if not(os.path.isdir(network_sim_dir)):
+	os.mkdir(network_sim_dir)
+
+script_results_path = os.path.join(
+	network_sim_dir,
+	'attractor_stability')
+
+if not(os.path.isdir(script_results_path)):
+	os.mkdir(script_results_path)
 
 idt = localtime()  
 
@@ -42,34 +60,30 @@ simulation_id = str(idt.tm_year) + '{:02}'.format(idt.tm_mon) + \
 	'{:02}'.format(idt.tm_min) + '_' + '{:02}'.format(idt.tm_sec)
 
 # Starts a new scope for magic functions
-start_scope()
+# start_scope()
 
-# 1 ========== Execution parameters ==========
-
-exp_name = '_learn_stimulus'
+exp_name = '_attractor_stability'
 
 # results destination folder
-path_sim_folder_superior = os.path.join(simulation_folder, simulation_id + exp_name)
+simulation_results_path = os.path.join(script_results_path, simulation_id + exp_name)
 
-if not(os.path.isdir(path_sim_folder_superior)):
-	os.mkdir(path_sim_folder_superior)
+if not(os.path.isdir(simulation_results_path)):
+	os.mkdir(simulation_results_path)
+
+# 2 ========== Simulation parameters ==========
+print('\n> setting up network')
 
 nets = 1 # number of networks
-sim_duration = 5*second # simulation time
-w_max = 7.5*mV # max weight in EE connections
-
-# STIMULUS pulse setttings
-pulse_duration = 1*second # zero seconds not possible
-pulse_duration_max = 1
-pulse_duration_step = 1
-
-# 2 ========== Initialize and store network ==========
-print('\n> Setting up network...')
 
 n = AttractorNetwork() # network class
 
-n.t_run = sim_duration
+n.t_run = 1*second # simulation time
 n.id = simulation_id
+
+# variables for @network_operation function for stimulus change
+n.stimulus_pulse = True
+n.stimulus_pulse_clock_dt = 1*second # zero seconds not possible
+n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt # Set pulse duration
 
 n.int_meth_neur = 'linear'
 n.int_meth_syn = 'euler'
@@ -89,28 +103,6 @@ n.Input_to_I_mon_record = True
 n.E_mon_record = True
 n.I_mon_record = True
 
-# @network_operation settings
-
-# Rho snapshots
-n.rho_matrix_snapshots = False
-n.rho_matrix_snapshots_step = 1000 *ms
-
-# Weight snapshots
-n.w_matrix_snapshots = False
-n.w_matrix_snapshots_step = 1000*ms 
-
-# Xpre snapshots
-n.xpre_matrix_snapshots = False
-n.xpre_matrix_snapshots_step = 1000*ms
-
-# Xpost snapshots
-n.xpost_matrix_snapshots = False
-n.xpost_matrix_snapshots_step = 1000*ms
-
-# variables for @network_operation function for stimulus change
-n.stimulus_pulse = True
-n.stimulus_pulse_clock_dt = pulse_duration
-
 n.stim_freq_original = n.stim_freq_e
 
 # Learning rule 
@@ -127,12 +119,8 @@ n.w_e_i = 1*mV # 1
 n.w_i_e = 1*mV # 1
 n.w_input_s = 67*mV # 1
 
-# Firing rates for spontaneous activity in E and I
-n.F_se = 4*Hz
-n.F_si = 4*Hz
-
 # Other connection weight variables
-n.w_e_e_max = w_max
+n.w_e_e_max = 7.5*mV 			# max weight in EE connections
 
 n.fixed_attractor = False # [?]
 n.fixed_attractor_wmax = 'all_max' # [?]
@@ -140,162 +128,74 @@ n.fixed_attractor_wmax = 'all_max' # [?]
 n.init_network_modules() # creates/initializes all objects/parameters/mons
 
 n.net.store(
-	name = 'network_' + simulation_id + '_initial_state', 
+	name = 'initialized_net_' + simulation_id, 
 	filename = os.path.join(
-		path_sim_folder_superior,
-		'network_' + simulation_id + '_initial_state'
+		simulation_results_path,
+		'initialized_net_' + simulation_id
 		)
 )
 
-# ======= Simulation
-
-# Set pulse duration
-n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt
-
-# Simulation flag of pulse duration
-simulation_flag_pulse_duration = [0, n.stimulus_pulse_duration]
+# 3 ========== learning cue ==========
 
 # Name of simulation
-n.exp_type = exp_name + '_pulse_dur_'+ str(n.stimulus_pulse_clock_dt/second) + 's'
+n.exp_type = exp_name + '_learning_cue'
 
 # Running simulation
-print('\n> Simulating network...')
+print('\n> forming attractor for cue stimulus\n')
 
-n.run_net()
+n.run_network(period = 2)
 
-print('\n> Finished learning.')
+n.net.store(
+	name = 'trained_net_' + simulation_id, 
+	filename = os.path.join(
+		simulation_results_path,
+		'trained_net_' + simulation_id
+		)
+)
 
-# Simulation data storage
+# 3.1 - saving and plotting results ==========
 
-# 1) Timepoints of spikes (s_tpoints) and neuron indices (n_inds)
-
-# Input_to_E population 
-s_tpoints_input_e = n.Input_to_E_mon.t[:]
-n_inds_input_e = n.Input_to_E_mon.i[:]
-
-# Input_to_I population 
-s_tpoints_input_i = n.Input_to_I_mon.t[:]
-n_inds_input_i = n.Input_to_I_mon.i[:]
-
-# Excitatory population
-s_tpoints_e = n.E_mon.t[:]
-n_inds_e = n.E_mon.i[:]
-
-# Inhibitory population
-s_tpoints_i = n.I_mon.t[:]
-n_inds_i = n.I_mon.i[:]
-
-s_tpoints = [
-	s_tpoints_input_e, 
-	s_tpoints_input_i, 
-	s_tpoints_e,
-	s_tpoints_i
-]
-
-n_inds = [
-	n_inds_input_e,
-	n_inds_input_i,
-	n_inds_e,
-	n_inds_i
-]
-
-# Pickling
-path_sim = n.path_sim
-sim_id = n.id
-t_run = n.t_run
-exp_type = n.exp_type
-
-stim_type_e = n.stim_type_e
-stim_size_e = n.stim_size_e
-stim_freq_e = n.stim_freq_e
-stim_offset_e = n.stim_offset_e
-stim_type_i = n.stim_type_i
-stim_size_i = n.stim_size_i
-stim_freq_i = n.stim_freq_i
-stim_pulse_duration = n.stimulus_pulse_duration
-
-N_input_e = n.N_input_e
-N_input_i = n.N_input_i
-
-N_e = n.N_e
-N_i = n.N_i
-
-len_stim_inds_original_E = len(n.stim_inds_original_E)
-w_e_e_max = n.w_e_e_max
-rho_matrix_snapshots_step = n.rho_matrix_snapshots_step
-
-folder_snaps = os.path.split(n.path_snapshots)[1]
-path_rho = n.path_snapshots
-
-w_matrix_snapshots_step = n.w_matrix_snapshots_step
-path_w = n.path_snapshots
-
-xpre_matrix_snapshots_step = n.xpre_matrix_snapshots_step
-path_xpre = n.path_snapshots
-xpost_matrix_snapshots_step = n.xpost_matrix_snapshots_step
-
-path_xpost = n.path_snapshots
-plasticity_rule = n.plasticity_rule
-
-fn = os.path.join(n.path_sim, n.id +'_' + n.exp_type + '.pickle')
+fn = os.path.join(
+	simulation_results_path,
+	n.id +'_' + n.exp_type + '_trained.pickle')
 
 with open(fn, 'wb') as f:
 	pickle.dump((
-		path_sim, 
-		sim_id, 
+		n.plasticity_rule,
 		nets,
-		simulation_flag_pulse_duration,
-		t_run, 
-		exp_type,
-		stim_type_e, 
-		stim_type_e,
-		stim_size_e,
-		stim_freq_e,
-		stim_offset_e,
-		stim_type_i,
-		stim_size_i,
-		stim_freq_i,
-		stim_pulse_duration,
-		[],
-		N_input_e, 
-		N_input_i, 
-		N_e, 
-		N_i,
-		len_stim_inds_original_E,
-		w_e_e_max, 
-		rho_matrix_snapshots_step,
-		folder_snaps,
-		w_matrix_snapshots_step, 
-		path_w,
-		xpre_matrix_snapshots_step, 
-		path_xpre,
-		xpost_matrix_snapshots_step, 
-		path_xpost,
-		s_tpoints_input_e, 
-		s_tpoints_input_i, 
-		s_tpoints_e, 
-		s_tpoints_i,
-		n_inds_input_e,
-		n_inds_input_i,
-		n_inds_e, 
-		n_inds_i), f)
+		n.path_sim, 
+		n.id,
+		n.t_run, 
+		n.exp_type,
+		n.stim_type_e,
+		n.stim_size_e,
+		n.stim_freq_e,
+		n.stim_offset_e,
+		n.stim_type_i,
+		n.stim_size_i,
+		n.stim_freq_i,
+		n.stimulus_pulse_duration,
+		n.N_input_e, 
+		n.N_input_i, 
+		n.N_e, 
+		n.N_i,
+		len(n.stim_inds_original_E),
+		n.w_e_e_max,
+		n.Input_to_E_mon.t[:],
+		n.Input_to_E_mon.i[:],
+		n.Input_to_I_mon.t[:],
+		n.Input_to_I_mon.i[:],
+		n.E_mon.t[:],
+		n.E_mon.i[:],
+		n.I_mon.t[:],
+		n.I_mon.i[:]), f)
 
-print('\nSimulation data pickled to ', fn)
+print('\n -> pickled to: ', fn)
 
-# Move current simulation folder to superior simulation folder
-shutil.move(n.path_sim, path_sim_folder_superior)
-
-ext_attractors_plot(
-	path_sim_folder_superior, 
-	sim_id, 
-	exp_type, 
-	spiketrains_and_histograms = True,
-	rho_matrix_snapshots = False, 
-	w_matrix_snapshots = False, 
-	xpre_matrix_snapshots = False, 
-	xpost_matrix_snapshots = False,
-	learning_performance = False, 
-	check_wmatrices = False)
+control_plot_learned_attractor(
+	network_state_path = simulation_results_path,
+	pickled_data = n.id +'_' + n.exp_type,
+	name = '_trained.pickle')
 
 # Neuron activity rasterplot
 # plt.plot(n.SE_mon.t/ms, n.SE_mon.i, '.k')

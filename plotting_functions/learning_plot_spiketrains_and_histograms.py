@@ -3,6 +3,7 @@
 @author: asonntag (adapted from Lehfeldt)
 
 Inputs:
+- path_sim: plot output destination
 
 Outputs:
 
