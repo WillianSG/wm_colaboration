@@ -27,7 +27,7 @@ sys.path.append(os.path.join(parent_dir, helper_dir))
 sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
-from att_net_obj import AttractorNetwork
+from att_net_obj_mdf import AttractorNetwork
 from ext_attractors_plot import *
 
 simulation_folder = os.path.join(parent_dir, 'net_simulation')
@@ -55,11 +55,11 @@ if not(os.path.isdir(path_sim_folder_superior)):
 	os.mkdir(path_sim_folder_superior)
 
 nets = 1 # number of networks
-sim_duration = 20*second # simulation time
+sim_duration = 5*second # simulation time
 w_max = 7.5*mV # max weight in EE connections
 
 # STIMULUS pulse setttings
-pulse_duration = 3*second # zero seconds not possible
+pulse_duration = 1*second # zero seconds not possible
 pulse_duration_max = 1
 pulse_duration_step = 1
 

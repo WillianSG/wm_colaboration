@@ -47,7 +47,7 @@ def learning_check_for_delay_activity(
 	size_attractor,
 	plot_spiketrains, 
 	sim_id, 
-	path_sim):
+	path_sim = ''):
 
 	# User-defined critical number of active indices within the observed period
 	critical_num_inds_active = size_attractor / 2
