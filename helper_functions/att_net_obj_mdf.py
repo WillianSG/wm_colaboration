@@ -35,6 +35,9 @@ from return_xpost_matrix import *
 class AttractorNetwork:
 	def __init__(self):
 		self.iter_count = 0
+
+		self.monitors_dict = dict()
+
 		# 1 ========== Simulation settings ==========
 
 		self.path_sim_id = ''
@@ -79,7 +82,7 @@ class AttractorNetwork:
 		self.Ext_att_E_rec_attributes = ('w')
 		self.rec_dt = 0.1*ms # Delta t of state variable recording
 
-		# 1.4 ========== @network_operation settings
+		# 1.5 ========== @network_operation settings
 
 		# Rho snapshots
 		self.rho_matrix_snapshots = False
@@ -103,14 +106,14 @@ class AttractorNetwork:
 		self.stimulus_pulse_duration = 1*second
 		self.stimulus_pulse_clock_dt = 1*second
 
-		# 1.5 ========== Excitatory (E) stimulus
+		# 1.6 ========== Excitatory (E) stimulus
 
 		self.stim_type_e = 'user-defined' # [IMPORTANT] - origi. don't have it
 		self.stim_size_e = 0
 		self.stim_freq_e = 0*Hz
 		self.stim_offset_e = 0
 
-		# 1.6 ========== Inhibitory (I) stimulus
+		# 1.7 ========== Inhibitory (I) stimulus
 
 		self.stim_type_i = 'user-defined'
 		self.stim_size_i = 0
@@ -181,9 +184,6 @@ class AttractorNetwork:
 		self.tref_i = 1*ms # refractory period
 		self.tau_epsp_i = 3.5*ms # time constant of EPSP
 		self.tau_ipsp_i = 5.5*ms # time constant of IPSP
-
-		# 2.2.3 - Population for spontaneous activity
-		self.F_s = 0.08*Hz
 
 		# 2.3 ========== Synapses
 
@@ -294,11 +294,6 @@ class AttractorNetwork:
 			refractory = self.tref_i,
 			method = self.int_meth_neur, 
 			name = 'I')
-
-		# "Spontaneoys activity" population
-		self.S = PoissonGroup(N = self.N_e,
-			rates = self.F_s,
-			name = 'S')
 
 		# 3 ========== Neuronal Attributes ==========
 		# Adaptive threshold of E
@@ -426,7 +421,6 @@ class AttractorNetwork:
 
 	# ========== Excitatory stimulus loader ==========
 	def change_stimulus_e(self, stimulus = 'triangle'):
-		self.Input_to_E.rates = 0*Hz
 		self.stim_type_e = stimulus
 
 		# Load stimulus to E 
@@ -518,6 +512,47 @@ class AttractorNetwork:
 		if self.add_Ext_att:
 			self.Ext_att_E.w[self.att_src_inds] = self.w_ext_att_e[self.att_src_inds]
 
+	def save_monitors(self):
+
+		temp_list = []
+
+		# setting monitors
+		input_to_E_mon = SpikeMonitor(
+			source = self.Input_to_E,
+			record = True,
+			name = 'Input_to_E_mon_' + self.stim_type_e)
+
+		temp_list.append(input_to_E_mon)
+
+		input_to_I_mon = SpikeMonitor(
+			source = self.Input_to_I,
+			record = True,
+			name = 'Input_to_I_mon_' + self.stim_type_e)
+
+		temp_list.append(input_to_I_mon)
+
+		e_mon = SpikeMonitor(
+			source = self.E,
+			record = True,
+			name = 'E_mon_' + self.stim_type_e)
+
+		temp_list.append(e_mon)
+
+		i_mon = SpikeMonitor(
+			source = self.I, 
+			record = True,
+			name = 'I_mon_' + self.stim_type_e)
+
+		temp_list.append(i_mon)
+
+		# saving monitors to respective key in dictionary
+		self.monitors_dict[self.stim_type_e] = temp_list
+
+		self.net.add(self.monitors_dict[self.stim_type_e])
+
+	def get_stimulus_monitors(self):
+		return self.monitors_dict[self.stim_type_e]
+
 	# ========== Monitors initializer ==========
 	def set_monitors(self):
 		# Spikemonitors
@@ -531,9 +566,6 @@ class AttractorNetwork:
 			name = 'E_mon')
 
 		self.I_mon = SpikeMonitor(source = self.I, record = self.I_mon_record,name = 'I_mon')
-
-		self.S_mon = SpikeMonitor(source = self.S, record = True,
-			name = 'S_mon')
 
 		if self.add_Ext_att:
 			self.Ext_att_mon = SpikeMonitor(source = self.Ext_att,
@@ -892,7 +924,6 @@ class AttractorNetwork:
 				self.Input_to_I,
 				self.E,
 				self.I,
-				self.S,
 				self.Ext_att,
 				self.Input_E,
 				self.Input_I,
@@ -904,7 +935,6 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
-				self.S_mon,
 				self.Ext_att_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
@@ -926,7 +956,6 @@ class AttractorNetwork:
 				self.Input_to_I,
 				self.E,
 				self.I,
-				self.S,
 				self.Input_E,
 				self.Input_I,
 				self.E_E,
@@ -936,7 +965,6 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
-				self.S_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
 				self.E_rec,

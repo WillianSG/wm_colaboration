@@ -144,7 +144,9 @@ n.exp_type = exp_name + '_learning_cue'
 
 print('\n> forming attractor for cue stimulus\n')
 
-n.run_network(period = 2) # Running simulation
+n.save_monitors() 			# monitors for current sim
+
+n.run_network(period = 2) 	# Running simulation
 
 # 3.1 saving net trained on cue state ==========
 n.net.store(
@@ -161,6 +163,11 @@ fn = os.path.join(
 	simulation_results_path,
 	n.id +'_' + n.exp_type + '_trained.pickle')
 
+# 'spk_mons' gets [input_to_E, input_to_I, E_mon, I_mon]
+spk_mons = n.get_stimulus_monitors()
+
+# print(spk_mons[0].i[:])
+
 with open(fn, 'wb') as f:
 	pickle.dump((
 		n.plasticity_rule,
@@ -183,14 +190,14 @@ with open(fn, 'wb') as f:
 		n.N_i,
 		len(n.stim_inds_original_E),
 		n.w_e_e_max,
-		n.Input_to_E_mon.t[:],
-		n.Input_to_E_mon.i[:],
-		n.Input_to_I_mon.t[:],
-		n.Input_to_I_mon.i[:],
-		n.E_mon.t[:],
-		n.E_mon.i[:],
-		n.I_mon.t[:],
-		n.I_mon.i[:]), f)
+		spk_mons[0].t[:],
+		spk_mons[0].i[:],
+		spk_mons[1].t[:],
+		spk_mons[1].i[:],
+		spk_mons[2].t[:],
+		spk_mons[2].i[:],
+		spk_mons[3].t[:],
+		spk_mons[3].i[:]), f)
 
 print('\n -> pickled to: ', fn)
 
@@ -201,13 +208,19 @@ control_plot_learned_attractor(
 
 # 4 ========== learning followup stimuli ==========
 
+n.t_run = 3*second
+n.stimulus_pulse_clock_dt = 2*second
+n.stimulus_pulse_duration = 2*second
+
 n.change_stimulus_e(stimulus = 'square')
 
 n.exp_type = exp_name + '_learning_' + n.stim_type_e
 
-print('\n> forming attractor for new stimulus [ ', n.stim_type_e, ' ]')
+print('\n> forming attractor for new stimulus [ ', n.stim_type_e, ' ]\n')
 
-n.run_network(period = 2) # Running simulation
+n.save_monitors()
+
+n.run_network(period = 2)
 
 # 4.1 saving net trained on cue state ==========
 n.net.store(
@@ -224,6 +237,10 @@ fn = os.path.join(
 	simulation_results_path,
 	n.id +'_' + n.exp_type + '_trained.pickle')
 
+spk_mons = n.get_stimulus_monitors()
+
+# print(spk_mons[0].i[:])
+
 with open(fn, 'wb') as f:
 	pickle.dump((
 		n.plasticity_rule,
@@ -246,14 +263,14 @@ with open(fn, 'wb') as f:
 		n.N_i,
 		len(n.stim_inds_original_E),
 		n.w_e_e_max,
-		n.Input_to_E_mon.t[:],
-		n.Input_to_E_mon.i[:],
-		n.Input_to_I_mon.t[:],
-		n.Input_to_I_mon.i[:],
-		n.E_mon.t[:],
-		n.E_mon.i[:],
-		n.I_mon.t[:],
-		n.I_mon.i[:]), f)
+		spk_mons[0].t[:],
+		spk_mons[0].i[:],
+		spk_mons[1].t[:],
+		spk_mons[1].i[:],
+		spk_mons[2].t[:],
+		spk_mons[2].i[:],
+		spk_mons[3].t[:],
+		spk_mons[3].i[:]), f)
 
 print('\n -> pickled to: ', fn)
 

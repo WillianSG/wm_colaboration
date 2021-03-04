@@ -92,7 +92,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Input_I population: histogram
 	ax0 = fig.add_subplot(gs[0, 0])
 
-	plt.bar(input_i_t_hist_edgs[:-1], input_i_t_hist_fr, input_i_t_hist_bin_widths, edgecolor = 'grey', color = 'white', linewidth = lwdth)
+	plt.bar(input_i_t_hist_edgs[:-1], input_i_t_hist_fr, input_i_t_hist_bin_widths, edgecolor = 'firebrick', color = 'white', linewidth = lwdth)
 
 	plt.ylabel('$\\nu_{Input I}$\n(Hz)', size = s1, labelpad = 35, 
 		horizontalalignment = 'center')
@@ -214,7 +214,7 @@ def learning_plot_spiketrains_and_histograms(
 
 	plt.bar(input_e_t_hist_edgs[:-1], input_e_t_hist_fr,
 		input_e_t_hist_bin_widths, 
-		edgecolor = 'grey', 
+		edgecolor = 'royalblue', 
 		color = 'white', 
 		linewidth = lwdth)
 	plt.ylabel('$\\nu_{Input E}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
