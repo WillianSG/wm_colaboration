@@ -5,6 +5,7 @@
 Comments:
 - Learning of stimulus in an attractor network.
 - https://brian2.readthedocs.io/en/stable/user/running.html
+- Plotting scripts consume the pickled data
 
 -------- TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 - Use "net = Network(collect())"
@@ -147,10 +148,10 @@ n.run_network(period = 2) # Running simulation
 
 # 3.1 saving net trained on cue state ==========
 n.net.store(
-	name = 'trained_net_' + simulation_id, 
+	name = 'trained_cue_net_' + simulation_id, 
 	filename = os.path.join(
 		simulation_results_path,
-		'trained_net_' + simulation_id
+		'trained_cue_net_' + simulation_id
 		)
 )
 
@@ -199,6 +200,67 @@ control_plot_learned_attractor(
 	name = '_trained.pickle')
 
 # 4 ========== learning followup stimuli ==========
+
+n.change_stimulus_e(stimulus = 'square')
+
+n.exp_type = exp_name + '_learning_' + n.stim_type_e
+
+print('\n> forming attractor for new stimulus [ ', n.stim_type_e, ' ]')
+
+n.run_network(period = 2) # Running simulation
+
+# 4.1 saving net trained on cue state ==========
+n.net.store(
+	name = 'trained_' + n.stim_type_e + '_net_' + simulation_id, 
+	filename = os.path.join(
+		simulation_results_path,
+		'trained_' + n.stim_type_e + '_net_' + simulation_id
+		)
+)
+
+# 4.2 - pickling and plotting ==========
+
+fn = os.path.join(
+	simulation_results_path,
+	n.id +'_' + n.exp_type + '_trained.pickle')
+
+with open(fn, 'wb') as f:
+	pickle.dump((
+		n.plasticity_rule,
+		nets,
+		n.path_sim, 
+		n.id,
+		n.t_run, 
+		n.exp_type,
+		n.stim_type_e,
+		n.stim_size_e,
+		n.stim_freq_e,
+		n.stim_offset_e,
+		n.stim_type_i,
+		n.stim_size_i,
+		n.stim_freq_i,
+		n.stimulus_pulse_duration,
+		n.N_input_e, 
+		n.N_input_i, 
+		n.N_e, 
+		n.N_i,
+		len(n.stim_inds_original_E),
+		n.w_e_e_max,
+		n.Input_to_E_mon.t[:],
+		n.Input_to_E_mon.i[:],
+		n.Input_to_I_mon.t[:],
+		n.Input_to_I_mon.i[:],
+		n.E_mon.t[:],
+		n.E_mon.i[:],
+		n.I_mon.t[:],
+		n.I_mon.i[:]), f)
+
+print('\n -> pickled to: ', fn)
+
+control_plot_learned_attractor(
+	network_state_path = simulation_results_path,
+	pickled_data = n.id +'_' + n.exp_type,
+	name = '_trained.pickle')
 
 print('\nlearn_stimulus.py - END.\n')
 

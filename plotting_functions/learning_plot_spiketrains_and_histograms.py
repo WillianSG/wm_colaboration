@@ -32,8 +32,8 @@ def learning_plot_spiketrains_and_histograms(
 	# General plotting settings
 
 	lwdth = 3
-	s1 = 60
-	s2 = 105
+	s1 = 45
+	s2 = 95
 	mpl.rcParams['axes.linewidth'] = lwdth
 
 	plt.close('all')
@@ -177,7 +177,7 @@ def learning_plot_spiketrains_and_histograms(
 	# == Excitatory population: spiking
 	ax3 = fig.add_subplot(gs[5, 0])
 
-	plt.plot(s_tpoints[2],n_inds[2], '.', color = 'mediumblue')
+	plt.plot(s_tpoints[2],n_inds[2], '.', color = 'cornflowerblue')
 	plt.ylabel('Source neuron $E$', size = s1, labelpad = 35, horizontalalignment = 'center')
 
 	ax3.set_yticks(np.arange(0, N[2]+1, N[3]))
@@ -193,7 +193,7 @@ def learning_plot_spiketrains_and_histograms(
 	ax4 = fig.add_subplot(gs[6, 0]) 
 
 	plt.bar(e_t_hist_edgs[:-1], e_t_hist_fr, e_t_hist_bin_widths, 
-		edgecolor = 'mediumblue', color = 'white', linewidth = lwdth)
+		edgecolor = 'cornflowerblue', color = 'white', linewidth = lwdth)
 	plt.ylabel('$\\nu_{E}$\n(Hz)', size = s1, labelpad = 35,
 		horizontalalignment = 'center')
 	plt.xlim(0, t_run/second)

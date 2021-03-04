@@ -424,6 +424,19 @@ class AttractorNetwork:
 
 		self.Input_to_E.rates[self.stim_inds_original_E] = self.stim_freq_e
 
+	# ========== Excitatory stimulus loader ==========
+	def change_stimulus_e(self, stimulus = 'triangle'):
+		self.Input_to_E.rates = 0*Hz
+		self.stim_type_e = stimulus
+
+		# Load stimulus to E 
+		self.stim_inds_original_E = load_stimulus(
+			stimulus_type = self.stim_type_e,
+			stimulus_size = self.stim_size_e,
+			offset = self.stim_offset_e)
+
+		self.Input_to_E.rates[self.stim_inds_original_E] = self.stim_freq_e
+
 	# ========== Inhibitory stimulus loader ==========
 	def set_stimulus_i(self):
 		# Load stimulus to I  
