@@ -71,13 +71,13 @@ if not(os.path.isdir(simulation_results_path)):
 	os.mkdir(simulation_results_path)
 
 # 2 ========== Simulation parameters ==========
-print('\n> setting up network')
+print('\n> initializing network')
 
-nets = 1 # number of networks
+nets = 1 				# number of networks
 
-n = AttractorNetwork() # network class
+n = AttractorNetwork() 	# network class
 
-n.t_run = 1*second # simulation time
+n.t_run = 1*second 		# simulation time
 n.id = simulation_id
 
 # variables for @network_operation function for stimulus change
@@ -87,15 +87,15 @@ n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt # Set pulse duration
 
 n.int_meth_neur = 'linear'
 n.int_meth_syn = 'euler'
-n.stim_type_e = 'flat_to_E_fixed_size' # Stimulus type (square, circle, triangle, cross,...)
+n.stim_type_e = 'flat_to_E_fixed_size' # square, circle, triangle, cross,..
 
 n.stim_size_e = 64
 n.stim_offset_e = 80
-n.stim_freq_e = 3900*Hz # 3900*Hz
+n.stim_freq_e = 3900*Hz 	# 3900*Hz
 
 n.stim_type_i = 'flat_to_I'
 n.stim_size_i = n.N_i
-n.stim_freq_i = 5000*Hz # 5000*Hz
+n.stim_freq_i = 5000*Hz 	# 5000*Hz
 
 # Spikemonitors
 n.Input_to_E_mon_record = True
@@ -106,7 +106,7 @@ n.I_mon_record = True
 n.stim_freq_original = n.stim_freq_e
 
 # Learning rule 
-n.plasticity_rule = 'LR2' # LR1, LR2
+n.plasticity_rule = 'LR2' 	# LR1, LR2
 n.parameter = '2.4' #
 n.neuron_type = 'LIF' #
 n.bistability = True
@@ -120,12 +120,14 @@ n.w_i_e = 1*mV # 1
 n.w_input_s = 67*mV # 1
 
 # Other connection weight variables
-n.w_e_e_max = 7.5*mV 			# max weight in EE connections
+n.w_e_e_max = 7.5*mV 		# max weight in EE connections
 
 n.fixed_attractor = False # [?]
 n.fixed_attractor_wmax = 'all_max' # [?]
 
 n.init_network_modules() # creates/initializes all objects/parameters/mons
+
+# 2.1 saving net initialized state ==========
 
 n.net.store(
 	name = 'initialized_net_' + simulation_id, 
@@ -137,14 +139,13 @@ n.net.store(
 
 # 3 ========== learning cue ==========
 
-# Name of simulation
 n.exp_type = exp_name + '_learning_cue'
 
-# Running simulation
 print('\n> forming attractor for cue stimulus\n')
 
-n.run_network(period = 2)
+n.run_network(period = 2) # Running simulation
 
+# 3.1 saving net trained on cue state ==========
 n.net.store(
 	name = 'trained_net_' + simulation_id, 
 	filename = os.path.join(
@@ -153,7 +154,7 @@ n.net.store(
 		)
 )
 
-# 3.1 - saving and plotting results ==========
+# 3.2 - pickling and plotting ==========
 
 fn = os.path.join(
 	simulation_results_path,
@@ -197,19 +198,7 @@ control_plot_learned_attractor(
 	pickled_data = n.id +'_' + n.exp_type,
 	name = '_trained.pickle')
 
-# Neuron activity rasterplot
-# plt.plot(n.SE_mon.t/ms, n.SE_mon.i, '.k')
-# plt.title('E Spontaneous activity')
-# plt.xlabel('Time (ms)')
-# plt.ylabel('Neuron index')
-# plt.show()
-
-# spk_trains = n.E_mon.spike_trains()
-
-# print('\nPrinting spk trains: \n')
-
-# for x in range(len(spk_trains)):
-# 	print('id: ', x, ' | # spks: ', len(spk_trains[x]))
+# 4 ========== learning followup stimuli ==========
 
 print('\nlearn_stimulus.py - END.\n')
 

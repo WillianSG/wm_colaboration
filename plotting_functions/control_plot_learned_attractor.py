@@ -59,7 +59,7 @@ def control_plot_learned_attractor(
 		s_tpoints_i,
 		n_inds_i) = pickle.load(f)
 
-	print(' -> plotting spiketrains and histograms')
+	print('\n -> plotting spiketrains and histograms')
 
 	learning_plot_spiketrains_and_histograms(
 		sim_id = sim_id,
