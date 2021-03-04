@@ -109,7 +109,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Inhibitory population: spiking
 	ax1 = fig.add_subplot(gs[2, 0])
 
-	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'green')
+	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'lightcoral')
 	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
 
 	ax1.set_yticks(np.arange(0, N[3]+1, N[3]/2))
@@ -124,7 +124,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Inhibitory population: histogram
 	ax2 = fig.add_subplot(gs[3, 0])
 
-	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'green', color = 'white', linewidth = lwdth)
+	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'lightcoral', color = 'white', linewidth = lwdth)
 	plt.ylabel('$\\nu_{I}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
 	plt.xlim(0, t_run/second)
 	plt.ylim(0, max(i_t_hist_fr)*1.1)
@@ -143,7 +143,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Spont Inhibitory population: spiking
 	ax1 = fig.add_subplot(gs[2, 0])
 
-	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'green')
+	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'lightcoral')
 	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
 
 	ax1.set_yticks(np.arange(0, N[3]+1, N[3]/2))
@@ -158,7 +158,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Spont Inhibitory population: histogram
 	ax2 = fig.add_subplot(gs[3, 0])
 
-	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'green', color = 'white', linewidth = lwdth)
+	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'lightcoral', color = 'white', linewidth = lwdth)
 	plt.ylabel('$\\nu_{I}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
 	plt.xlim(0, t_run/second)
 	plt.ylim(0, max(i_t_hist_fr)*1.1)
