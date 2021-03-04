@@ -82,7 +82,7 @@ n.t_run = 1*second 		# simulation time
 n.id = simulation_id
 
 # variables for @network_operation function for stimulus change
-n.stimulus_pulse = True
+n.stimulus_pulse = False
 n.stimulus_pulse_clock_dt = 1*second # zero seconds not possible
 n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt # Set pulse duration
 
@@ -91,7 +91,7 @@ n.int_meth_syn = 'euler'
 n.stim_type_e = 'flat_to_E_fixed_size' # square, circle, triangle, cross,..
 
 n.stim_size_e = 64
-n.stim_offset_e = 80
+n.stim_offset_e = 100
 n.stim_freq_e = 3900*Hz 	# 3900*Hz
 
 n.stim_type_i = 'flat_to_I'
@@ -163,10 +163,7 @@ fn = os.path.join(
 	simulation_results_path,
 	n.id +'_' + n.exp_type + '_trained.pickle')
 
-# 'spk_mons' gets [input_to_E, input_to_I, E_mon, I_mon]
-spk_mons = n.get_stimulus_monitors()
-
-# print(spk_mons[0].i[:])
+spk_mons = n.get_stimulus_monitors() # [input_to_E, input_to_I, E_mon, I_mon]
 
 with open(fn, 'wb') as f:
 	pickle.dump((
@@ -206,19 +203,32 @@ control_plot_learned_attractor(
 	pickled_data = n.id +'_' + n.exp_type,
 	name = '_trained.pickle')
 
+print('\n===============================')
+print(spk_mons[0].t[:])
+print(spk_mons[0].i[:])
+print('===============================\n')
+
+# ==================================================
+print('\n [ silencing ]\n')
+
+n.stim_freq_e = 0*Hz
+n.set_stimulus_e()
+
+n.set_stimulus_i_special()
+
+n.run_network(period = 4)
+
+n.unset_stimulus_i_special()
+# ==================================================
+
 # 4 ========== learning followup stimuli ==========
-
-n.t_run = 3*second
-n.stimulus_pulse_clock_dt = 2*second
-n.stimulus_pulse_duration = 2*second
-
-n.change_stimulus_e(stimulus = 'square')
+n.change_stimulus_e(stimulus = 'flat_to_E_fixed_size', offset = 0)
 
 n.exp_type = exp_name + '_learning_' + n.stim_type_e
 
 print('\n> forming attractor for new stimulus [ ', n.stim_type_e, ' ]\n')
 
-n.save_monitors()
+n.save_monitors(opt = 'skewed')
 
 n.run_network(period = 2)
 
@@ -239,7 +249,17 @@ fn = os.path.join(
 
 spk_mons = n.get_stimulus_monitors()
 
-# print(spk_mons[0].i[:])
+s_tpoints_input_e = [x - (n.t_run+1*second) for x in spk_mons[0].t[:]]
+n_inds_input_e = spk_mons[0].i[:]
+
+s_tpoints_input_i = [x - (n.t_run+1*second) for x in spk_mons[1].t[:]]
+n_inds_input_i = spk_mons[1].i[:]
+
+s_tpoints_e = [x - (n.t_run+1*second) for x in spk_mons[2].t[:]]
+n_inds_e = spk_mons[2].i[:]
+
+s_tpoints_i = [x - (n.t_run+1*second) for x in spk_mons[3].t[:]]
+n_inds_i = spk_mons[3].i[:]
 
 with open(fn, 'wb') as f:
 	pickle.dump((
@@ -263,16 +283,21 @@ with open(fn, 'wb') as f:
 		n.N_i,
 		len(n.stim_inds_original_E),
 		n.w_e_e_max,
-		spk_mons[0].t[:],
-		spk_mons[0].i[:],
-		spk_mons[1].t[:],
-		spk_mons[1].i[:],
-		spk_mons[2].t[:],
-		spk_mons[2].i[:],
-		spk_mons[3].t[:],
-		spk_mons[3].i[:]), f)
+		s_tpoints_input_e,
+		n_inds_input_e,
+		s_tpoints_input_i,
+		n_inds_input_i,
+		s_tpoints_e,
+		n_inds_e,
+		s_tpoints_i,
+		n_inds_i), f)
 
 print('\n -> pickled to: ', fn)
+
+print('\n===============================')
+print(spk_mons[0].t[:])
+print(spk_mons[0].i[:])
+print('===============================\n')
 
 control_plot_learned_attractor(
 	network_state_path = simulation_results_path,

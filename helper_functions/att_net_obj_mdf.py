@@ -56,6 +56,8 @@ class AttractorNetwork:
 
 		# 1.2 ========== Spike monitors
 
+		self.I_E_special_mon_record = True
+
 		self.Input_to_E_mon_record = False
 		self.Input_to_I_mon_record = False
 		self.E_mon_record = True
@@ -118,6 +120,7 @@ class AttractorNetwork:
 		self.stim_type_i = 'user-defined'
 		self.stim_size_i = 0
 		self.stim_freq_i = 0*Hz
+		self.stim_freq_i_special = 0*Hz
 		self.stim_offset_i = 0
 
 		# 2 ========== Network Settings ==========
@@ -295,6 +298,20 @@ class AttractorNetwork:
 			method = self.int_meth_neur, 
 			name = 'I')
 
+		# Inhibitory population
+		if self.I_E_special_mon_record:
+			self.Input_to_I_special = NeuronGroup(N = self.N_e, 
+				model = 'rates : Hz', 
+				threshold = 'rand()<rates*dt', 
+				name = 'Input_to_I_special')
+
+			self.I_special = NeuronGroup(N = self.N_e, model = self.eqs_i,
+				reset = 'Vm = Vrst_i',
+				threshold = 'Vm > Vth_i',
+				refractory = self.tref_i,
+				method = self.int_meth_neur, 
+				name = 'I_special')
+
 		# 3 ========== Neuronal Attributes ==========
 		# Adaptive threshold of E
 		self.E.Vth_e = self.Vth_e_init
@@ -340,6 +357,21 @@ class AttractorNetwork:
 			on_pre = 'Vipsp += w', 
 			name = 'I_E')
 
+		if self.I_E_special_mon_record:
+			self.Input_I_special = Synapses(
+				source = self.Input_to_I_special, 
+				target = self.I_special, 
+				model = 'w : volt', 
+				on_pre = 'Vepsp += w', 
+				name = 'Input_I_special')
+
+			self.I_E_special = Synapses(
+				source = self.I_special, 
+				target = self.E, 
+				model = 'w : volt', 
+				on_pre = 'Vipsp += w', 
+				name = 'I_E_special')
+
 		if self.add_Ext_att:
 			self.Ext_att_E = Synapses(source = self.Ext_att, target = self.E, 
 				model = 'w : volt', 
@@ -357,6 +389,10 @@ class AttractorNetwork:
 			name = 'E_E')
 
 		# 3 ========== Creating connections ==========
+		if self.I_E_special_mon_record:
+			self.Input_I_special.connect(j = 'i')
+			self.I_E_special.connect(j = 'i')
+
 		self.Input_E.connect(j = 'i')
 		self.Input_I.connect(j = 'i')
 		self.E_E.connect('i!=j', p = self.p_e_e) # no self-connections
@@ -420,8 +456,13 @@ class AttractorNetwork:
 		self.Input_to_E.rates[self.stim_inds_original_E] = self.stim_freq_e
 
 	# ========== Excitatory stimulus loader ==========
-	def change_stimulus_e(self, stimulus = 'triangle'):
+	def change_stimulus_e(self, 
+		stimulus = 'triangle', 
+		offset = 0, 
+		rate = 3900):
 		self.stim_type_e = stimulus
+		self.stim_offset_e = offset
+		self.stim_freq_e = rate*Hz
 
 		# Load stimulus to E 
 		self.stim_inds_original_E = load_stimulus(
@@ -441,6 +482,23 @@ class AttractorNetwork:
 
 		# Apply stimulus frequency to input neurons forming the stimulus  
 		self.Input_to_I.rates[self.stim_inds_original_I] = self.stim_freq_i
+
+	def set_stimulus_i_special(self):
+		self.stim_freq_i_special = self.stim_freq_i
+		# Load stimulus to I  
+		self.stim_inds_original_I_special = load_stimulus(
+			stimulus_type = self.stim_type_i,
+			stimulus_size = self.N_e,
+			offset = 0) 
+
+		# Apply stimulus frequency to input neurons forming the stimulus  
+		self.Input_to_I_special.rates[self.stim_inds_original_I_special] = self.stim_freq_i_special
+
+	def unset_stimulus_i_special(self):
+		self.stim_freq_i_special = 0*Hz
+
+		# Apply stimulus frequency to input neurons forming the stimulus  
+		self.Input_to_I_special.rates[self.stim_inds_original_I_special] = self.stim_freq_i_special
 
 	# ========== External attractor stimulus loader ==========
 	def set_stimulus_ext_att(self):
@@ -512,7 +570,7 @@ class AttractorNetwork:
 		if self.add_Ext_att:
 			self.Ext_att_E.w[self.att_src_inds] = self.w_ext_att_e[self.att_src_inds]
 
-	def save_monitors(self):
+	def save_monitors(self, opt = ''):
 
 		temp_list = []
 
@@ -520,28 +578,28 @@ class AttractorNetwork:
 		input_to_E_mon = SpikeMonitor(
 			source = self.Input_to_E,
 			record = True,
-			name = 'Input_to_E_mon_' + self.stim_type_e)
+			name = 'Input_to_E_mon_' + self.stim_type_e + opt)
 
 		temp_list.append(input_to_E_mon)
 
 		input_to_I_mon = SpikeMonitor(
 			source = self.Input_to_I,
 			record = True,
-			name = 'Input_to_I_mon_' + self.stim_type_e)
+			name = 'Input_to_I_mon_' + self.stim_type_e + opt)
 
 		temp_list.append(input_to_I_mon)
 
 		e_mon = SpikeMonitor(
 			source = self.E,
 			record = True,
-			name = 'E_mon_' + self.stim_type_e)
+			name = 'E_mon_' + self.stim_type_e + opt)
 
 		temp_list.append(e_mon)
 
 		i_mon = SpikeMonitor(
 			source = self.I, 
 			record = True,
-			name = 'I_mon_' + self.stim_type_e)
+			name = 'I_mon_' + self.stim_type_e + opt)
 
 		temp_list.append(i_mon)
 
@@ -897,19 +955,12 @@ class AttractorNetwork:
 		if self.stimulus_pulse:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
-				if defaultclock.t >= self.stimulus_pulse_duration:
+				if (defaultclock.t - self.t_run):
 					self.stim_freq_e = 0*Hz
 					self.set_stimulus_e()
-			# def stimulus_pulse():
-			# 	if defaultclock.t < 1*second:
-			# 		self.stim_freq_e = 0*Hz
-			# 		self.set_stimulus_e()
-			# 	elif defaultclock.t >= 1*second and defaultclock.t < 2*second:
-			# 		self.stim_freq_e = 3900*Hz
-			# 		self.set_stimulus_e()
-			# 	elif defaultclock.t >= 2*second:
-			# 		self.stim_freq_e = 0*Hz
-			# 		self.set_stimulus_e()
+				# if defaultclock.t >= self.stimulus_pulse_duration:
+				# 	self.stim_freq_e = 0*Hz
+				# 	self.set_stimulus_e()
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
@@ -944,6 +995,38 @@ class AttractorNetwork:
 				self.E_I_rec,
 				self.I_E_rec,
 				self.Ext_att_E_rec,
+				store_rho_matrix_snapshot,
+				store_w_matrix_snapshot,
+				store_xpre_matrix_snapshot,
+				store_xpost_matrix_snapshot,
+				stimulus_pulse,
+				name = 'net')
+		elif self.I_E_special_mon_record:
+			self.net = Network(
+				self.Input_to_E,
+				self.Input_to_I,
+				self.Input_to_I_special,
+				self.E,
+				self.I,
+				self.I_special,
+				self.Input_E,
+				self.Input_I,
+				self.Input_I_special,
+				self.E_E,
+				self.E_I,
+				self.I_E,
+				self.I_E_special,
+				self.Input_to_E_mon,
+				self.Input_to_I_mon,
+				self.E_mon,
+				self.I_mon,
+				self.Input_E_rec,
+				self.Input_I_rec,
+				self.E_rec,
+				self.I_rec,
+				self.E_E_rec,
+				self.E_I_rec,
+				self.I_E_rec,
 				store_rho_matrix_snapshot,
 				store_w_matrix_snapshot,
 				store_xpre_matrix_snapshot,

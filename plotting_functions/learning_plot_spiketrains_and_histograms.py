@@ -1,12 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 @author: asonntag (adapted from Lehfeldt)
-
 Inputs:
-- path_sim: plot output destination
-
 Outputs:
-
 Comments:
 """
 
@@ -32,8 +28,8 @@ def learning_plot_spiketrains_and_histograms(
 	# General plotting settings
 
 	lwdth = 3
-	s1 = 45
-	s2 = 95
+	s1 = 60
+	s2 = 105
 	mpl.rcParams['axes.linewidth'] = lwdth
 
 	plt.close('all')
@@ -92,7 +88,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Input_I population: histogram
 	ax0 = fig.add_subplot(gs[0, 0])
 
-	plt.bar(input_i_t_hist_edgs[:-1], input_i_t_hist_fr, input_i_t_hist_bin_widths, edgecolor = 'firebrick', color = 'white', linewidth = lwdth)
+	plt.bar(input_i_t_hist_edgs[:-1], input_i_t_hist_fr, input_i_t_hist_bin_widths, edgecolor = 'grey', color = 'white', linewidth = lwdth)
 
 	plt.ylabel('$\\nu_{Input I}$\n(Hz)', size = s1, labelpad = 35, 
 		horizontalalignment = 'center')
@@ -109,7 +105,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Inhibitory population: spiking
 	ax1 = fig.add_subplot(gs[2, 0])
 
-	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'lightcoral')
+	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'red')
 	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
 
 	ax1.set_yticks(np.arange(0, N[3]+1, N[3]/2))
@@ -124,7 +120,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Inhibitory population: histogram
 	ax2 = fig.add_subplot(gs[3, 0])
 
-	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'lightcoral', color = 'white', linewidth = lwdth)
+	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'red', color = 'white', linewidth = lwdth)
 	plt.ylabel('$\\nu_{I}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
 	plt.xlim(0, t_run/second)
 	plt.ylim(0, max(i_t_hist_fr)*1.1)
@@ -140,44 +136,10 @@ def learning_plot_spiketrains_and_histograms(
 	plt.yticks(size = s1)
 	plt.xticks(size = s1)
 
-	# Spont Inhibitory population: spiking
-	ax1 = fig.add_subplot(gs[2, 0])
-
-	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'lightcoral')
-	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
-
-	ax1.set_yticks(np.arange(0, N[3]+1, N[3]/2))
-	ax1.set_xticklabels([])
-
-	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10, pad = 10)
-	plt.ylim(0,N[3])
-	plt.yticks(size = s1)
-	plt.xticks(size = s1)
-	plt.xlim(0, t_run/second)
-
-	# Spont Inhibitory population: histogram
-	ax2 = fig.add_subplot(gs[3, 0])
-
-	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'lightcoral', color = 'white', linewidth = lwdth)
-	plt.ylabel('$\\nu_{I}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
-	plt.xlim(0, t_run/second)
-	plt.ylim(0, max(i_t_hist_fr)*1.1)
-
-	yticks = np.linspace(0, max(i_t_hist_fr)*1.1, 3)
-
-	ax2.set_yticks(yticks)
-	ax2.set_yticklabels(np.around(yticks))
-	ax2.set_xticklabels([])
-
-	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10,
-		pad = 10)
-	plt.yticks(size = s1)
-	plt.xticks(size = s1)
-
-	# == Excitatory population: spiking
+	# Excitatory population: spiking
 	ax3 = fig.add_subplot(gs[5, 0])
 
-	plt.plot(s_tpoints[2],n_inds[2], '.', color = 'cornflowerblue')
+	plt.plot(s_tpoints[2],n_inds[2], '.', color = 'mediumblue')
 	plt.ylabel('Source neuron $E$', size = s1, labelpad = 35, horizontalalignment = 'center')
 
 	ax3.set_yticks(np.arange(0, N[2]+1, N[3]))
@@ -193,7 +155,7 @@ def learning_plot_spiketrains_and_histograms(
 	ax4 = fig.add_subplot(gs[6, 0]) 
 
 	plt.bar(e_t_hist_edgs[:-1], e_t_hist_fr, e_t_hist_bin_widths, 
-		edgecolor = 'cornflowerblue', color = 'white', linewidth = lwdth)
+		edgecolor = 'mediumblue', color = 'white', linewidth = lwdth)
 	plt.ylabel('$\\nu_{E}$\n(Hz)', size = s1, labelpad = 35,
 		horizontalalignment = 'center')
 	plt.xlim(0, t_run/second)
@@ -214,7 +176,7 @@ def learning_plot_spiketrains_and_histograms(
 
 	plt.bar(input_e_t_hist_edgs[:-1], input_e_t_hist_fr,
 		input_e_t_hist_bin_widths, 
-		edgecolor = 'royalblue', 
+		edgecolor = 'grey', 
 		color = 'white', 
 		linewidth = lwdth)
 	plt.ylabel('$\\nu_{Input E}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
