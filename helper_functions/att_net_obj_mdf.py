@@ -36,6 +36,8 @@ class AttractorNetwork:
 	def __init__(self):
 		self.iter_count = 0
 
+		self.simulation_results_path = ''
+
 		self.monitors_dict = dict()
 
 		# 1 ========== Simulation settings ==========
@@ -417,6 +419,20 @@ class AttractorNetwork:
 		# 4 ========== Creating matrix M from E to E connections ==========
 		self.M_ee = np.full((len(self.E), len(self.E)), np.nan)
 		self.M_ee[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
+
+	def take_synaptic_matrix_snapshot(self, time):
+		synaptic_matrix = np.full((len(self.E), len(self.E)), 0.0)
+		synaptic_matrix[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
+
+		fn = os.path.join(
+			self.simulation_results_path,
+			self.id + '_synaptic_matrix_after_' + self.stim_type_e + '_offset' + str(self.stim_offset_e) + '_sec' + str(int(time/1000.0)) + '.pickle')
+
+		with open(fn, 'wb') as f:
+			pickle.dump((
+				synaptic_matrix), f)
+
+		print('\n  > synaptic matrix pickled to: ', fn)
 
 	# ========== Rule's parameters loader ==========
 	def set_learning_rule_parameters(self):
@@ -975,10 +991,9 @@ class AttractorNetwork:
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
-				pass
-				# USE THIS TO PRINT SYNAPTIC MATRIXIS
-				# if ((defaultclock.t/ms) % 2) == 0:
-				# 	print('\nhere: ', defaultclock.t, '\n')
+				if ((defaultclock.t/ms) % 2) == 0:
+					self.take_synaptic_matrix_snapshot(
+						time = defaultclock.t/ms)
 
 		# ========== Network object
 		defaultclock.dt = self.dt

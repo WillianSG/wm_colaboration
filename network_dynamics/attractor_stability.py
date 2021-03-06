@@ -84,6 +84,7 @@ stimulus_pulse_clock_dt_silencing = 1*second
 nets = 1 				# number of networks
 
 n = AttractorNetwork() 	# network class
+n.simulation_results_path = simulation_results_path
 
 # setting sim. timerun for learning
 n.t_run = t_run 		# simulation time
@@ -251,7 +252,7 @@ for stimulus in stimuli:
 	n.stimulus_pulse_clock_dt = stimulus_pulse_clock_dt
 	n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt
 
-	n.change_stimulus_e(stimulus = stimulus, offset = n.stim_offset_e + 32)
+	n.change_stimulus_e(stimulus = stimulus, offset = n.stim_offset_e + 42)
 	# n.change_stimulus_e(stimulus = stimulus)
 
 	n.exp_type = exp_name + '_learning_' + n.stim_type_e
