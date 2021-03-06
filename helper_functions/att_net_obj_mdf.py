@@ -898,6 +898,9 @@ class AttractorNetwork:
 
 		self.stimulus_pulse_switch = 0
 
+		self.synaptic_matrix_snap_clock = Clock(
+			1*second, name = 'clk_stim_pulse')
+
 		# ========== Snapshot of rho matrices
 		if self.rho_matrix_snapshots:
 			@network_operation(clock = self.rho_matrix_snapshot_clock)
@@ -994,11 +997,10 @@ class AttractorNetwork:
 					self.stim_freq_e = 0*Hz
 					self.set_stimulus_e()
 		else:
-			@network_operation(clock = self.stimulus_pulse_clock)
+			@network_operation(clock = self.synaptic_matrix_snap_clock)
 			def stimulus_pulse():
-				if ((defaultclock.t/ms) % 2) == 0:
-					self.take_synaptic_matrix_snapshot(
-						time = defaultclock.t/ms)
+				self.take_synaptic_matrix_snapshot(
+					time = defaultclock.t/ms)
 
 		# ========== Network object
 		defaultclock.dt = self.dt
