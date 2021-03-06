@@ -421,11 +421,16 @@ class AttractorNetwork:
 		self.M_ee[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
 
 	def take_synaptic_matrix_snapshot(self, time):
-		synaptic_matrix = np.full((len(self.E), len(self.E)), 0.0)
+		synaptic_matrix = np.full((len(self.E), len(self.E)), -1.0)
 		synaptic_matrix[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
 
+		syn_M_snaps = os.path.join(self.simulation_results_path, 'synaptic_matrix_snaps')
+
+		if not(os.path.isdir(syn_M_snaps)):
+			os.mkdir(syn_M_snaps)
+
 		fn = os.path.join(
-			self.simulation_results_path,
+			syn_M_snaps,
 			self.id + '_synaptic_matrix_after_' + self.stim_type_e + '_offset' + str(self.stim_offset_e) + '_sec' + str(int(time/1000.0)) + '.pickle')
 
 		with open(fn, 'wb') as f:
