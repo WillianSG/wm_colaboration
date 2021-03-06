@@ -23,7 +23,8 @@ def learning_plot_spiketrains_and_histograms(
 	n_inds, 
 	bin_width_desired, 
 	t_run, 
-	exp_type):
+	exp_type,
+	opt = ''):
 
 	# General plotting settings
 
@@ -190,5 +191,5 @@ def learning_plot_spiketrains_and_histograms(
 	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10,
 		pad = 15)
 	plt.xlabel('Time (s)', size = s1)
-	plt.savefig(path_sim + '_population_spiking.png', bbox_inches = 'tight')
+	plt.savefig(path_sim + '_' + opt + '_population_spiking.png', bbox_inches = 'tight')
 	plt.close(fig)

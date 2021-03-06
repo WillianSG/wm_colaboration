@@ -26,7 +26,8 @@ from learning_plot_spiketrains_and_histograms import *
 def control_plot_learned_attractor(
 	network_state_path = '', 
 	pickled_data = '', 
-	name = ''):
+	name = '',
+	opt = ''):
 	sim_data = os.path.join(network_state_path, pickled_data + name) # loading data
 
 	with open(sim_data,'rb') as f:(
@@ -70,7 +71,8 @@ def control_plot_learned_attractor(
 		n_inds = [n_inds_input_e, n_inds_input_i, n_inds_e, n_inds_i],
 		bin_width_desired = 50*ms,
 		t_run = t_run,
-		exp_type = exp_type)
+		exp_type = exp_type,
+		opt = opt)
 
 
 

@@ -483,6 +483,12 @@ class AttractorNetwork:
 		# Apply stimulus frequency to input neurons forming the stimulus  
 		self.Input_to_I.rates[self.stim_inds_original_I] = self.stim_freq_i
 
+	# ========== Silencing inhibitory stimulus loader ==========
+	"""
+		Set's active all neurons in an inhibitory population as big as the
+	excitatory one in order to silence activity after learning an attractor
+	so as to not interfere with learning followup stimuli.
+	"""
 	def set_stimulus_i_special(self):
 		self.stim_freq_i_special = self.stim_freq_i
 		# Load stimulus to I  
@@ -493,6 +499,14 @@ class AttractorNetwork:
 
 		# Apply stimulus frequency to input neurons forming the stimulus  
 		self.Input_to_I_special.rates[self.stim_inds_original_I_special] = self.stim_freq_i_special
+
+	def silence_activity(self):
+		self.stim_freq_e = 0*Hz
+		self.set_stimulus_e()
+		self.set_stimulus_i_special()
+
+	def resume_silencing_activity(self):
+		self.unset_stimulus_i_special()
 
 	def unset_stimulus_i_special(self):
 		self.stim_freq_i_special = 0*Hz
@@ -955,16 +969,16 @@ class AttractorNetwork:
 		if self.stimulus_pulse:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
-				if (defaultclock.t - self.t_run):
+				if defaultclock.t >= self.stimulus_pulse_duration:
 					self.stim_freq_e = 0*Hz
 					self.set_stimulus_e()
-				# if defaultclock.t >= self.stimulus_pulse_duration:
-				# 	self.stim_freq_e = 0*Hz
-				# 	self.set_stimulus_e()
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
 				pass
+				# USE THIS TO PRINT SYNAPTIC MATRIXIS
+				# if ((defaultclock.t/ms) % 2) == 0:
+				# 	print('\nhere: ', defaultclock.t, '\n')
 
 		# ========== Network object
 		defaultclock.dt = self.dt

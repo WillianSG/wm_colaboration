@@ -3,15 +3,7 @@
 @author: wgirao
 
 Comments:
-- Learning of stimulus in an attractor network.
-- https://brian2.readthedocs.io/en/stable/user/running.html
-- Plotting scripts consume the pickled data
-
--------- TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-- Use "net = Network(collect())"
-- Use to switch plasticity on or off S = Synapses(..., '''...
-                     plastic : boolean (shared)
-                     ...''')
+- must change name of experiment to new
 """
 import setuptools
 import os, sys, pickle, shutil
@@ -38,7 +30,7 @@ sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 from att_net_obj_mdf import AttractorNetwork
 from control_plot_learned_attractor import *
 
-# 1 ========== Results/experiment folders ==========
+# 1 ====================== Results/experiment folders =====================
 
 network_sim_dir = os.path.join(
 	parent_dir, 
@@ -71,7 +63,7 @@ simulation_results_path = os.path.join(script_results_path, simulation_id + exp_
 if not(os.path.isdir(simulation_results_path)):
 	os.mkdir(simulation_results_path)
 
-# 2 ========== Simulation parameters ==========
+# 2 ====================== Simulation parameters ==========================
 print('\n> initializing network')
 
 nets = 1 				# number of networks
@@ -138,7 +130,7 @@ n.net.store(
 		)
 )
 
-# 3 ========== learning cue ==========
+# 3 ====================== learning cue ===================================
 
 n.exp_type = exp_name + '_learning_cue'
 
@@ -165,6 +157,18 @@ fn = os.path.join(
 
 spk_mons = n.get_stimulus_monitors() # [input_to_E, input_to_I, E_mon, I_mon]
 
+s_tpoints_input_e = spk_mons[0].t[:]
+n_inds_input_e = spk_mons[0].i[:]
+
+s_tpoints_input_i = spk_mons[1].t[:]
+n_inds_input_i = spk_mons[1].i[:]
+
+s_tpoints_e = spk_mons[2].t[:]
+n_inds_e = spk_mons[2].i[:]
+
+s_tpoints_i = spk_mons[3].t[:]
+n_inds_i = spk_mons[3].i[:]
+
 with open(fn, 'wb') as f:
 	pickle.dump((
 		n.plasticity_rule,
@@ -187,14 +191,14 @@ with open(fn, 'wb') as f:
 		n.N_i,
 		len(n.stim_inds_original_E),
 		n.w_e_e_max,
-		spk_mons[0].t[:],
-		spk_mons[0].i[:],
-		spk_mons[1].t[:],
-		spk_mons[1].i[:],
-		spk_mons[2].t[:],
-		spk_mons[2].i[:],
-		spk_mons[3].t[:],
-		spk_mons[3].i[:]), f)
+		s_tpoints_input_e,
+		n_inds_input_e,
+		s_tpoints_input_i,
+		n_inds_input_i,
+		s_tpoints_e,
+		n_inds_e,
+		s_tpoints_i,
+		n_inds_i), f)
 
 print('\n -> pickled to: ', fn)
 
@@ -203,25 +207,13 @@ control_plot_learned_attractor(
 	pickled_data = n.id +'_' + n.exp_type,
 	name = '_trained.pickle')
 
-print('\n===============================')
-print(spk_mons[0].t[:])
-print(spk_mons[0].i[:])
-print('===============================\n')
+print('\n -> silencing activity\n')
 
-# ==================================================
-print('\n [ silencing ]\n')
+n.silence_activity()			# silencing current E activity
+n.run_network(period = 1)		# simulate
+n.resume_silencing_activity()	# resuming silencing population
 
-n.stim_freq_e = 0*Hz
-n.set_stimulus_e()
-
-n.set_stimulus_i_special()
-
-n.run_network(period = 4)
-
-n.unset_stimulus_i_special()
-# ==================================================
-
-# 4 ========== learning followup stimuli ==========
+# 4 ====================== learning followup stimuli ======================
 n.change_stimulus_e(stimulus = 'flat_to_E_fixed_size', offset = 0)
 
 n.exp_type = exp_name + '_learning_' + n.stim_type_e
@@ -293,11 +285,6 @@ with open(fn, 'wb') as f:
 		n_inds_i), f)
 
 print('\n -> pickled to: ', fn)
-
-print('\n===============================')
-print(spk_mons[0].t[:])
-print(spk_mons[0].i[:])
-print('===============================\n')
 
 control_plot_learned_attractor(
 	network_state_path = simulation_results_path,
