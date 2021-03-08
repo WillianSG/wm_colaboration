@@ -14,7 +14,7 @@ import os, sys, pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-simulation_data = '20210306_14_15_22_attractor_stability'
+simulation_data = '20210307_23_23_34_attractor_stability'
 
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())
@@ -30,6 +30,7 @@ simulation_data_path = os.path.join(
 pickled_list = sorted(os.listdir(simulation_data_path))
 
 for x in range(0, len(pickled_list)):
+	title = int(pickled_list[x].split('_')[-1].split('.')[0].replace('sec', ''))/1000.0
 	img_name = pickled_list[x].split('_')[-1].split('.')[0] + '.png'
 
 	sim_data = os.path.join(simulation_data_path, pickled_list[x])
@@ -39,6 +40,7 @@ for x in range(0, len(pickled_list)):
 
 	plt.imshow(synaptic_matrix, cmap='coolwarm')
 	plt.colorbar()
+	plt.title(str(title) + ' sec')
 	plt.savefig(os.path.join(simulation_data_path, img_name))
 	plt.close()
 

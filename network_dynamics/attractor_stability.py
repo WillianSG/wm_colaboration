@@ -75,8 +75,8 @@ print('\n> initializing network')
 
 total_simulated_time = 0*second
 
-t_run = 5*second
-stimulus_pulse_clock_dt = 5*second
+t_run = 4*second
+stimulus_pulse_clock_dt = 4*second
 
 t_run_silencing = 1*second
 stimulus_pulse_clock_dt_silencing = 1*second
@@ -99,7 +99,7 @@ n.int_meth_neur = 'linear'
 n.int_meth_syn = 'euler'
 n.stim_type_e = 'flat_to_E_fixed_size' # square, circle, triangle, cross,..
 
-n.stim_size_e = 64
+n.stim_size_e = 50
 n.stim_offset_e = 0
 n.stim_freq_e = 3900*Hz 	# 3900*Hz
 
@@ -222,8 +222,8 @@ control_plot_learned_attractor(
 	name = '_trained.pickle')
 
 # 4 ====================== learning followup stimuli ======================
-stimuli = ['square', 'circle', 'triangle', 'cross']
-# stimuli = ['flat_to_E_fixed_size', 'flat_to_E_fixed_size']
+# stimuli = ['square', 'circle', 'triangle', 'cross']
+stimuli = ['flat_to_E_fixed_size', 'flat_to_E_fixed_size', 'flat_to_E_fixed_size', 'flat_to_E_fixed_size', 'flat_to_E_fixed_size']
 
 t_run_count_aux = 0
 
@@ -251,15 +251,15 @@ for stimulus in stimuli:
 	n.stimulus_pulse_clock_dt = stimulus_pulse_clock_dt
 	n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt
 
-	# n.change_stimulus_e(stimulus = stimulus, offset = n.stim_offset_e + 42)
-	n.change_stimulus_e(stimulus = stimulus)
+	n.change_stimulus_e(stimulus = stimulus, offset = n.stim_offset_e + 40)
+	# n.change_stimulus_e(stimulus = stimulus)
 
 	n.exp_type = exp_name + '_learning_' + n.stim_type_e
 
 	print('\n> learning stimulus [ ', n.stim_type_e, ' ]\n')
 
-	# n.save_monitors(opt = 'skewed_' + str(n.stim_offset_e))
-	n.save_monitors()
+	n.save_monitors(opt = 'skewed_' + str(n.stim_offset_e))
+	# n.save_monitors()
 
 	n.run_network(period = 2)
 

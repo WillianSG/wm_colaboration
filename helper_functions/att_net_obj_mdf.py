@@ -36,6 +36,8 @@ class AttractorNetwork:
 	def __init__(self):
 		self.iter_count = 0
 
+		self.running_silencing_activity = False
+
 		self.simulation_results_path = ''
 
 		self.monitors_dict = dict()
@@ -431,7 +433,7 @@ class AttractorNetwork:
 
 		fn = os.path.join(
 			syn_M_snaps,
-			self.id + '_synaptic_matrix_after_' + self.stim_type_e + '_offset' + str(self.stim_offset_e) + '_sec' + str(int(time/1000.0)) + '.pickle')
+			self.id + '_synaptic_matrix_after_' + self.stim_type_e + '_offset' + str(self.stim_offset_e) + '_sec' + str(int(time)) + '.pickle')
 
 		with open(fn, 'wb') as f:
 			pickle.dump((
@@ -485,6 +487,8 @@ class AttractorNetwork:
 		self.stim_offset_e = offset
 		self.stim_freq_e = rate*Hz
 
+		self.stim_offset_e = offset
+
 		# Load stimulus to E 
 		self.stim_inds_original_E = load_stimulus(
 			stimulus_type = self.stim_type_e,
@@ -522,11 +526,13 @@ class AttractorNetwork:
 		self.Input_to_I_special.rates[self.stim_inds_original_I_special] = self.stim_freq_i_special
 
 	def silence_activity(self):
+		self.running_silencing_activity = True
 		self.stim_freq_e = 0*Hz
 		self.set_stimulus_e()
 		self.set_stimulus_i_special()
 
 	def resume_silencing_activity(self):
+		self.running_silencing_activity = False
 		self.unset_stimulus_i_special()
 
 	def unset_stimulus_i_special(self):
@@ -899,7 +905,7 @@ class AttractorNetwork:
 		self.stimulus_pulse_switch = 0
 
 		self.synaptic_matrix_snap_clock = Clock(
-			1*second, name = 'clk_stim_pulse')
+			100*ms, name = 'clk_stim_pulse')
 
 		# ========== Snapshot of rho matrices
 		if self.rho_matrix_snapshots:
