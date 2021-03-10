@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 @author: asonntag (adapted from Lehfeldt)
-
 Inputs:
-
 Outputs:
-
 Comments:
 """
 
@@ -26,7 +23,8 @@ def learning_plot_spiketrains_and_histograms(
 	n_inds, 
 	bin_width_desired, 
 	t_run, 
-	exp_type):
+	exp_type,
+	opt = ''):
 
 	# General plotting settings
 
@@ -108,7 +106,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Inhibitory population: spiking
 	ax1 = fig.add_subplot(gs[2, 0])
 
-	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'green')
+	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'red')
 	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
 
 	ax1.set_yticks(np.arange(0, N[3]+1, N[3]/2))
@@ -123,7 +121,7 @@ def learning_plot_spiketrains_and_histograms(
 	# Inhibitory population: histogram
 	ax2 = fig.add_subplot(gs[3, 0])
 
-	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'green', color = 'white', linewidth = lwdth)
+	plt.bar(i_t_hist_edgs[:-1], i_t_hist_fr, i_t_hist_bin_widths, edgecolor = 'red', color = 'white', linewidth = lwdth)
 	plt.ylabel('$\\nu_{I}$\n(Hz)', size = s1, labelpad = 35, horizontalalignment = 'center')
 	plt.xlim(0, t_run/second)
 	plt.ylim(0, max(i_t_hist_fr)*1.1)
@@ -193,5 +191,5 @@ def learning_plot_spiketrains_and_histograms(
 	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10,
 		pad = 15)
 	plt.xlabel('Time (s)', size = s1)
-	plt.savefig(path_sim + '_population_spiking.png', bbox_inches = 'tight')
+	plt.savefig(path_sim + '_' + opt + '_population_spiking.png', bbox_inches = 'tight')
 	plt.close(fig)

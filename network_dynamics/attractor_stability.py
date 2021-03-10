@@ -3,7 +3,15 @@
 @author: wgirao
 
 Comments:
-- must change name of experiment to new
+- Learning of stimulus in an attractor network.
+- https://brian2.readthedocs.io/en/stable/user/running.html
+- Plotting scripts consume the pickled data
+
+-------- TO DO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+- Use "net = Network(collect())"
+- Use to switch plasticity on or off S = Synapses(..., '''...
+                     plastic : boolean (shared)
+                     ...''')
 """
 import setuptools
 import os, sys, pickle, shutil
@@ -31,7 +39,6 @@ from att_net_obj_mdf import AttractorNetwork
 from control_plot_learned_attractor import *
 
 # 1 ====================== Results/experiment folders =====================
-
 network_sim_dir = os.path.join(
 	parent_dir, 
 	'network_results')
@@ -66,24 +73,34 @@ if not(os.path.isdir(simulation_results_path)):
 # 2 ====================== Simulation parameters ==========================
 print('\n> initializing network')
 
+total_simulated_time = 0*second
+
+t_run = 4*second
+stimulus_pulse_clock_dt = 4*second
+
+t_run_silencing = 1*second
+stimulus_pulse_clock_dt_silencing = 1*second
+
 nets = 1 				# number of networks
 
 n = AttractorNetwork() 	# network class
+n.simulation_results_path = simulation_results_path
 
-n.t_run = 1*second 		# simulation time
+# setting sim. timerun for learning
+n.t_run = t_run 		# simulation time
 n.id = simulation_id
 
 # variables for @network_operation function for stimulus change
 n.stimulus_pulse = False
-n.stimulus_pulse_clock_dt = 1*second # zero seconds not possible
+n.stimulus_pulse_clock_dt = stimulus_pulse_clock_dt # zero seconds not possible
 n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt # Set pulse duration
 
 n.int_meth_neur = 'linear'
 n.int_meth_syn = 'euler'
 n.stim_type_e = 'flat_to_E_fixed_size' # square, circle, triangle, cross,..
 
-n.stim_size_e = 64
-n.stim_offset_e = 100
+n.stim_size_e = 50
+n.stim_offset_e = 0
 n.stim_freq_e = 3900*Hz 	# 3900*Hz
 
 n.stim_type_i = 'flat_to_I'
@@ -111,8 +128,6 @@ n.w_e_e = 0.5*mV # 0.5
 n.w_e_i = 1*mV # 1
 n.w_i_e = 1*mV # 1
 n.w_input_s = 67*mV # 1
-
-# Other connection weight variables
 n.w_e_e_max = 7.5*mV 		# max weight in EE connections
 
 n.fixed_attractor = False # [?]
@@ -120,8 +135,7 @@ n.fixed_attractor_wmax = 'all_max' # [?]
 
 n.init_network_modules() # creates/initializes all objects/parameters/mons
 
-# 2.1 saving net initialized state ==========
-
+# 2.1 saving net initialized state ========================================
 n.net.store(
 	name = 'initialized_net_' + simulation_id, 
 	filename = os.path.join(
@@ -131,7 +145,6 @@ n.net.store(
 )
 
 # 3 ====================== learning cue ===================================
-
 n.exp_type = exp_name + '_learning_cue'
 
 print('\n> forming attractor for cue stimulus\n')
@@ -140,7 +153,9 @@ n.save_monitors() 			# monitors for current sim
 
 n.run_network(period = 2) 	# Running simulation
 
-# 3.1 saving net trained on cue state ==========
+total_simulated_time += n.t_run
+
+# 3.1 saving net trained on cue state =====================================
 n.net.store(
 	name = 'trained_cue_net_' + simulation_id, 
 	filename = os.path.join(
@@ -149,8 +164,7 @@ n.net.store(
 		)
 )
 
-# 3.2 - pickling and plotting ==========
-
+# 3.2 - pickling and plotting =============================================
 fn = os.path.join(
 	simulation_results_path,
 	n.id +'_' + n.exp_type + '_trained.pickle')
@@ -207,90 +221,116 @@ control_plot_learned_attractor(
 	pickled_data = n.id +'_' + n.exp_type,
 	name = '_trained.pickle')
 
-print('\n -> silencing activity\n')
-
-n.silence_activity()			# silencing current E activity
-n.run_network(period = 1)		# simulate
-n.resume_silencing_activity()	# resuming silencing population
-
 # 4 ====================== learning followup stimuli ======================
-n.change_stimulus_e(stimulus = 'flat_to_E_fixed_size', offset = 0)
+# stimuli = ['square', 'circle', 'triangle', 'cross']
+stimuli = ['flat_to_E_fixed_size', 'flat_to_E_fixed_size', 'flat_to_E_fixed_size', 'flat_to_E_fixed_size', 'flat_to_E_fixed_size']
 
-n.exp_type = exp_name + '_learning_' + n.stim_type_e
+t_run_count_aux = 0
 
-print('\n> forming attractor for new stimulus [ ', n.stim_type_e, ' ]\n')
+for stimulus in stimuli:
+	t_run_count_aux += 1
+	# 4.1 silencing current E activity ====================================
+	print('\n -> silencing activity\n')
 
-n.save_monitors(opt = 'skewed')
+	# setting sim. timerun for silencing
+	n.t_run = t_run_silencing
+	n.stimulus_pulse_clock_dt = stimulus_pulse_clock_dt_silencing
+	n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt
 
-n.run_network(period = 2)
+	n.silence_activity()			# silencing current E activity
+	n.run_network(report = None)	# simulate
 
-# 4.1 saving net trained on cue state ==========
-n.net.store(
-	name = 'trained_' + n.stim_type_e + '_net_' + simulation_id, 
-	filename = os.path.join(
+	total_simulated_time += n.t_run # accounting for simulated time
+
+	n.resume_silencing_activity()	# resuming silencing population
+
+	# 4.2 learning followup stimuli =======================================
+
+	# setting sim. timerun for learning
+	n.t_run = t_run
+	n.stimulus_pulse_clock_dt = stimulus_pulse_clock_dt
+	n.stimulus_pulse_duration = n.stimulus_pulse_clock_dt
+
+	n.change_stimulus_e(stimulus = stimulus, offset = n.stim_offset_e + 40)
+	# n.change_stimulus_e(stimulus = stimulus)
+
+	n.exp_type = exp_name + '_learning_' + n.stim_type_e
+
+	print('\n> learning stimulus [ ', n.stim_type_e, ' ]\n')
+
+	n.save_monitors(opt = 'skewed_' + str(n.stim_offset_e))
+	# n.save_monitors()
+
+	n.run_network(period = 2)
+
+	# 4.3 saving net trained on cue state =================================
+	n.net.store(
+		name = 'trained_' + n.stim_type_e + '_' + str(n.stim_offset_e) + '_net_' + simulation_id, 
+		filename = os.path.join(
+			simulation_results_path,
+			'trained_' + n.stim_type_e + '_' + str(n.stim_offset_e) + '_net_' + simulation_id
+			)
+	)
+
+	# 4.4 - pickling and plotting =========================================
+
+	fn = os.path.join(
 		simulation_results_path,
-		'trained_' + n.stim_type_e + '_net_' + simulation_id
-		)
-)
+		n.id +'_' + n.exp_type + '_trained.pickle')
 
-# 4.2 - pickling and plotting ==========
+	spk_mons = n.get_stimulus_monitors()
 
-fn = os.path.join(
-	simulation_results_path,
-	n.id +'_' + n.exp_type + '_trained.pickle')
+	s_tpoints_input_e = [x - total_simulated_time for x in spk_mons[0].t[:]]
+	n_inds_input_e = spk_mons[0].i[:]
 
-spk_mons = n.get_stimulus_monitors()
+	s_tpoints_input_i = [x - total_simulated_time for x in spk_mons[1].t[:]]
+	n_inds_input_i = spk_mons[1].i[:]
 
-s_tpoints_input_e = [x - (n.t_run+1*second) for x in spk_mons[0].t[:]]
-n_inds_input_e = spk_mons[0].i[:]
+	s_tpoints_e = [x - total_simulated_time for x in spk_mons[2].t[:]]
+	n_inds_e = spk_mons[2].i[:]
 
-s_tpoints_input_i = [x - (n.t_run+1*second) for x in spk_mons[1].t[:]]
-n_inds_input_i = spk_mons[1].i[:]
+	s_tpoints_i = [x - total_simulated_time for x in spk_mons[3].t[:]]
+	n_inds_i = spk_mons[3].i[:]
 
-s_tpoints_e = [x - (n.t_run+1*second) for x in spk_mons[2].t[:]]
-n_inds_e = spk_mons[2].i[:]
+	total_simulated_time += n.t_run # accounting for simulated time
 
-s_tpoints_i = [x - (n.t_run+1*second) for x in spk_mons[3].t[:]]
-n_inds_i = spk_mons[3].i[:]
+	with open(fn, 'wb') as f:
+		pickle.dump((
+			n.plasticity_rule,
+			nets,
+			n.path_sim, 
+			n.id,
+			n.t_run, 
+			n.exp_type,
+			n.stim_type_e,
+			n.stim_size_e,
+			n.stim_freq_e,
+			n.stim_offset_e,
+			n.stim_type_i,
+			n.stim_size_i,
+			n.stim_freq_i,
+			n.stimulus_pulse_duration,
+			n.N_input_e, 
+			n.N_input_i, 
+			n.N_e, 
+			n.N_i,
+			len(n.stim_inds_original_E),
+			n.w_e_e_max,
+			s_tpoints_input_e,
+			n_inds_input_e,
+			s_tpoints_input_i,
+			n_inds_input_i,
+			s_tpoints_e,
+			n_inds_e,
+			s_tpoints_i,
+			n_inds_i), f)
 
-with open(fn, 'wb') as f:
-	pickle.dump((
-		n.plasticity_rule,
-		nets,
-		n.path_sim, 
-		n.id,
-		n.t_run, 
-		n.exp_type,
-		n.stim_type_e,
-		n.stim_size_e,
-		n.stim_freq_e,
-		n.stim_offset_e,
-		n.stim_type_i,
-		n.stim_size_i,
-		n.stim_freq_i,
-		n.stimulus_pulse_duration,
-		n.N_input_e, 
-		n.N_input_i, 
-		n.N_e, 
-		n.N_i,
-		len(n.stim_inds_original_E),
-		n.w_e_e_max,
-		s_tpoints_input_e,
-		n_inds_input_e,
-		s_tpoints_input_i,
-		n_inds_input_i,
-		s_tpoints_e,
-		n_inds_e,
-		s_tpoints_i,
-		n_inds_i), f)
+	print('\n -> pickled to: ', fn)
 
-print('\n -> pickled to: ', fn)
+	control_plot_learned_attractor(
+		network_state_path = simulation_results_path,
+		pickled_data = n.id +'_' + n.exp_type,
+		name = '_trained.pickle',
+		opt = str(n.stim_offset_e))
 
-control_plot_learned_attractor(
-	network_state_path = simulation_results_path,
-	pickled_data = n.id +'_' + n.exp_type,
-	name = '_trained.pickle')
-
-print('\nlearn_stimulus.py - END.\n')
-
-
+print('\nattractor_stability.py - END.\n')

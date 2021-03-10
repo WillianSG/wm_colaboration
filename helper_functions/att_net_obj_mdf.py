@@ -34,6 +34,14 @@ from return_xpost_matrix import *
 
 class AttractorNetwork:
 	def __init__(self):
+		self.iter_count = 0
+
+		self.running_silencing_activity = False
+
+		self.simulation_results_path = ''
+
+		self.monitors_dict = dict()
+
 		# 1 ========== Simulation settings ==========
 
 		self.path_sim_id = ''
@@ -51,6 +59,8 @@ class AttractorNetwork:
 		self.dt = 0.1*ms # Delta t of clock intervals
 
 		# 1.2 ========== Spike monitors
+
+		self.I_E_special_mon_record = True
 
 		self.Input_to_E_mon_record = False
 		self.Input_to_I_mon_record = False
@@ -78,7 +88,7 @@ class AttractorNetwork:
 		self.Ext_att_E_rec_attributes = ('w')
 		self.rec_dt = 0.1*ms # Delta t of state variable recording
 
-		# 1.4 ========== @network_operation settings
+		# 1.5 ========== @network_operation settings
 
 		# Rho snapshots
 		self.rho_matrix_snapshots = False
@@ -102,18 +112,19 @@ class AttractorNetwork:
 		self.stimulus_pulse_duration = 1*second
 		self.stimulus_pulse_clock_dt = 1*second
 
-		# 1.5 ========== Excitatory (E) stimulus
+		# 1.6 ========== Excitatory (E) stimulus
 
 		self.stim_type_e = 'user-defined' # [IMPORTANT] - origi. don't have it
 		self.stim_size_e = 0
 		self.stim_freq_e = 0*Hz
 		self.stim_offset_e = 0
 
-		# 1.6 ========== Inhibitory (I) stimulus
+		# 1.7 ========== Inhibitory (I) stimulus
 
 		self.stim_type_i = 'user-defined'
 		self.stim_size_i = 0
 		self.stim_freq_i = 0*Hz
+		self.stim_freq_i_special = 0*Hz
 		self.stim_offset_i = 0
 
 		# 2 ========== Network Settings ==========
@@ -180,9 +191,6 @@ class AttractorNetwork:
 		self.tref_i = 1*ms # refractory period
 		self.tau_epsp_i = 3.5*ms # time constant of EPSP
 		self.tau_ipsp_i = 5.5*ms # time constant of IPSP
-
-		# 2.2.3 - Population for spontaneous activity
-		self.F_s = 0.08*Hz
 
 		# 2.3 ========== Synapses
 
@@ -294,10 +302,19 @@ class AttractorNetwork:
 			method = self.int_meth_neur, 
 			name = 'I')
 
-		# "Spontaneoys activity" population
-		self.S = PoissonGroup(N = self.N_e,
-			rates = self.F_s,
-			name = 'S')
+		# Inhibitory population
+		if self.I_E_special_mon_record:
+			self.Input_to_I_special = NeuronGroup(N = self.N_e, 
+				model = 'rates : Hz', 
+				threshold = 'rand()<rates*dt', 
+				name = 'Input_to_I_special')
+
+			self.I_special = NeuronGroup(N = self.N_e, model = self.eqs_i,
+				reset = 'Vm = Vrst_i',
+				threshold = 'Vm > Vth_i',
+				refractory = self.tref_i,
+				method = self.int_meth_neur, 
+				name = 'I_special')
 
 		# 3 ========== Neuronal Attributes ==========
 		# Adaptive threshold of E
@@ -344,6 +361,21 @@ class AttractorNetwork:
 			on_pre = 'Vipsp += w', 
 			name = 'I_E')
 
+		if self.I_E_special_mon_record:
+			self.Input_I_special = Synapses(
+				source = self.Input_to_I_special, 
+				target = self.I_special, 
+				model = 'w : volt', 
+				on_pre = 'Vepsp += w', 
+				name = 'Input_I_special')
+
+			self.I_E_special = Synapses(
+				source = self.I_special, 
+				target = self.E, 
+				model = 'w : volt', 
+				on_pre = 'Vipsp += w', 
+				name = 'I_E_special')
+
 		if self.add_Ext_att:
 			self.Ext_att_E = Synapses(source = self.Ext_att, target = self.E, 
 				model = 'w : volt', 
@@ -361,6 +393,10 @@ class AttractorNetwork:
 			name = 'E_E')
 
 		# 3 ========== Creating connections ==========
+		if self.I_E_special_mon_record:
+			self.Input_I_special.connect(j = 'i')
+			self.I_E_special.connect(j = 'i')
+
 		self.Input_E.connect(j = 'i')
 		self.Input_I.connect(j = 'i')
 		self.E_E.connect('i!=j', p = self.p_e_e) # no self-connections
@@ -385,6 +421,25 @@ class AttractorNetwork:
 		# 4 ========== Creating matrix M from E to E connections ==========
 		self.M_ee = np.full((len(self.E), len(self.E)), np.nan)
 		self.M_ee[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
+
+	def take_synaptic_matrix_snapshot(self, time):
+		synaptic_matrix = np.full((len(self.E), len(self.E)), -1.0)
+		synaptic_matrix[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
+
+		syn_M_snaps = os.path.join(self.simulation_results_path, 'synaptic_matrix_snaps')
+
+		if not(os.path.isdir(syn_M_snaps)):
+			os.mkdir(syn_M_snaps)
+
+		fn = os.path.join(
+			syn_M_snaps,
+			self.id + '_synaptic_matrix_after_' + self.stim_type_e + '_offset' + str(self.stim_offset_e) + '_sec' + str(int(time)) + '.pickle')
+
+		with open(fn, 'wb') as f:
+			pickle.dump((
+				synaptic_matrix), f)
+
+		print('\n  > synaptic matrix pickled to: ', fn)
 
 	# ========== Rule's parameters loader ==========
 	def set_learning_rule_parameters(self):
@@ -423,6 +478,25 @@ class AttractorNetwork:
 
 		self.Input_to_E.rates[self.stim_inds_original_E] = self.stim_freq_e
 
+	# ========== Excitatory stimulus loader ==========
+	def change_stimulus_e(self, 
+		stimulus = 'triangle', 
+		offset = 0, 
+		rate = 3900):
+		self.stim_type_e = stimulus
+		self.stim_offset_e = offset
+		self.stim_freq_e = rate*Hz
+
+		self.stim_offset_e = offset
+
+		# Load stimulus to E 
+		self.stim_inds_original_E = load_stimulus(
+			stimulus_type = self.stim_type_e,
+			stimulus_size = self.stim_size_e,
+			offset = self.stim_offset_e)
+
+		self.Input_to_E.rates[self.stim_inds_original_E] = self.stim_freq_e
+
 	# ========== Inhibitory stimulus loader ==========
 	def set_stimulus_i(self):
 		# Load stimulus to I  
@@ -433,6 +507,39 @@ class AttractorNetwork:
 
 		# Apply stimulus frequency to input neurons forming the stimulus  
 		self.Input_to_I.rates[self.stim_inds_original_I] = self.stim_freq_i
+
+	# ========== Silencing inhibitory stimulus loader ==========
+	"""
+		Set's active all neurons in an inhibitory population as big as the
+	excitatory one in order to silence activity after learning an attractor
+	so as to not interfere with learning followup stimuli.
+	"""
+	def set_stimulus_i_special(self):
+		self.stim_freq_i_special = self.stim_freq_i
+		# Load stimulus to I  
+		self.stim_inds_original_I_special = load_stimulus(
+			stimulus_type = self.stim_type_i,
+			stimulus_size = self.N_e,
+			offset = 0) 
+
+		# Apply stimulus frequency to input neurons forming the stimulus  
+		self.Input_to_I_special.rates[self.stim_inds_original_I_special] = self.stim_freq_i_special
+
+	def silence_activity(self):
+		self.running_silencing_activity = True
+		self.stim_freq_e = 0*Hz
+		self.set_stimulus_e()
+		self.set_stimulus_i_special()
+
+	def resume_silencing_activity(self):
+		self.running_silencing_activity = False
+		self.unset_stimulus_i_special()
+
+	def unset_stimulus_i_special(self):
+		self.stim_freq_i_special = 0*Hz
+
+		# Apply stimulus frequency to input neurons forming the stimulus  
+		self.Input_to_I_special.rates[self.stim_inds_original_I_special] = self.stim_freq_i_special
 
 	# ========== External attractor stimulus loader ==========
 	def set_stimulus_ext_att(self):
@@ -504,6 +611,47 @@ class AttractorNetwork:
 		if self.add_Ext_att:
 			self.Ext_att_E.w[self.att_src_inds] = self.w_ext_att_e[self.att_src_inds]
 
+	def save_monitors(self, opt = ''):
+
+		temp_list = []
+
+		# setting monitors
+		input_to_E_mon = SpikeMonitor(
+			source = self.Input_to_E,
+			record = True,
+			name = 'Input_to_E_mon_' + self.stim_type_e + opt)
+
+		temp_list.append(input_to_E_mon)
+
+		input_to_I_mon = SpikeMonitor(
+			source = self.Input_to_I,
+			record = True,
+			name = 'Input_to_I_mon_' + self.stim_type_e + opt)
+
+		temp_list.append(input_to_I_mon)
+
+		e_mon = SpikeMonitor(
+			source = self.E,
+			record = True,
+			name = 'E_mon_' + self.stim_type_e + opt)
+
+		temp_list.append(e_mon)
+
+		i_mon = SpikeMonitor(
+			source = self.I, 
+			record = True,
+			name = 'I_mon_' + self.stim_type_e + opt)
+
+		temp_list.append(i_mon)
+
+		# saving monitors to respective key in dictionary
+		self.monitors_dict[self.stim_type_e] = temp_list
+
+		self.net.add(self.monitors_dict[self.stim_type_e])
+
+	def get_stimulus_monitors(self):
+		return self.monitors_dict[self.stim_type_e]
+
 	# ========== Monitors initializer ==========
 	def set_monitors(self):
 		# Spikemonitors
@@ -517,9 +665,6 @@ class AttractorNetwork:
 			name = 'E_mon')
 
 		self.I_mon = SpikeMonitor(source = self.I, record = self.I_mon_record,name = 'I_mon')
-
-		self.S_mon = SpikeMonitor(source = self.S, record = True,
-			name = 'S_mon')
 
 		if self.add_Ext_att:
 			self.Ext_att_mon = SpikeMonitor(source = self.Ext_att,
@@ -759,6 +904,9 @@ class AttractorNetwork:
 
 		self.stimulus_pulse_switch = 0
 
+		self.synaptic_matrix_snap_clock = Clock(
+			100*ms, name = 'clk_stim_pulse')
+
 		# ========== Snapshot of rho matrices
 		if self.rho_matrix_snapshots:
 			@network_operation(clock = self.rho_matrix_snapshot_clock)
@@ -855,9 +1003,10 @@ class AttractorNetwork:
 					self.stim_freq_e = 0*Hz
 					self.set_stimulus_e()
 		else:
-			@network_operation(clock = self.stimulus_pulse_clock)
+			@network_operation(clock = self.synaptic_matrix_snap_clock)
 			def stimulus_pulse():
-				pass
+				self.take_synaptic_matrix_snapshot(
+					time = defaultclock.t/ms)
 
 		# ========== Network object
 		defaultclock.dt = self.dt
@@ -868,7 +1017,6 @@ class AttractorNetwork:
 				self.Input_to_I,
 				self.E,
 				self.I,
-				self.S,
 				self.Ext_att,
 				self.Input_E,
 				self.Input_I,
@@ -880,7 +1028,6 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
-				self.S_mon,
 				self.Ext_att_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
@@ -896,13 +1043,44 @@ class AttractorNetwork:
 				store_xpost_matrix_snapshot,
 				stimulus_pulse,
 				name = 'net')
+		elif self.I_E_special_mon_record:
+			self.net = Network(
+				self.Input_to_E,
+				self.Input_to_I,
+				self.Input_to_I_special,
+				self.E,
+				self.I,
+				self.I_special,
+				self.Input_E,
+				self.Input_I,
+				self.Input_I_special,
+				self.E_E,
+				self.E_I,
+				self.I_E,
+				self.I_E_special,
+				self.Input_to_E_mon,
+				self.Input_to_I_mon,
+				self.E_mon,
+				self.I_mon,
+				self.Input_E_rec,
+				self.Input_I_rec,
+				self.E_rec,
+				self.I_rec,
+				self.E_E_rec,
+				self.E_I_rec,
+				self.I_E_rec,
+				store_rho_matrix_snapshot,
+				store_w_matrix_snapshot,
+				store_xpre_matrix_snapshot,
+				store_xpost_matrix_snapshot,
+				stimulus_pulse,
+				name = 'net')
 		else:
 			self.net = Network(
 				self.Input_to_E,
 				self.Input_to_I,
 				self.E,
 				self.I,
-				self.S,
 				self.Input_E,
 				self.Input_I,
 				self.E_E,
@@ -912,7 +1090,6 @@ class AttractorNetwork:
 				self.Input_to_I_mon,
 				self.E_mon,
 				self.I_mon,
-				self.S_mon,
 				self.Input_E_rec,
 				self.Input_I_rec,
 				self.E_rec,
@@ -932,7 +1109,7 @@ class AttractorNetwork:
 		self.iter_count = 0  # simulation iteration added to .txt name
 		self.parent_dir = os.path.dirname(os.getcwd()) # parent directory
 		self.simulation_folder = os.path.join(
-			self.parent_dir, 'net_simulation')
+			self.parent_dir, 'network_results')
 
 		if not(os.path.isdir(self.simulation_folder)):
 			os.mkdir(self.simulation_folder)
@@ -1194,3 +1371,15 @@ class AttractorNetwork:
 
 		# Go back to working directory (?) {y commented out?}
 		#os.chdir(self.cwd)
+
+	def run_network(self, report = 'stdout', period = 1):
+		self.set_namespace()
+
+		# running simulation
+		self.net.run(
+			self.t_run, 
+			report = report, 
+			report_period = period*second, 
+			namespace = self.set_namespace())
+
+		self.net.stop()

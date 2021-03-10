@@ -12,7 +12,7 @@ from matplotlib.ticker import FormatStrFormatter
 import matplotlib.colors as mcolors
 
 # Target file
-file = "0_firing_freq_parallel_negative_w_final_drho.pickle"
+file = "0_firing_freq_parallel_random_w_final_drho.pickle"
 
 # Parent directory
 parent_dir = os.path.dirname(os.getcwd())

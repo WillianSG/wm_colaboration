@@ -67,6 +67,8 @@ def ext_attractors_plot(
 	for i in np.arange(0, len(sim_folders_list[0:-1]), 1):
 		sim_data = os.path.join(path_sim_folder_superior, sim_folders_list[i], sim_folders_list[i] + '.pickle')
 
+		print('\n -- sim data: ', sim_data)
+
 		with open(sim_data,'rb') as f:(
 			path_sim, 
 			sim_id, 

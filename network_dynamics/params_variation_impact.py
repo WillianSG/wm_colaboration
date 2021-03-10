@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-@author: wgirao adapted from asonntag
+@author: wgirao
 
 Input:
 
 Output:
 
 Comments:
-- Investigates the best maximum weight.
 """
 import setuptools
 import os, sys, pickle, shutil
@@ -32,13 +31,14 @@ sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
 from att_net_obj import AttractorNetwork
-from ext_attractors_find_wmax_plot import *
+from varying_params_attractor_analysis_plot import *
 
 # 1 - Simulation results folder
 
-exp_name = '_find_wmax'
+exp_name = '_param_variation'
+varying_params = ['wmax', 'c', 'tau_pre', 'tau_post', 'rho_neg', 'rho_neg2', 'thr_post', 'thr_pre']
 
-simulation_folder = os.path.join(parent_dir, 'net_simulation')
+simulation_folder = os.path.join(parent_dir, 'network_results')
 
 if not(os.path.isdir(simulation_folder)):
 	os.mkdir(simulation_folder)
@@ -56,22 +56,14 @@ if not(os.path.isdir(sim_results_folder)):
 
 # 2 - Simulation settings
 
-num_networks = 1
+num_networks = 10
 
-sim_duration = 1*second # Duration of each simulation
-pulse_duration = 1*second # Stimulus pulse duration
-
-# Wmax setttings of fixed attractor
-
-wmax_min = 7.50
-wmax_max = 7.75
-wmax_step = 0.25
-wmax_range = np.arange(wmax_min, wmax_max, wmax_step)*mV
-
+sim_duration = 8*second			# Duration of each simulation
+pulse_duration = 2*second			# Stimulus pulse duration
 
 # 3 - Net initialization
 for i in np.arange(0, num_networks, 1):
-	print('Simulating net ', i+1, '/', num_networks)
+	print('\n- Simulating network | ', i+1, '/', num_networks)
 	    
 	n = AttractorNetwork()
 
@@ -99,8 +91,7 @@ for i in np.arange(0, num_networks, 1):
 	# @network_operation settings
 
 	# Weight snapshots
-	n.w_matrix_snapshots = True
-	n.w_matrix_snapshots_step = 1000*ms      
+	n.w_matrix_snapshots = False
 
 	# variables for @network_operation function for stimulus change
 	n.stimulus_pulse = True
@@ -123,7 +114,7 @@ for i in np.arange(0, num_networks, 1):
 	n.w_i_e = 1*mV          
 
 	# Other connection weight variables
-	n.w_e_e_max = 0*mV
+	n.w_e_e_max = 7.5*mV
 
 	n.fixed_attractor = True              
 	n.fixed_attractor_wmax = 'all_max'  
@@ -133,31 +124,26 @@ for i in np.arange(0, num_networks, 1):
 	# Store initial network state
 	n.net.store(name = 'network_' + simulation_id + '_initial_state', filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
 
-	# 3.1 - Pulse duration loop
+	# 3.1 - Parameter variation loop
 
-	for w in np.arange(0, len(wmax_range), 1):
-		# Restore network state with loaded learning rule parameters       
-		n.net.restore(name = 'network_' + simulation_id + '_initial_state', filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
+	# restoring network state
+	for p in range(0, len(varying_params)):
+		n.net.restore(
+			name = 'network_' + simulation_id + '_initial_state', 
+			filename = os.path.join(sim_results_folder, 'network_' + simulation_id + '_initial_state'))
 
-		n.exp_type = 'learning_network_' + str(i+1) + '_wmax_' + str(wmax_range[w])
+		n.exp_type = 'learning_net_' + str(i+1) + '_varying_' + str(varying_params[p])
 
-		# === Set wmax of fixed attractor
+		# 3.1.1 Vary parameter and simulate
 
-		n.w_e_e_max = wmax_range[w]
-		n.set_weights()
+		# n.set_varying_param(varying_params[p]) # all params with same new val
+		n.vary_param_per_synapse(varying_params[p]) # each synapse with new val
 
-		simulation_flag_wmax = [w, n.w_e_e_max] # Simulation flags
-
-		# === Running net simulation
-
-		print('\n > simulating network ', i+1, ' - wmax fixed attractor ', n.w_e_e_max)
+		simulation_flag = [p, varying_params[p]]
 
 		n.run_net()
 
-		print('[finished] | ', i+1, '- wmax fixed attractor ', n.w_e_e_max)
-
-
-		# === Storing simulation data
+		# 3.1.2 Storing simulation data
 
 		# a - Timepoints of spikes (s_tpoints) and neuron indices (n_inds)
 
@@ -166,20 +152,16 @@ for i in np.arange(0, num_networks, 1):
 		n_inds_input_e = n.Input_to_E_mon.i[:]
 
 		# Input_to_I population 
-		s_tpoints_input_i = n.Input_to_I_mon.t[:]
-		n_inds_input_i = n.Input_to_I_mon.i[:]
 
 		# Excitatory population
 		s_tpoints_e = n.E_mon.t[:]
 		n_inds_e = n.E_mon.i[:]
 
 		# Inhibitory population
-		s_tpoints_i = n.I_mon.t[:]
-		n_inds_i = n.I_mon.i[:]
 
-		s_tpoints = [s_tpoints_input_e, s_tpoints_input_i, s_tpoints_e, s_tpoints_i]
+		s_tpoints = [s_tpoints_input_e, s_tpoints_e]
 
-		n_inds = [n_inds_input_e, n_inds_input_i, n_inds_e, n_inds_i]
+		n_inds = [n_inds_input_e, n_inds_e]
 
 		# Pickling (store structure)
 
@@ -204,16 +186,11 @@ for i in np.arange(0, num_networks, 1):
 
 		len_stim_inds_original_E = len(n.stim_inds_original_E)
 		w_e_e_max = n.w_e_e_max
-		rho_matrix_snapshots_step = n.rho_matrix_snapshots_step
-		folder_snaps = os.path.split(n.path_snapshots)[1]
 
 		path_rho = n.path_snapshots
-		w_matrix_snapshots_step = n.w_matrix_snapshots_step
 		path_w = n.path_snapshots
-		xpre_matrix_snapshots_step = n.xpre_matrix_snapshots_step
 
 		path_xpre = n.path_snapshots
-		xpost_matrix_snapshots_step = n.xpost_matrix_snapshots_step
 		path_xpost = n.path_snapshots
 		plasticity_rule = n.plasticity_rule
 
@@ -222,10 +199,9 @@ for i in np.arange(0, num_networks, 1):
 		with open(fn, 'wb') as f:
 			pickle.dump((
 			path_sim, 
-			sim_id, 
+			sim_id,
 			num_networks,
-			simulation_flag_wmax,
-			t_run, 
+			t_run,
 			exp_type,
 			stim_type_e, 
 			stim_type_e,
@@ -235,42 +211,32 @@ for i in np.arange(0, num_networks, 1):
 			stim_type_i,
 			stim_size_i,
 			stim_freq_i,
-			stim_pulse_duration,
-			wmax_range,
+			stim_pulse_duration,#
+			varying_params,
 			N_input_e, 
 			N_input_i, 
 			N_e, 
 			N_i,
-			len_stim_inds_original_E,
+			len_stim_inds_original_E,#
 			w_e_e_max, 
-			rho_matrix_snapshots_step,
-			folder_snaps,
-			w_matrix_snapshots_step, 
-			path_w,
-			xpre_matrix_snapshots_step, 
+			path_w, 
 			path_xpre,
-			xpost_matrix_snapshots_step, 
 			path_xpost,
-			s_tpoints_input_e, 
-			s_tpoints_input_i, 
-			s_tpoints_e, 
-			s_tpoints_i,
-			n_inds_input_e,
-			n_inds_input_i,
-			n_inds_e, 
-			n_inds_i), f)
+			s_tpoints_input_e, #
+			s_tpoints_e, #
+			n_inds_input_e, #
+			n_inds_e,
+			simulation_flag), f) #
 
 		print('\nSimulation data pickled to ', fn)
 
 		# Move current simulation folder to superior simulation folder
 		shutil.move(n.path_sim, sim_results_folder)
 
-ext_attractors_find_wmax_plot(
+varying_params_attractor_analysis_plot(
 	sim_results_folder, 
 	sim_id, 
-	exp_type, 
-	spiketrains_and_histograms = True,
-	w_matrix_snapshots = False)
+	exp_type)
 
-print('\next_attractors_find_wmax.py - END.\n')
+print('\nparams_variation_impact.py - END.\n')
 

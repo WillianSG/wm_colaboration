@@ -5,4 +5,6 @@ sim_results/
 plots_results/
 *.pickle
 *.txt
+*.png
+**/network_results
 **/__pycache__/

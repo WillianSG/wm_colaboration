@@ -31,11 +31,11 @@ output:
 
 Comments:
 """
-def load_rule_params(plasticity_rule, parameter_set):
+def load_rule_params(plasticity_rule, parameter_set, efficacy_init = 0.5):
 	from brian2 import ms, mV
 	xpre_jump = 1 # jump of x_pre
 	xpost_jump = 1 # jump of x_post
-	rho_init = 0.5 # initial rho value
+	rho_init = efficacy_init # initial rho value
 	tau_rho = 350000*ms # rho time constant
 	rho_min = 0.0 # DOWN state
 	rho_max = 1 # UP state
