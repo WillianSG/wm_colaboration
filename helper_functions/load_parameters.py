@@ -43,6 +43,16 @@ def load_rule_params(plasticity_rule, parameter_set, efficacy_init = 0.5):
 	alpha = 1 # slope of bistability
 	beta = alpha
 
+	xpre_min = 0.0
+	xpost_min = 0.0
+	xpost_max = 1.0
+	xpre_max = 1.0
+
+	rho_neg = -0.05
+	rho_neg2 = -0.05
+
+	thr_pre = 0.0
+
 	if plasticity_rule == 'LR2':
 		if parameter_set =='2.1':
 			tau_xpre = 13*ms # time constant x_pre 
@@ -88,6 +98,25 @@ def load_rule_params(plasticity_rule, parameter_set, efficacy_init = 0.5):
 			rho_neg = -0.05
 			rho_neg2 = rho_neg
 			tau_rho = 1000*ms
+	elif plasticity_rule == 'LR3':
+		if parameter_set =='4.1': # original '1.1'
+			tau_xpre = 22*ms
+			tau_xpost = 22*ms
+			tau_rho = 1000*ms
+			xpre_jump = 1.0
+			xpost_jump = 1.0
+			xpre_factor = 0.1
+			thr_post = 0.5
+			rho_neg = -0.05
+		elif parameter_set =='4.2': # original '1.2'
+			tau_xpre = 8*ms
+			tau_xpost = 50*ms
+			tau_rho = 1000*ms
+			xpre_jump = 1.0
+			xpost_jump = 1.0
+			xpre_factor = 0.1
+			thr_post = 0.5
+			rho_neg = -0.05
 	else: # default '2.1'
 		tau_xpre = 13*ms
 		tau_xpost = 33*ms
@@ -115,4 +144,8 @@ def load_rule_params(plasticity_rule, parameter_set, efficacy_init = 0.5):
 	alpha,\
 	beta,\
 	xpre_factor,\
-	w_max
+	w_max,\
+	xpre_min,\
+	xpost_min,\
+	xpost_max,\
+	xpre_max

@@ -39,8 +39,7 @@ from poisson_spiking_gen import *
 from load_neurons import *
 from numpy import mean
 
-def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, int_meth_syn = 'euler',
-	isi_correlation='random', drho_all_metric='original', job_seed = 0):
+def run_frequencies(pre_rate, post_rate, t_run, dt_resolution, plasticity_rule, neuron_type, noise, bistability, plot_single_trial, N_Pre, N_Post, tau_xpre, tau_xpost, xpre_jump, xpost_jump, rho_neg, rho_neg2, rho_init, tau_rho, thr_post, thr_pre, thr_b_rho, rho_min, rho_max, alpha, beta, xpre_factor, w_max, model_E_E, pre_E_E, post_E_E, xpost_max, xpre_max, xpre_min, xpost_min, int_meth_syn = 'euler', isi_correlation='random', drho_all_metric='original', job_seed = 0):
 
 	# # Spike time arrays
 	# pre_spikes_t, post_spikes_t = poisson_spiking_gen(
