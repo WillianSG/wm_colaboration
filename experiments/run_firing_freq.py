@@ -54,7 +54,7 @@ from run_frequencies import *
 # 1 ========== Execution parameters ==========
 
 # Simulation run variables
-dt_resolution = 0.001 # = 0.0001 sconds (0.1ms) | step of simulation time step resolution
+dt_resolution = 0.01 # = 0.0001 sconds (0.1ms) | step of simulation time step resolution
 t_run = 5 # 5 | simulation time (seconds)
 noise = 0.75 # used to introduce difference between spike times betweem pre- and post-
 
@@ -62,10 +62,10 @@ N_Pre = 1
 N_Post = 1
 
 isi_correlation = 'random' # "random", "positive", "negative"
-plasticity_rule = 'LR3' # 'none', 'LR1', 'LR2'
+plasticity_rule = 'LR4' # 'none', 'LR1', 'LR2'
 parameter_set = '4.1' # '2.1'
 neuron_type = 'spikegenerator' # 'poisson', 'LIF' , 'spikegenerator'
-bistability = True
+bistability = False
 drho_all_metric = 'original' # 'original', 'mean'
 
 exp_type = 'firing_freq_parallel_'+isi_correlation
@@ -155,7 +155,7 @@ for t in results:
 if "SLURM_ARRAY_JOB_ID" in os.environ:
 	path_sim_id = os.path.join(results_path, str(os.environ['SLURM_ARRAY_JOB_ID']) + '_' + exp_type)
 else:
-	path_sim_id = os.path.join(results_path, sim_id +'_' + exp_type)
+	path_sim_id = os.path.join(results_path, sim_id +'_' + exp_type + '_' + plasticity_rule + '_' + parameter_set)
 
 if not os.path.exists(path_sim_id):
 	os.mkdir(path_sim_id)
