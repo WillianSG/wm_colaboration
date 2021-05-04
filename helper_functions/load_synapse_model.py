@@ -70,25 +70,12 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 	xpre_factor: c
 	rho_dep2: rho_neg2
 	"""
-	post_E_E_LR3 = '''xpost = xpost + xpost_jump * (xpost_max - xpost)
-		rho = clip((rho + xpre * xpre_factor * int(xpre > 0)), rho_min, rho_max)
+	post_E_E_LR3 = '''xpost = clip((xpost + xpost_jump), 0.0, 1.0)
+		rho = clip((rho + xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre) * int(xpre > 0)), rho_min, rho_max)
 		w = rho*w_max'''
 
 	# - On pre spike (LR3)
 	xpre_update_LR3 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre)'''}
-
-	# - On post spike (LR4)
-	"""
-	xpost_jump: A_post
-	xpre_factor: c
-	rho_dep2: rho_neg2
-	"""
-	post_E_E_LR4 = '''xpost = xpost + xpost_jump
-		rho = clip((rho + xpre * xpre_factor * int(xpre > 0)), rho_min, rho_max)
-		w = rho*w_max'''
-
-	# - On pre spike (LR4)
-	xpre_update_LR4 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre)'''}
 
 	# - On pre spike (both LR1/LR2) 
 	"""
@@ -159,13 +146,6 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability):
 		pre_E_E = dict(rho_update_pre, **pre_E_E)
 		pre_E_E = dict(w_update, **pre_E_E)
 		post_E_E = post_E_E_LR3
-
-	elif plasticity_rule == 'LR4' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
-		model_E_E = model_E_E_plastic
-		pre_E_E = dict(xpre_update_LR4)
-		pre_E_E = dict(rho_update_pre, **pre_E_E)
-		pre_E_E = dict(w_update, **pre_E_E)
-		post_E_E = post_E_E_LR4
 
 	else:
 		raise ValueError("invalid compination of learning rule and neuron type")
