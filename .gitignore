@@ -1,0 +1,10 @@
+**/sim_results
+**/plots_results
+**/net_simulation
+sim_results/
+plots_results/
+*.pickle
+*.txt
+*.png
+**/network_results
+**/__pycache__/
