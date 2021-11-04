@@ -460,9 +460,13 @@ class AttractorNetwork:
 			self.rho_min,
 			self.rho_max,
 			self.alpha,
-			self.beta, 
+			self.beta,
 			self.xpre_factor,
-			self.w_max] = load_rule_params(self.plasticity_rule, 
+			self.w_max,
+			self.xpre_min,
+			self.xpost_min,
+			self.xpost_max,
+			self.xpre_max] = load_rule_params(self.plasticity_rule, 
 				self.parameter)
 
 	# ========== Excitatory stimulus loader ==========
