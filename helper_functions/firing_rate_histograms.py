@@ -1,29 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-@author: slehfeldt
+@author: w.soares.girao@rug.nl
+@university: University of Groningen
+@group: Bio-Inspired Circuits and System
 
-Inputs:
-- tpoints: array with time points of spikes
-- inds: array with neuron indices belonging to tpoints
-- bin_width: desired bin width of time_resolved histogram 
-- for tpoints without units: bin_width in seconds and also without unit
-- for tpoints with units: bin_width with unit
-- N_pop: population size
-- flag_hist: string defining which type of histogram should 
-- be generated. Options are 'time_resolved' and'neuron_resolved'
+Function:
+- Returns a spike count and firing rate histogram. Histograms are either 'time_resolved' (population firing rate over time) or 'neuron-resolved' (firing rate of single neurons). Both histograms are calculated over the time where the population was active.
 
-Outputs:
-- for 'time_resolved' histograms: 
-t_hist_count 
-t_hist_edgs 
-t_hist_fr
-- for 'neuron_resolved' histograms: 
-n_hist_count 
-n_hist_edgs 
-n_hist_fr
+Script arguments:
+-
+
+Script output:
+-
 
 Comments:
-- Returns a spike count and firing rate histogram. Histograms are either 'time_resolved' (population firing rate over time) or 'neuron-resolved' (firing rate of single neurons). Both histograms are calculated over the time where the population was active.
+-
 """
 
 def firing_rate_histograms(tpoints, inds, bin_width, N_pop, flag_hist):
@@ -49,6 +40,9 @@ def firing_rate_histograms(tpoints, inds, bin_width, N_pop, flag_hist):
 			num_bins_rounded = int(round(num_bins))
 		else:
 			# Set arbitrary number of bins
+			num_bins_rounded = 1
+
+		if num_bins_rounded < 1:
 			num_bins_rounded = 1
 
 		# b) Time-resolved histogram: count

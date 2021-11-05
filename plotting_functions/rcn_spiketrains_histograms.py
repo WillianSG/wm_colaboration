@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-@author: asonntag (adapted from Lehfeldt)
-Inputs:
-Outputs:
-Comments:
+@author: w.soares.girao@rug.nl
+@university: University of Groningen
+@group: Bio-Inspired Circuits and System
+
+Function:
+-
+
+Script arguments:
+-
+
+Script output:
+-
 """
 
 import os, sys
@@ -14,20 +22,22 @@ import numpy as np
 from brian2 import mV, Hz, second, ms, mean, std
 from firing_rate_histograms import firing_rate_histograms
 
-def learning_plot_spiketrains_and_histograms(
-	sim_id, 
-	path_sim, 
-	stim_size, 
-	N, 
-	s_tpoints, 
-	n_inds, 
-	bin_width_desired, 
-	t_run, 
-	exp_type,
-	opt = ''):
+def plot_rcn_spiketrains_histograms(
+	Einp_spks,
+	Einp_ids,
+	stim_E_size,
+	Iinp_spks,
+	Iinp_ids,
+	stim_I_size,
+	E_spks,
+	E_ids,
+	I_spks,
+	I_ids,
+	t_run,
+	path_to_plot,
+	bin_width_desired = 50*ms):
 
 	# General plotting settings
-
 	lwdth = 3
 	s1 = 60
 	s2 = 105
@@ -42,40 +52,40 @@ def learning_plot_spiketrains_and_histograms(
 	input_e_t_hist_edgs,
 	input_e_t_hist_bin_widths,
 	input_e_t_hist_fr] = firing_rate_histograms(
-		tpoints = s_tpoints[0],
-		inds = n_inds[0],
+		tpoints = Einp_spks,
+		inds = Einp_ids,
 		bin_width = bin_width_desired,
-		N_pop = stim_size,
+		N_pop = stim_E_size,
 		flag_hist = 'time_resolved')
 
 	[input_i_t_hist_count,
 	input_i_t_hist_edgs,
 	input_i_t_hist_bin_widths,
 	input_i_t_hist_fr] = firing_rate_histograms(
-		tpoints = s_tpoints[1],
-		inds = n_inds[1],
+		tpoints = Iinp_spks,
+		inds = Iinp_ids,
 		bin_width = bin_width_desired,
-		N_pop = N[1],
+		N_pop = stim_I_size,
 		flag_hist = 'time_resolved')
 
 	[e_t_hist_count, 
 	e_t_hist_edgs, 
 	e_t_hist_bin_widths,
 	e_t_hist_fr] = firing_rate_histograms(
-		tpoints = s_tpoints[2],
-		inds = n_inds[2],
+		tpoints = E_spks,
+		inds = E_ids,
 		bin_width = bin_width_desired,
-		N_pop = stim_size,
+		N_pop = stim_E_size,
 		flag_hist = 'time_resolved')
 
 	[i_t_hist_count,
 	i_t_hist_edgs,
 	i_t_hist_bin_widths,
 	i_t_hist_fr] = firing_rate_histograms(
-		tpoints = s_tpoints[3],
-		inds = n_inds[3],
+		tpoints = I_spks,
+		inds = I_ids,
 		bin_width = bin_width_desired,
-		N_pop = N[3],
+		N_pop = stim_I_size,
 		flag_hist = 'time_resolved')
 
 	# Plotting spiking activity and histograms
@@ -106,14 +116,14 @@ def learning_plot_spiketrains_and_histograms(
 	# Inhibitory population: spiking
 	ax1 = fig.add_subplot(gs[2, 0])
 
-	plt.plot(s_tpoints[3], n_inds[3], '.', color = 'red')
+	plt.plot(I_spks, I_ids, '.', color = 'red')
 	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
 
-	ax1.set_yticks(np.arange(0, N[3]+1, N[3]/2))
+	ax1.set_yticks(np.arange(0, stim_I_size+1, stim_I_size/2))
 	ax1.set_xticklabels([])
 
 	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10, pad = 10)
-	plt.ylim(0,N[3])
+	plt.ylim(0, stim_I_size)
 	plt.yticks(size = s1)
 	plt.xticks(size = s1)
 	plt.xlim(0, t_run/second)
@@ -140,14 +150,14 @@ def learning_plot_spiketrains_and_histograms(
 	# Excitatory population: spiking
 	ax3 = fig.add_subplot(gs[5, 0])
 
-	plt.plot(s_tpoints[2],n_inds[2], '.', color = 'mediumblue')
+	plt.plot(E_spks,E_ids, '.', color = 'mediumblue')
 	plt.ylabel('Source neuron $E$', size = s1, labelpad = 35, horizontalalignment = 'center')
 
-	ax3.set_yticks(np.arange(0, N[2]+1, N[3]))
+	ax3.set_yticks(np.arange(0, stim_E_size+1, stim_E_size/2))
 	ax3.set_xticklabels([])
 
 	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10, pad = 10)
-	plt.ylim(0, N[2])
+	plt.ylim(0, stim_E_size)
 	plt.yticks(size = s1)
 	plt.xticks(size = s1)
 	plt.xlim(0, t_run/second)
@@ -191,5 +201,7 @@ def learning_plot_spiketrains_and_histograms(
 	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10,
 		pad = 15)
 	plt.xlabel('Time (s)', size = s1)
-	plt.savefig(path_sim + '_' + opt + '_population_spiking.png', bbox_inches = 'tight')
-	plt.close(fig)
+
+	plt.savefig(
+		path_to_plot + '/rcn_population_spiking.png', 
+		bbox_inches = 'tight')

@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-@author: slehfeldt
+@author: w.soares.girao@rug.nl
+@university: University of Groningen
+@group: Bio-Inspired Circuits and System
 
-Input:
-- stimulus_type: string describing the stimulus type ['square', 'circle', 'triangle', 'cross', 'random, 'flat_to_I', 'flat_to_E' and 'flat_to_E_fixed_size']
-- stimulus_size: (?)
-- offset: (?)
-
-Output:
+Function:
 - Returns a list of input neuron indices that are active to form a stimulus pattern.
 
-Comments:
-"""
+Script arguments:
+-
 
+Script output:
+-
+
+Comments:
+-
+"""
 import random
 import numpy as np
 
