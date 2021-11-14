@@ -38,33 +38,94 @@ sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 # Helper modules
 from recurrent_competitive_network import RecurrentCompetitiveNet
 from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+from plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
+from plot_conn_matrix import plot_conn_matrix
+
+# 1 ------ initializing/running network ------
 
 rcn = RecurrentCompetitiveNet(
-	plasticity_rule = 'LR2', 
-	parameter_set = '2.4', 
-	t_run = 2*second)
+	plasticity_rule = 'LR3', 
+	parameter_set = '2.0', 
+	t_run = 3*second)
+
+rcn.stimulus_pulse = True
 
 rcn.net_init()
-rcn.set_stimulus_e(stimulus = 'cross', frequency = rcn.stim_freq_e)
-rcn.set_stimulus_i(stimulus = 'flat_to_I', frequency = rcn.stim_freq_i)
 
-rcn.run_net(period = 4)
+# rcn.set_random_E_E_syn_w(percent = 0.5)
 
-E_mon_pop = rcn.get_E_spks()
-I_mon_pop = rcn.get_I_spks()
-Einp_mon_pop = rcn.get_Einp_spks()
-Iinp_mon_pop = rcn.get_Iinp_spks()
+rcn.stim_freq_e = 6600*Hz
+rcn.stim_freq_i = 3900*Hz
+
+rcn.set_stimulus_e(stimulus = 'circle', frequency = rcn.stim_freq_e)
+rcn.set_stimulus_i(stimulus = 'random_I', frequency = rcn.stim_freq_i)
+
+rcn.set_E_E_plastic(plastic = True)
+
+rcn.run_net(period = 8)
+
+rcn.get_target_spks(
+	targets_E = [34, 60, 0, 4, 17, 25, 55, 103, 200, 39, 15], 
+	targets_I = [0, 2, 15, 20, 35, 50, 60, 45, 29, 8, 26])
+
+rcn.get_target_spks(all = True)
+
+# ======== testing ========
+
+# E_E_xpre = rcn.get_E_E_xpre()
+# E_E_xpost = rcn.get_E_E_xpost()
+# E_E_rho = rcn.get_E_E_rho()
+
+# counter = 0
+
+# print('------preCa-----')
+
+# for preCa in E_E_xpre:
+# 	if sum(preCa) > 0 and counter <= 10:
+# 		print(sum(preCa))
+# 		counter += 1
+
+# counter = 0
+
+# print('------postCa-----')
+
+# for preCa in E_E_xpost:
+# 	if sum(preCa) > 0 and counter <= 10:
+# 		print(sum(preCa))
+# 		counter += 1
+
+# counter = 0
+
+# print('------rho-----')
+
+# for preCa in E_E_rho:
+# 	if sum(preCa) > 0 and counter <= 10:
+# 		print(sum(preCa))
+# 		counter += 1
+
+# ==========================
+
+# 2 ------ plotting simulation data ------
+
+plot_conn_matrix(
+	conn_matrix = rcn.get_conn_matrix(pop = 'E_E'), 
+	population = 'E_E', 
+	path = rcn.get_sim_data_path())
+
+plot_syn_matrix_heatmap(path_to_data = rcn.E_E_syn_matrix_path)
 
 plot_rcn_spiketrains_histograms(
-	Einp_spks = Einp_mon_pop[0],
-	Einp_ids = Einp_mon_pop[1],
+	Einp_spks = rcn.get_Einp_spks()[0],
+	Einp_ids = rcn.get_Einp_spks()[1],
 	stim_E_size = rcn.stim_size_e,
-	Iinp_spks = Iinp_mon_pop[0],
-	Iinp_ids = Iinp_mon_pop[1],
+	E_pop_size = rcn.N_input_e,
+	Iinp_spks = rcn.get_Iinp_spks()[0],
+	Iinp_ids = rcn.get_Iinp_spks()[1],
 	stim_I_size = rcn.stim_size_i,
-	E_spks = E_mon_pop[0],
-	E_ids = E_mon_pop[1],
-	I_spks = I_mon_pop[0],
-	I_ids = I_mon_pop[1],
+	I_pop_size = rcn.N_input_i,
+	E_spks = rcn.get_E_spks()[0],
+	E_ids = rcn.get_E_spks()[1],
+	I_spks = rcn.get_I_spks()[0],
+	I_ids = rcn.get_I_spks()[1],
 	t_run = rcn.t_run,
 	path_to_plot = rcn.net_sim_data_path)

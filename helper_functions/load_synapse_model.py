@@ -48,8 +48,8 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 			model_E_E_plastic = ''' 
 			w : volt
 			plastic : boolean (shared)
-			dxpre/dt = -xpre / tau_xpre : 1 (clock-driven)
-			dxpost/dt = -xpost / tau_xpost : 1 (clock-driven)
+			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
 			drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
 			int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
 				: 1  (clock-driven)'''
@@ -59,16 +59,16 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 			w : volt
 			rho : 1
 			plastic : boolean (shared)
-			dxpre/dt = -xpre / tau_xpre : 1 (clock-driven)
-			dxpost/dt = -xpost / tau_xpost : 1 (clock-driven)
-			dxstop/dt = -xstop / tau_xstop : 1 (clock-driven)'''
+			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
+			dxstop/dt = (-xstop / tau_xstop)*int(plastic) : 1 (clock-driven)'''
 		else:
 			model_E_E_plastic = ''' 
 			w : volt
 			rho : 1
 			plastic : boolean (shared)
-			dxpre/dt = -xpre / tau_xpre : 1 (clock-driven)
-			dxpost/dt = -xpost / tau_xpost : 1 (clock-driven)'''
+			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)'''
 	else:
 		print ('Bistabilty setting unclear')
 

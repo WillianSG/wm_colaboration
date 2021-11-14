@@ -1,25 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-@author: w.soares.girao@rug.nl
-@university: University of Groningen
-@group: Bio-Inspired Circuits and System
+@author: slehfeldt
 
-Function:
+Input:
+- stimulus_type: string describing the stimulus type ['square', 'circle', 'triangle', 'cross', 'random, 'flat_to_I', 'flat_to_E' and 'flat_to_E_fixed_size']
+- stimulus_size: (?)
+- offset: (?)
+
+Output:
 - Returns a list of input neuron indices that are active to form a stimulus pattern.
 
-Script arguments:
--
-
-Script output:
--
-
 Comments:
--
 """
+
 import random
 import numpy as np
 
-def load_stimulus(stimulus_type, stimulus_size, offset):
+def load_stimulus(stimulus_type, stimulus_size, offset, rand_size = 256, rand_active = 64):
 	if stimulus_type == 'square':
 		# Indices of input neurons active to form a square
 		stimulus_inds = [51,52,53,54,55,56,57,58,59,60,67,68,69,70,71,72,73,74,
@@ -45,9 +42,9 @@ def load_stimulus(stimulus_type, stimulus_size, offset):
 			136,137,149,150,151,152,153,154,164,165,166,169,170,171,179,180,
 			181,186,187,188,194,195,196,203,204,205,210,211,212,219,220,221]
 	elif stimulus_type == 'random':
-		stimulus_size = 255 # Size of stimulus = input cell indices
-		num_active = 110 # Number of active input neurons = length of stimulus_inds
-		stimulus_inds=random.sample(range(0, stimulus_size), num_active)
+		stimulus_inds = random.sample(range(0, rand_size), rand_active)
+	elif stimulus_type == 'random_I':
+		stimulus_inds = random.sample(range(0, rand_active), rand_active)
 	elif stimulus_type == 'flat_to_I':
 		stimulus_inds = np.arange(0, stimulus_size, 1)
 	elif stimulus_type == 'flat_to_E':

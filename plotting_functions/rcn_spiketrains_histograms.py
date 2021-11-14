@@ -26,9 +26,11 @@ def plot_rcn_spiketrains_histograms(
 	Einp_spks,
 	Einp_ids,
 	stim_E_size,
+	E_pop_size,
 	Iinp_spks,
 	Iinp_ids,
 	stim_I_size,
+	I_pop_size,
 	E_spks,
 	E_ids,
 	I_spks,
@@ -119,11 +121,11 @@ def plot_rcn_spiketrains_histograms(
 	plt.plot(I_spks, I_ids, '.', color = 'red')
 	plt.ylabel('Source\nneuron $I$', size = s1, labelpad = 105, horizontalalignment = 'center')
 
-	ax1.set_yticks(np.arange(0, stim_I_size+1, stim_I_size/2))
+	ax1.set_yticks(np.arange(0, I_pop_size+1, stim_I_size))
 	ax1.set_xticklabels([])
 
 	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10, pad = 10)
-	plt.ylim(0, stim_I_size)
+	plt.ylim(0, I_pop_size)
 	plt.yticks(size = s1)
 	plt.xticks(size = s1)
 	plt.xlim(0, t_run/second)
@@ -153,11 +155,11 @@ def plot_rcn_spiketrains_histograms(
 	plt.plot(E_spks,E_ids, '.', color = 'mediumblue')
 	plt.ylabel('Source neuron $E$', size = s1, labelpad = 35, horizontalalignment = 'center')
 
-	ax3.set_yticks(np.arange(0, stim_E_size+1, stim_E_size/2))
+	ax3.set_yticks(np.arange(0, E_pop_size+1, stim_E_size))
 	ax3.set_xticklabels([])
 
 	plt.tick_params(axis = 'both', which = 'major', width = lwdth, length = 10, pad = 10)
-	plt.ylim(0, stim_E_size)
+	plt.ylim(0, E_pop_size)
 	plt.yticks(size = s1)
 	plt.xticks(size = s1)
 	plt.xlim(0, t_run/second)

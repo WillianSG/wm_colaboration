@@ -14,13 +14,22 @@ Script output:
 -
 
 TO DO:
-- [] save connection matrices on initialization.
+- [X] save connection matrices method.
+- [X] snapshots of syn. matrix during simulation method.
+- [] load simulation parameters from file (?).
+- [X] make 'get_E_E_conn_matrix' general purpose.
+- [] method to save network configuration (param. set, pop. params., etc)
 """
 import setuptools
 from time import localtime, strftime
-import os
+import os, pickle
+
 from brian2 import *
 import numpy as np
+
+# import os, sys, pickle, shutil
+# import random
+# from time import localtime
 
 prefs.codegen.target = 'numpy'
 
@@ -45,14 +54,12 @@ class RecurrentCompetitiveNet:
 		self.int_meth_syn = 'euler'
 
 		# ------ network parameters
-		self.stimulus_pulse = True
+		self.stimulus_pulse = False
 		self.stimulus_pulse_duration = t_run - 1*second
 		self.stimulus_pulse_clock_dt = 0.1*ms
 
 		self.stim_size_e = 64
 		self.stim_size_i = 64
-
-		self.M_ee = []					# syn matrix for recurrent exc. connec.
 
 		# ------ neurons parameters
 		self.neuron_type = 'LIF'
@@ -63,7 +70,7 @@ class RecurrentCompetitiveNet:
 		# excitatory population
 
 		self.stim_freq_e = 3900*Hz
-		self.stim_freq_i = 5000*Hz
+		self.stim_freq_i = 0*Hz
 
 		self.N_e = 256 # num. of neurons
 		self.Vr_e = -65*mV # resting potential
@@ -95,10 +102,10 @@ class RecurrentCompetitiveNet:
 		self.stop_learning = False
 
 		# connection probabilities
-		self.p_e_i = 0.25 # excitatory to inhibitory
-		self.p_i_e = 0.25 # inhibitory to excitatory
-		self.p_e_e = 0.4 # excitatory to excitatory
-		self.p_i_i = 0.0 # inhibitory to inhibitory
+		self.p_e_i = 0.25 # excitatory to inhibitory (0.25)
+		self.p_i_e = 0.25 # inhibitory to excitatory (0.25)
+		self.p_e_e = 0.4 # excitatory to excitatory (0.4)
+		self.p_i_i = 0.0 # inhibitory to inhibitory (0.0)
 
 		# delays
 		self.syn_delay_Vepsp_e_e = 0*ms 
@@ -114,6 +121,13 @@ class RecurrentCompetitiveNet:
 		self.w_i_e = 1*mV
 		self.w_e_e = 0.5*mV
 		self.w_i_i = 0.5*mV
+
+		# data save
+		self.M_ee = []
+
+		self.E_E_syn_matrix_snaptshot = True
+		self.E_E_syn_matrix_snaptshot_dt = 100*ms
+		self.E_E_syn_matrix_path = ''
 
 		# ------ data (monitors) parameters
 		self.rec_dt = 0.1*ms
@@ -134,6 +148,7 @@ class RecurrentCompetitiveNet:
 		self.Input_I_rec_attributes = ('w')
 		self.E_rec_attributes = ('Vm','Vepsp','Vipsp')
 		self.I_rec_attributes = ('Vm','Vepsp','Vipsp')
+		# self.E_E_rec_attributes = ('w', 'rho', 'xpre', 'xpost')
 		self.E_E_rec_attributes = ('w')
 		self.E_I_rec_attributes = ('w')
 		self.I_E_rec_attributes = ('w')
@@ -219,7 +234,8 @@ class RecurrentCompetitiveNet:
 		self.post_E_E] = load_synapse_model(
 			plasticity_rule = self.plasticity_rule,
 			neuron_type = self.neuron_type,
-			bistability = self.bistability)
+			bistability = self.bistability,
+			stoplearning = self.stop_learning)
 
 		# rule's parameters
 		[self.tau_xpre,
@@ -323,11 +339,32 @@ class RecurrentCompetitiveNet:
 		self.E_E.Vepsp_transmission.delay = self.syn_delay_Vepsp_e_e
 
 	"""
+	Allows state variables change in synaptic model.
+	"""
+	def set_E_E_plastic(self, plastic = False):
+		self.E_E.plastic = plastic
+
+	"""
 	Creates matrix M from E to E connections.
 	"""
 	def set_E_syn_matrix(self):
 		self.M_ee = np.full((len(self.E), len(self.E)), np.nan)
 		self.M_ee[self.E_E.i[:], self.E_E.j[:]] = self.E_E.rho[:]
+
+	"""
+	"""
+	def set_random_E_E_syn_w(self, percent = 0.5):
+		self.set_E_syn_matrix()
+
+		for pre_id in range(0, len(self.E)):
+			for post_id in range(0, len(self.E)):
+				if isnan(self.M_ee[pre_id][post_id]) == False:
+					percent_ = uniform(0, 1)
+					if percent_ < percent:
+						s = uniform(0, 1)				
+						self.E_E.rho[pre_id, post_id] = round(s, 2)
+					else:
+						self.E_E.rho[pre_id, post_id] = 0.0
 
 	# 1.4 ------ network operation
 
@@ -402,6 +439,17 @@ class RecurrentCompetitiveNet:
 			os.mkdir(network_sim_dir)
 
 		self.net_sim_data_path = network_sim_dir
+
+		if self.E_E_syn_matrix_snaptshot:
+			E_E_syn_matrix_path = os.path.join(
+				self.net_sim_data_path,
+				'E_E_syn_matrix')
+
+			if not(os.path.isdir(E_E_syn_matrix_path)):
+				os.mkdir(E_E_syn_matrix_path)
+
+			self.E_E_syn_matrix_path = E_E_syn_matrix_path
+
 
 	"""
 	"""
@@ -479,6 +527,11 @@ class RecurrentCompetitiveNet:
 			self.stimulus_pulse_clock_dt, 
 			name = 'stim_pulse_clk')
 
+		self.E_E_syn_matrix_clock = Clock(
+			self.E_E_syn_matrix_snaptshot_dt, 
+			name = 'E_E_syn_matrix_clk')
+
+
 		if self.stimulus_pulse:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
@@ -488,6 +541,24 @@ class RecurrentCompetitiveNet:
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
+				pass
+		
+		if self.E_E_syn_matrix_snaptshot:
+			@network_operation(clock = self.E_E_syn_matrix_clock)
+			def store_E_E_syn_matrix_snapshot():
+				synaptic_matrix = np.full((len(self.E), len(self.E)), -1.0)
+				synaptic_matrix[self.E_E.i, self.E_E.j] = self.E_E.rho
+
+				fn = os.path.join(
+					self.E_E_syn_matrix_path,
+					str(int(round(defaultclock.t/ms, 0))) + '_ms_E_E_syn_matrix.pickle')
+
+				with open(fn, 'wb') as f:
+					pickle.dump((
+						synaptic_matrix), f)
+		else:
+			@network_operation(clock = self.E_E_syn_matrix_clock)
+			def store_E_E_syn_matrix_snapshot():
 				pass
 
 		defaultclock.dt = self.dt
@@ -515,7 +586,8 @@ class RecurrentCompetitiveNet:
 			self.E_I_rec,
 			self.I_E_rec,
 			stimulus_pulse,
-			name = 'rcn_net')	
+			store_E_E_syn_matrix_snapshot,
+			name = 'rcn_net')
 
 	"""
 	"""
@@ -560,6 +632,9 @@ class RecurrentCompetitiveNet:
 
 	# 2.1 ------ network
 
+	def get_sim_data_path(self):
+		return self.net_sim_data_path
+
 	# 2.2 ------ neurons
 
 	"""
@@ -594,7 +669,99 @@ class RecurrentCompetitiveNet:
 	def get_Iinp_spks(self):
 		return [self.Input_to_I_mon.t[:], self.Input_to_I_mon.i[:]]
 
+	"""
+	"""
+	def get_target_spks(self, targets_E = [], targets_I = [], all = False):
+		if all == False:
+			targeted_E_list = []
+			for n_id in targets_E:
+				targeted_E_list.append({'id': n_id, 'spk_t': []})
+
+			for n_id in range(0, len(self.E_mon.i)):
+				if (self.E_mon.i[n_id] in targets_E):
+					for y in targeted_E_list:
+						if y['id'] == self.E_mon.i[n_id]:
+							y['spk_t'].append(self.E_mon.t[n_id])
+
+			targeted_I_list = []
+			for n_id in targets_I:
+				targeted_I_list.append({'id': n_id, 'spk_t': []})
+
+			for n_id in range(0, len(self.I_mon.i)):
+				if (self.I_mon.i[n_id] in targets_I):
+					for y in targeted_I_list:
+						if y['id'] == self.I_mon.i[n_id]:
+							y['spk_t'].append(self.I_mon.t[n_id])
+
+			fn = os.path.join(
+						self.net_sim_data_path,
+						'targeted_E_n_I_spks.pickle')
+
+			with open(fn, 'wb') as f:
+				pickle.dump((
+					targeted_E_list,
+					targeted_I_list), f)
+		else:
+			targeted_E_list = []
+			for n_id in range(0, self.N_e):
+				targeted_E_list.append({'id': n_id, 'spk_t': []})
+
+			for n_id in range(0, len(self.E_mon.i)):
+				for y in targeted_E_list:
+					if y['id'] == self.E_mon.i[n_id]:
+						y['spk_t'].append(self.E_mon.t[n_id])
+
+			targeted_I_list = []
+			for n_id in range(0, self.N_i):
+				targeted_I_list.append({'id': n_id, 'spk_t': []})
+
+			for n_id in range(0, len(self.I_mon.i)):
+				for y in targeted_I_list:
+					if y['id'] == self.I_mon.i[n_id]:
+						y['spk_t'].append(self.I_mon.t[n_id])
+
+			fn = os.path.join(
+						self.net_sim_data_path,
+						'targeted_all_E_n_I_spks.pickle')
+
+			with open(fn, 'wb') as f:
+				pickle.dump((
+					targeted_E_list,
+					targeted_I_list), f)
+
 	# 2.3 ------ synapses
+
+	"""
+	"""
+	def get_E_E_weights(self):
+		return self.E_E_rec.w
+
+	"""
+	"""
+	def get_E_E_rho(self):
+		return self.E_E_rec.rho[:]
+
+	"""
+	"""
+	def get_E_E_xpre(self):
+		return self.E_E_rec.xpre[:]
+
+	"""
+	"""
+	def get_E_E_xpost(self):
+		return self.E_E_rec.xpost[:]
+
+	"""
+	"""
+	def get_conn_matrix(self, pop = 'E_E'):
+		if pop == 'E_E':
+			ee_conn_matrix = np.full((len(self.E), len(self.E)), -1.0)
+			ee_conn_matrix[self.E_E.i, self.E_E.j] = 1.0
+		else:
+			ee_conn_matrix = np.full((len(self.E), len(self.E)), -1.0)
+			ee_conn_matrix[self.E_E.i, self.E_E.j] = 1.0
+
+		return ee_conn_matrix
 
 
 

@@ -62,6 +62,43 @@ def load_rule_parameters(
 			thr_pre = 0.5
 			rho_neg = -0.008
 			rho_neg2 = rho_neg*10
+	elif plasticity_rule == 'LR3':
+		if parameter_set == '1.X1':
+			tau_xpre = 30*ms
+			tau_xpost = 45*ms 
+			tau_rho = 40000*ms
+			xpre_jump = 0.4
+			xpost_jump = 0.5
+			thr_post = 0.33
+			thr_pre = 0.15
+			rho_neg = -0.021
+			rho_neg2 = -0.002
+			xpre_factor = 0.06
+			w_max = 5*mV
+			tau_xstop = 600*ms
+			xstop_jump = 0.03
+			xstop_max = 1.0
+			xstop_min = 0.0
+			thr_stop_h = 0.59
+			thr_stop_l = 0.1
+		elif parameter_set == '2.0':
+			tau_xpre = 20*ms
+			tau_xpost = 35*ms 
+			tau_rho = 20000*ms
+			xpre_jump = 0.4
+			xpost_jump = 0.5
+			thr_post = 0.33
+			thr_pre = 0.25
+			rho_neg = -0.021
+			rho_neg2 = -0.002
+			xpre_factor = 0.1
+			w_max = 7.5*mV
+			tau_xstop = 600*ms
+			xstop_jump = 0.03
+			xstop_max = 1.0
+			xstop_min = 0.0
+			thr_stop_h = 0.59
+			thr_stop_l = 0.1
 	else: # default '2.4'
 		tau_xpre = 13*ms
 		tau_xpost = 33*ms
