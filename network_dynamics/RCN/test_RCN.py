@@ -70,41 +70,6 @@ rcn.get_target_spks(
 
 rcn.get_target_spks(all = True)
 
-# ======== testing ========
-
-# E_E_xpre = rcn.get_E_E_xpre()
-# E_E_xpost = rcn.get_E_E_xpost()
-# E_E_rho = rcn.get_E_E_rho()
-
-# counter = 0
-
-# print('------preCa-----')
-
-# for preCa in E_E_xpre:
-# 	if sum(preCa) > 0 and counter <= 10:
-# 		print(sum(preCa))
-# 		counter += 1
-
-# counter = 0
-
-# print('------postCa-----')
-
-# for preCa in E_E_xpost:
-# 	if sum(preCa) > 0 and counter <= 10:
-# 		print(sum(preCa))
-# 		counter += 1
-
-# counter = 0
-
-# print('------rho-----')
-
-# for preCa in E_E_rho:
-# 	if sum(preCa) > 0 and counter <= 10:
-# 		print(sum(preCa))
-# 		counter += 1
-
-# ==========================
-
 # 2 ------ plotting simulation data ------
 
 plot_conn_matrix(
