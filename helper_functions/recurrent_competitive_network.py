@@ -69,8 +69,8 @@ class RecurrentCompetitiveNet:
 
 		# excitatory population
 
-		self.stim_freq_e = 3900*Hz
-		self.stim_freq_i = 0*Hz
+		self.stim_freq_e = 6600*Hz
+		self.stim_freq_i = 3900*Hz
 
 		self.N_e = 256 # num. of neurons
 		self.Vr_e = -65*mV # resting potential

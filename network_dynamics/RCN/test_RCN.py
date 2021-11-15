@@ -52,10 +52,7 @@ rcn.stimulus_pulse = True
 
 rcn.net_init()
 
-# rcn.set_random_E_E_syn_w(percent = 0.5)
-
-rcn.stim_freq_e = 6600*Hz
-rcn.stim_freq_i = 3900*Hz
+# rcn.set_random_E_E_syn_w(percent = 0.5) # uncomment for rand initial weights
 
 rcn.set_stimulus_e(stimulus = 'circle', frequency = rcn.stim_freq_e)
 rcn.set_stimulus_i(stimulus = 'random_I', frequency = rcn.stim_freq_i)
