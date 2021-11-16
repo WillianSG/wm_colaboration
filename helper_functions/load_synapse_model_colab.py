@@ -28,7 +28,7 @@ Output:
 """
 from brian2 import *
 
-def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning = False, resources = False):
+def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning = False):
 	# Non-plastic synapse
 	model_E_E_non_plastic = '''w : volt'''
 
@@ -41,17 +41,6 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
 			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
 			dxstop/dt = (-xstop / tau_xstop)*int(plastic) : 1 (clock-driven) 
-			drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
-			int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
-				: 1  (clock-driven)'''
-		elif resources and plasticity_rule == 'LR4':
-			model_E_E_plastic = ''' 
-			w : volt
-			plastic : boolean (shared)
-			du/dt = ((U - u)/tau_f)*int(plastic) : 1 (clock-driven)
-			dx_/dt = ((1 - x_)/tau_d)*int(plastic) : 1 (clock-driven)
-			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
-			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
 			drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
 			int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
 				: 1  (clock-driven)'''
@@ -85,25 +74,6 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 
 	# Learning Rule (weight update)
 
-	# - On post spike (LR1) 
-	"""
-	xpost_jump: A_post
-	xpre_factor: c
-	"""
-	post_E_E_LR1 = '''xpost = xpost + xpost_jump
-		rho = clip(rho + xpre * xpre_factor, rho_min, rho_max)
-		w = rho*w_max''' 
-
-	# - On post spike (LR2) 
-	"""
-	xpost_jump: A_post
-	xpre_factor: c
-	rho_dep2: rho_neg2
-	"""
-	post_E_E_LR2 = '''xpost = xpost + xpost_jump
-		rho = clip(rho + xpre * xpre_factor+ rho_neg2 *int(xpre < thr_pre) * int(xpre > 0), rho_min, rho_max)
-		w = rho*w_max'''
-
 	# - On post spike (LR3)
 	"""
 	xpost_jump: A_post
@@ -120,30 +90,16 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 			rho = clip((rho + (xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre)*int(xpre > 0))*int(plastic)), rho_min, rho_max)
 			w = w_max*int(rho > 0.5) + 0*mV'''
 
-	# - On post spike (LR4)
-	post_E_E_LR4 = '''xpost = clip((xpost + xpost_jump * int(plastic)), 0.0, 1.0)
-		rho = clip((rho + (xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre)*int(xpre > 0))*int(plastic)), rho_min, rho_max)
-		w = w_max*rho'''
-
-	# - On pre (1) spike (LR3)
+	# - On pre (1) spike
 	xpre_update_LR3 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre) * int(plastic)'''}
 
-	# - On pre (1) spike (LR4)
-	xpre_update_LR4 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre) * int(plastic)'''}
-	x_update_LR4 = {'x_update': '''x_ = x_ - u*x_*int(plastic)'''}
-	u_update_LR4 = {'u_update': '''u = u + U*(1 - u)*int(plastic)'''}
-
-	# - On pre (2) spike (both LR1/LR2/LR3) 
+	# - On pre (2) spike
 	"""
 	xpre_jump: A_pre
 	rho_dep: rho_neg
 	"""
 	xpre_update = {'xpre_update': '''xpre = xpre + xpre_jump * int(plastic)'''}
-
-	# weight update on pre spike
-	w_update = {'w_update' : ''' w = w_max*int(rho > 0.5) + 0*mV'''}
-
-	w_update_LR4 = {'w_update' : ''' w = w_max*rho'''}
+	w_update = {'w_update' : ''' w = w_max*int(rho > 0.5) + 0*mV'''} # PROBLEM - w = (rho * w_max)*int(plastic)
 
 	if stoplearning:
 		rho_update_pre = {'rho_update_pre':'''rho = clip(rho + (rho_neg *int(xpost > thr_post)*int(xstop < thr_stop_h)*int(plastic))*int(xstop > thr_stop_l), rho_min, rho_max)'''}
@@ -156,8 +112,6 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 	"""
 	Vepsp_transmission = {'Vepsp_transmission' : '''Vepsp += w'''}
 
-	Vepsp_transmission_LR4 = {'Vepsp_transmission' : '''Vepsp += w*(u*x_)'''}
-
 	# Creaing the equation structure (eqs) needed for Brian2
 
 	# - Neurons without synapses
@@ -165,54 +119,17 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 		model_E_E = model_E_E_non_plastic
 		pre_E_E = ''
 		post_E_E = ''
-
 	# - LIF neuron responding to pre- activity with non-plastic synapse
 	elif plasticity_rule == 'none' and neuron_type == 'LIF':
 		model_E_E = model_E_E_non_plastic
 		pre_E_E = dict(Vepsp_transmission)
 		post_E_E = ''
-
-	# - LIF neuron with plastic synapse ruled by LR1 (membrane changes for incoming spikes)
-	elif plasticity_rule == 'LR1' and neuron_type == 'LIF':
-		model_E_E = model_E_E_plastic
-		pre_E_E = dict(Vepsp_transmission)
-		pre_E_E = dict(xpre_update, **pre_E_E)
-		pre_E_E = dict(rho_update_pre, **pre_E_E)
-		pre_E_E = dict(w_update, **pre_E_E)
-		post_E_E = post_E_E_LR1
-
-	# - LIF neuron with plastic synapse ruled by LR1 (membrane does not change for incoming spikes)
-	elif plasticity_rule == 'LR1' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
-		model_E_E = model_E_E_plastic
-		pre_E_E = dict(xpre_update)
-		pre_E_E = dict(rho_update_pre, **pre_E_E)
-		pre_E_E = dict(w_update, **pre_E_E)
-		post_E_E = post_E_E_LR1
-
-	# - LIF neuron with plastic synapse ruled by LR2 (membrane changes for incoming spikes)
-	elif plasticity_rule == 'LR2' and neuron_type == 'LIF':
-		model_E_E = model_E_E_plastic
-		pre_E_E = dict(Vepsp_transmission)
-		pre_E_E = dict(xpre_update, **pre_E_E)
-		pre_E_E = dict(rho_update_pre, **pre_E_E)
-		pre_E_E = dict(w_update, **pre_E_E)
-		post_E_E = post_E_E_LR2
-
-	# - LIF neuron with plastic synapse ruled by LR2 (membrane does not change for incoming spikes)
-	elif plasticity_rule == 'LR2' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
-		model_E_E = model_E_E_plastic
-		pre_E_E = dict(xpre_update)
-		pre_E_E = dict(rho_update_pre, **pre_E_E)
-		pre_E_E = dict(w_update, **pre_E_E)
-		post_E_E = post_E_E_LR2
-
 	elif plasticity_rule == 'LR3' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
 		model_E_E = model_E_E_plastic
 		pre_E_E = dict(xpre_update_LR3)
 		pre_E_E = dict(rho_update_pre, **pre_E_E)
 		pre_E_E = dict(w_update, **pre_E_E)
 		post_E_E = post_E_E_LR3
-
 	elif plasticity_rule == 'LR3' and neuron_type == 'LIF':
 		model_E_E = model_E_E_plastic
 		pre_E_E = dict(Vepsp_transmission)
@@ -220,25 +137,6 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 		pre_E_E = dict(rho_update_pre, **pre_E_E)
 		pre_E_E = dict(w_update, **pre_E_E)
 		post_E_E = post_E_E_LR3
-
-	elif plasticity_rule == 'LR4' and neuron_type == 'LIF':
-		model_E_E = model_E_E_plastic
-		pre_E_E = dict(Vepsp_transmission_LR4)
-		pre_E_E = dict(xpre_update_LR4, **pre_E_E)
-		pre_E_E = dict(x_update_LR4, **pre_E_E)
-		pre_E_E = dict(u_update_LR4, **pre_E_E)
-		pre_E_E = dict(rho_update_pre, **pre_E_E)
-		pre_E_E = dict(w_update_LR4, **pre_E_E)
-		post_E_E = post_E_E_LR4
-
-	elif plasticity_rule == 'LR4' and (neuron_type == 'spikegenerator' or neuron_type == 'poisson'):
-		model_E_E = model_E_E_plastic
-		pre_E_E = dict(xpre_update_LR4)
-		pre_E_E = dict(x_update_LR4, **pre_E_E)
-		pre_E_E = dict(u_update_LR4, **pre_E_E)
-		pre_E_E = dict(rho_update_pre, **pre_E_E)
-		pre_E_E = dict(w_update_LR4, **pre_E_E)
-		post_E_E = post_E_E_LR4
 
 	else:
 		raise ValueError("invalid compination of learning rule and neuron type")

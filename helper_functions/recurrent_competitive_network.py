@@ -100,6 +100,7 @@ class RecurrentCompetitiveNet:
 		self.rule_parameters = parameter_set
 		self.bistability = True
 		self.stop_learning = False
+		self.resources = False
 
 		# connection probabilities
 		self.p_e_i = 0.25 # excitatory to inhibitory (0.25)
@@ -235,7 +236,8 @@ class RecurrentCompetitiveNet:
 			plasticity_rule = self.plasticity_rule,
 			neuron_type = self.neuron_type,
 			bistability = self.bistability,
-			stoplearning = self.stop_learning)
+			stoplearning = self.stop_learning,
+			resources = self.resources)
 
 		# rule's parameters
 		[self.tau_xpre,
