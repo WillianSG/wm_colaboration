@@ -100,7 +100,7 @@ class RecurrentCompetitiveNet:
 		self.rule_parameters = parameter_set
 		self.bistability = True
 		self.stop_learning = False
-		self.resources = False
+		self.resources = True
 
 		# connection probabilities
 		self.p_e_i = 0.25 # excitatory to inhibitory (0.25)
@@ -266,7 +266,10 @@ class RecurrentCompetitiveNet:
 		self.xstop_max,
 		self.xstop_min,
 		self.thr_stop_h,
-		self.thr_stop_l] = load_rule_parameters(
+		self.thr_stop_l,
+		self.U,
+		self.tau_d,
+		self.tau_f] = load_rule_parameters(
 			self.plasticity_rule, 
 			self.rule_parameters)
 
@@ -626,7 +629,10 @@ class RecurrentCompetitiveNet:
 			'xstop_max': self.xstop_max,
 			'xstop_min': self.xstop_min,
 			'thr_stop_h': self.thr_stop_h,
-			'thr_stop_l': self.thr_stop_l}
+			'thr_stop_l': self.thr_stop_l,
+			'U': self.U,
+			'tau_d': self.tau_d,
+			'tau_f': self.tau_f}
 
 		return self.namespace
 

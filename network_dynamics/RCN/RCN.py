@@ -36,16 +36,16 @@ sys.path.append(os.path.join(parent_dir, helper_dir))
 sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
-from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
-from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
-from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
-from plotting_functions.plot_conn_matrix import plot_conn_matrix
+from recurrent_competitive_network import RecurrentCompetitiveNet
+from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+from plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
+from plot_conn_matrix import plot_conn_matrix
 
 # 1 ------ initializing/running network ------
 
 rcn = RecurrentCompetitiveNet(
-	plasticity_rule = 'LR3', 
-	parameter_set = '2.0', 
+	plasticity_rule = 'LR4', 
+	parameter_set = '1.0', 
 	t_run = 3*second)
 
 rcn.stimulus_pulse = True

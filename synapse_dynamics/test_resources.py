@@ -108,7 +108,7 @@ resources = True
 	thr_stop_l,
 	U,
 	tau_d,
-	tau_f,] = load_rule_parameters(
+	tau_f] = load_rule_parameters(
 		plasticity_rule = plasticity_rule, 
 		parameter_set = parameter_set)
 
