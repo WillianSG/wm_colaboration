@@ -156,7 +156,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning =
 	"""
 	Vepsp_transmission = {'Vepsp_transmission' : '''Vepsp += w'''}
 
-	Vepsp_transmission_LR4 = {'Vepsp_transmission' : '''Vepsp += w*(u*x_)'''}
+	Vepsp_transmission_LR4 = {'Vepsp_transmission' : '''Vepsp += w*(x_*u)'''}
 
 	# Creaing the equation structure (eqs) needed for Brian2
 

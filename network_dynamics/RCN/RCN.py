@@ -40,34 +40,37 @@ from recurrent_competitive_network import RecurrentCompetitiveNet
 from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
 from plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
 from plot_conn_matrix import plot_conn_matrix
+from plot_syn_vars import plot_syn_vars
 
 # 1 ------ initializing/running network ------
 
 rcn = RecurrentCompetitiveNet(
 	plasticity_rule = 'LR4', 
-	parameter_set = '1.0', 
-	t_run = 3*second)
+	parameter_set = '2.0', 
+	t_run = 2*second)
 
 rcn.stimulus_pulse = True
+
+rcn.stim_freq_e = 9200*Hz
+rcn.stim_freq_i = 3900*Hz
 
 rcn.net_init()
 
 # rcn.set_random_E_E_syn_w(percent = 0.5) # uncomment for rand initial weights
 
 rcn.set_stimulus_e(stimulus = 'circle', frequency = rcn.stim_freq_e)
-rcn.set_stimulus_i(stimulus = 'random_I', frequency = rcn.stim_freq_i)
+rcn.set_stimulus_i(stimulus = 'flat_to_I', frequency = rcn.stim_freq_i)
 
 rcn.set_E_E_plastic(plastic = True)
 
-rcn.run_net(period = 8)
-
-rcn.get_target_spks(
-	targets_E = [34, 60, 0, 4, 17, 25, 55, 103, 200, 39, 15], 
-	targets_I = [0, 2, 15, 20, 35, 50, 60, 45, 29, 8, 26])
-
-rcn.get_target_spks(all = True)
+rcn.run_net(period = 2)
 
 # 2 ------ plotting simulation data ------
+
+if rcn.plasticity_rule == 'LR4':
+	rcn.pickle_E_E_u_active_inp() # records for some neurons active as input
+	rcn.pickle_E_E_x_active_inp()
+	plot_syn_vars(path = rcn.net_sim_data_path)
 
 plot_conn_matrix(
 	conn_matrix = rcn.get_conn_matrix(pop = 'E_E'), 

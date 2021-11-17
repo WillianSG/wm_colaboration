@@ -55,8 +55,10 @@ class RecurrentCompetitiveNet:
 
 		# ------ network parameters
 		self.stimulus_pulse = False
-		self.stimulus_pulse_duration = t_run - 1*second
+		self.stimulus_pulse_duration = 350*ms
 		self.stimulus_pulse_clock_dt = 0.1*ms
+
+		self.stimulus_PS_duration = 1.2*second
 
 		self.stim_size_e = 64
 		self.stim_size_i = 64
@@ -149,10 +151,13 @@ class RecurrentCompetitiveNet:
 		self.Input_I_rec_attributes = ('w')
 		self.E_rec_attributes = ('Vm','Vepsp','Vipsp')
 		self.I_rec_attributes = ('Vm','Vepsp','Vipsp')
-		# self.E_E_rec_attributes = ('w', 'rho', 'xpre', 'xpost')
-		self.E_E_rec_attributes = ('w')
+		self.E_E_rec_attributes = ['w']
 		self.E_I_rec_attributes = ('w')
 		self.I_E_rec_attributes = ('w')
+
+		if self.plasticity_rule == 'LR4':
+			self.E_E_rec_attributes.append('x_')
+			self.E_E_rec_attributes.append('u')
 
 		# ------ misc operation variables
 		self.stimulus_neurons_e_ids = []
@@ -341,6 +346,10 @@ class RecurrentCompetitiveNet:
 		self.E_E.w = self.w_e_e
 		self.I_I.w = self.w_i_i
 
+		if self.plasticity_rule == 'LR4':
+			self.E_E.x_ = 1.0
+			self.E_E.u = self.U
+
 		self.E_E.Vepsp_transmission.delay = self.syn_delay_Vepsp_e_e
 
 	"""
@@ -386,11 +395,14 @@ class RecurrentCompetitiveNet:
 
 	"""
 	"""
-	def set_stimulus_e(self, stimulus, frequency, offset = 0):
+	def set_stimulus_e(self, stimulus, frequency, offset = 0, stimulus_size = 0):
+		if stimulus_size == 0:
+			stimulus_size = self.stim_size_e
+
 		if stimulus != '':
 			self.stimulus_neurons_e_ids = load_stimulus(
 				stimulus_type = stimulus,
-				stimulus_size = self.stim_size_e,
+				stimulus_size = stimulus_size,
 				offset = offset)
 
 			self.Input_to_E.rates[self.stimulus_neurons_e_ids] = frequency
@@ -542,7 +554,14 @@ class RecurrentCompetitiveNet:
 			def stimulus_pulse():
 				if defaultclock.t >= self.stimulus_pulse_duration:
 					self.set_stimulus_e(stimulus = '', frequency = 0*Hz)
-					self.set_stimulus_i(stimulus = '', frequency = 0*Hz)
+				if defaultclock.t >= self.stimulus_PS_duration:
+					self.set_stimulus_e(
+						stimulus = 'flat_to_E',
+						stimulus_size = self.N_e,
+						frequency = self.stim_freq_e)
+				if defaultclock.t >= self.stimulus_PS_duration+(0.75*second):
+					self.set_stimulus_e(stimulus = '', frequency = 0*Hz)
+
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
@@ -758,6 +777,57 @@ class RecurrentCompetitiveNet:
 	"""
 	def get_E_E_xpost(self):
 		return self.E_E_rec.xpost[:]
+
+	"""
+	"""
+	def get_E_E_x(self):
+		return self.E_E_rec.x_[:]
+
+	"""
+	"""
+	def pickle_E_E_u_active_inp(self):
+		us = []
+		count = 0
+		sum_ = 0.0
+
+		for aaa in self.E_E_rec.u:
+			if np.sum(aaa)/len(aaa) > 0.3 and np.sum(aaa)/len(aaa) != sum_:
+				us.append(aaa)
+				sum_ = np.sum(aaa)/len(aaa)
+
+				count += 1
+			if count > 10:
+				break
+
+		fn = os.path.join(self.net_sim_data_path,'stimulus_neur_u.pickle')
+
+		with open(fn, 'wb') as f:
+			pickle.dump((
+				us,
+				self.E_E_rec.t/ms), f)
+
+	"""
+	"""
+	def pickle_E_E_x_active_inp(self):
+		x_ = []
+		count = 0
+		sum_ = 0.0
+
+		for aaa in self.E_E_rec.x_:
+			if np.sum(aaa)/len(aaa) < 1.0 and np.sum(aaa)/len(aaa) != sum_:
+				x_.append(aaa)
+				sum_ = np.sum(aaa)/len(aaa)
+
+				count += 1
+			if count > 10:
+				break
+
+		fn = os.path.join(self.net_sim_data_path,'stimulus_neur_x.pickle')
+
+		with open(fn, 'wb') as f:
+			pickle.dump((
+				x_,
+				self.E_E_rec.t/ms), f)
 
 	"""
 	"""

@@ -4,8 +4,8 @@
 
 Input:
 - stimulus_type: string describing the stimulus type ['square', 'circle', 'triangle', 'cross', 'random, 'flat_to_I', 'flat_to_E' and 'flat_to_E_fixed_size']
-- stimulus_size: (?)
-- offset: (?)
+- stimulus_size:
+- offset:
 
 Output:
 - Returns a list of input neuron indices that are active to form a stimulus pattern.

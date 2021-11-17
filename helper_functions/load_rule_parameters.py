@@ -52,6 +52,9 @@ def load_rule_parameters(
 	xstop_min = 0.0
 	thr_stop_h = 0.0
 	thr_stop_l = 0.0
+	U = 0.0
+	tau_d = 0*ms
+	tau_f = 0*ms
 
 	if plasticity_rule == 'LR2':
 		if parameter_set =='2.4':
@@ -99,6 +102,18 @@ def load_rule_parameters(
 			xstop_min = 0.0
 			thr_stop_h = 0.59
 			thr_stop_l = 0.1
+		elif parameter_set == '3.0':
+			tau_xpre = 25*ms
+			tau_xpost = 35*ms 
+			tau_rho = 20000*ms
+			xpre_jump = 0.4
+			xpost_jump = 0.5
+			thr_post = 0.33
+			thr_pre = 0.1
+			rho_neg = -0.021
+			rho_neg2 = -0.002
+			xpre_factor = 0.2
+			w_max = 5*mV
 	elif plasticity_rule == 'LR4':
 		if parameter_set == '1.0':
 			tau_xpre = 20*ms
@@ -111,10 +126,25 @@ def load_rule_parameters(
 			rho_neg = -0.021
 			rho_neg2 = -0.002
 			xpre_factor = 0.1
-			w_max = 7.5*mV
-			U = 0.3
+			w_max = 2*mV
+			U = 0.05
 			tau_d = 200*ms
-			tau_f = 4000*ms
+			tau_f = 2000*ms
+		elif parameter_set == '2.0':
+			tau_xpre = 25*ms
+			tau_xpost = 35*ms 
+			tau_rho = 20000*ms
+			xpre_jump = 0.4
+			xpost_jump = 0.5
+			thr_post = 0.33
+			thr_pre = 0.1
+			rho_neg = -0.021
+			rho_neg2 = -0.002
+			xpre_factor = 0.2
+			w_max = 5*mV
+			U = 0.2
+			tau_d = 200*ms
+			tau_f = 900*ms
 	else: # default '2.4'
 		tau_xpre = 13*ms
 		tau_xpost = 33*ms
