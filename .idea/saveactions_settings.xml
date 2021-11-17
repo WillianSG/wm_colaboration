@@ -4,7 +4,8 @@
     <option name="actions">
       <set>
         <option value="activate" />
-        <option value="reformatChangedCode" />
+        <option value="activateOnShortcut" />
+        <option value="reformat" />
       </set>
     </option>
   </component>
