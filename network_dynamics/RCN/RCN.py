@@ -23,7 +23,7 @@ import os.path as path
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-from plotting_functions.plot_video import generate_video
+# from plotting_functions.plot_video import generate_video
 import multiprocessing as mp
 
 prefs.codegen.target = 'numpy'
@@ -39,32 +39,37 @@ sys.path.append(os.path.join(parent_dir, helper_dir))
 sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
-from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
-from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
-from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
-from plotting_functions.plot_conn_matrix import plot_conn_matrix
-from plotting_functions.plot_syn_vars import plot_syn_vars
+from recurrent_competitive_network import RecurrentCompetitiveNet
+from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+from plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
+from plot_conn_matrix import plot_conn_matrix
+from plot_syn_vars import plot_syn_vars
 
 # 1 ------ initializing/running network ------
 
 rcn = RecurrentCompetitiveNet(
-    plasticity_rule='LR4',
+    plasticity_rule='LR3',
     parameter_set='2.0',
-    t_run=2 * second)
+    t_run=3 * second)
 
 rcn.stimulus_pulse = True
 
-rcn.stim_freq_e = 9200 * Hz
-rcn.stim_freq_i = 3900 * Hz
-
 rcn.net_init()
 
-# rcn.set_random_E_E_syn_w(percent = 0.5) # uncomment for rand initial weights
+rcn.set_E_E_plastic(plastic=True)
 
-rcn.set_stimulus_e(stimulus='circle', frequency=rcn.stim_freq_e)
+rcn.set_stimulus_e(stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset = 0)
 rcn.set_stimulus_i(stimulus='flat_to_I', frequency=rcn.stim_freq_i)
 
-rcn.set_E_E_plastic(plastic=True)
+rcn.run_net(period=2)
+
+"""
+In line 550 on the net obj this variable is used to flag when the input stimulus has to terminate (basically it stops a second before the end of the simulation - line 58). Since the simulation is running for 6s (3s at each run), I`m updating it so that the 2nd stimulus input ends a second before the end of the 2nd simulation [this should be automatized].
+"""
+rcn.stimulus_pulse_duration = 5*second
+
+rcn.set_stimulus_e(stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset = 100)
+rcn.set_stimulus_i(stimulus='flat_to_I', frequency=rcn.stim_freq_i)
 
 rcn.run_net(period=2)
 
@@ -82,11 +87,12 @@ plot_conn_matrix(
     path=rcn.get_sim_data_path())
 
 plot_syn_matrix_heatmap(path_to_data=rcn.E_E_syn_matrix_path)
-if __name__ == "__main__":
-    mp.set_start_method("fork")
-    p = mp.Process(target=generate_video,
-                   args=(rcn.get_sim_data_path(), population))
-    p.start()
+
+# if __name__ == "__main__":
+#     mp.set_start_method("fork")
+#     p = mp.Process(target=generate_video,
+#                    args=(rcn.get_sim_data_path(), population))
+#     p.start()
 
 plot_rcn_spiketrains_histograms(
     Einp_spks=rcn.get_Einp_spks()[0],

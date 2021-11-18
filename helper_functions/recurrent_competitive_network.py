@@ -55,10 +55,8 @@ class RecurrentCompetitiveNet:
 
 		# ------ network parameters
 		self.stimulus_pulse = False
-		self.stimulus_pulse_duration = 350*ms
+		self.stimulus_pulse_duration = self.t_run - 1*second
 		self.stimulus_pulse_clock_dt = 0.1*ms
-
-		self.stimulus_PS_duration = 1.2*second
 
 		self.stim_size_e = 64
 		self.stim_size_i = 64
@@ -554,14 +552,6 @@ class RecurrentCompetitiveNet:
 			def stimulus_pulse():
 				if defaultclock.t >= self.stimulus_pulse_duration:
 					self.set_stimulus_e(stimulus = '', frequency = 0*Hz)
-				if defaultclock.t >= self.stimulus_PS_duration:
-					self.set_stimulus_e(
-						stimulus = 'flat_to_E',
-						stimulus_size = self.N_e,
-						frequency = self.stim_freq_e)
-				if defaultclock.t >= self.stimulus_PS_duration+(0.75*second):
-					self.set_stimulus_e(stimulus = '', frequency = 0*Hz)
-
 		else:
 			@network_operation(clock = self.stimulus_pulse_clock)
 			def stimulus_pulse():
