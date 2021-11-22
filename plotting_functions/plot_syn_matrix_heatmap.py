@@ -50,7 +50,7 @@ def plot_syn_matrix_heatmap(path_to_data, show_last=False):
             f'{path_to_data}/{i:0{pad}}_{pickled.replace(".pickle", ".png")}',
             bbox_inches='tight')
 
-        if show_last and i == len(pickled_list):
+        if show_last and i == len(pickled_list) - 1:
             plt.show()
         else:
             plt.close()
