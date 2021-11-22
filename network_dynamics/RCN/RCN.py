@@ -13,17 +13,11 @@ Script arguments:
 Script output:
 -
 """
-import setuptools
 import os, sys, pickle, shutil
-from brian2 import *
-from numpy import *
-from time import localtime
+from brian2 import second, prefs
 import os.path as path
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-
-# from plotting_functions.plot_video import generate_video
+from plotting_functions.plot_video import generate_video
 import multiprocessing as mp
 
 prefs.codegen.target = 'numpy'
@@ -39,11 +33,11 @@ sys.path.append(os.path.join(parent_dir, helper_dir))
 sys.path.append(os.path.join(parent_dir, plotting_funcs_dir))
 
 # Helper modules
-from recurrent_competitive_network import RecurrentCompetitiveNet
-from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
-from plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
-from plot_conn_matrix import plot_conn_matrix
-from plot_syn_vars import plot_syn_vars
+from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
+from plotting_functions.plot_conn_matrix import plot_conn_matrix
+from plotting_functions.plot_syn_vars import plot_syn_vars
 
 # 1 ------ initializing/running network ------
 
@@ -58,17 +52,20 @@ rcn.net_init()
 
 rcn.set_E_E_plastic(plastic=True)
 
-rcn.set_stimulus_e(stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset = 0)
+rcn.set_stimulus_e(stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0)
 rcn.set_stimulus_i(stimulus='flat_to_I', frequency=rcn.stim_freq_i)
 
 rcn.run_net(period=2)
 
 """
-In line 550 on the net obj this variable is used to flag when the input stimulus has to terminate (basically it stops a second before the end of the simulation - line 58). Since the simulation is running for 6s (3s at each run), I`m updating it so that the 2nd stimulus input ends a second before the end of the 2nd simulation [this should be automatized].
+In line 550 on the net obj this variable is used to flag when the input stimulus has to terminate 
+(basically it stops a second before the end of the simulation - line 58). 
+Since the simulation is running for 6s (3s at each run), I`m updating it so that the 2nd stimulus input ends a second 
+before the end of the 2nd simulation [this should be automatized].
 """
-rcn.stimulus_pulse_duration = 5*second
+rcn.stimulus_pulse_duration = 5 * second
 
-rcn.set_stimulus_e(stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset = 100)
+rcn.set_stimulus_e(stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100)
 rcn.set_stimulus_i(stimulus='flat_to_I', frequency=rcn.stim_freq_i)
 
 rcn.run_net(period=2)
@@ -86,13 +83,13 @@ plot_conn_matrix(
     population=population,
     path=rcn.get_sim_data_path())
 
-plot_syn_matrix_heatmap(path_to_data=rcn.E_E_syn_matrix_path)
+plot_syn_matrix_heatmap(path_to_data=rcn.E_E_syn_matrix_path, show_last=True)
 
-# if __name__ == "__main__":
-#     mp.set_start_method("fork")
-#     p = mp.Process(target=generate_video,
-#                    args=(rcn.get_sim_data_path(), population))
-#     p.start()
+if __name__ == "__main__":
+    mp.set_start_method("fork")
+    p = mp.Process(target=generate_video,
+                   args=(rcn.get_sim_data_path(), population))
+    p.start()
 
 plot_rcn_spiketrains_histograms(
     Einp_spks=rcn.get_Einp_spks()[0],
@@ -107,5 +104,5 @@ plot_rcn_spiketrains_histograms(
     E_ids=rcn.get_E_spks()[1],
     I_spks=rcn.get_I_spks()[0],
     I_ids=rcn.get_I_spks()[1],
-    t_run=rcn.t_run,
+    t_run=6,
     path_to_plot=rcn.net_sim_data_path)

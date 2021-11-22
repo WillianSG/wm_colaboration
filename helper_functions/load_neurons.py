@@ -26,48 +26,47 @@ from brian2.units import second, ms, Hz, fundamentalunits
 import numpy as np
 from check_spikes_isi import *
 
-def load_neurons(N_Pre, N_Post, neuron_type, spikes_t_Pre = [i/1000.0 for i in [20, 120 ,340, 540]], spikes_t_Post = [i/1000.0 for i in [40, 130, 320, 530]], pre_rate = 1, post_rate = 1):
 
-	if neuron_type == 'spikegenerator':
-		spikes_t_Post = check_spikes_isi(spikes_t_Post, 0.0001)
-		spikes_t_Pre = check_spikes_isi(spikes_t_Pre, 0.0001)
+def load_neurons(N_Pre, N_Post, neuron_type, spikes_t_Pre=[i / 1000.0 for i in [20, 120, 340, 540]],
+                 spikes_t_Post=[i / 1000.0 for i in [40, 130, 320, 530]], pre_rate=1, post_rate=1):
+    if neuron_type == 'spikegenerator':
+        spikes_t_Post = check_spikes_isi(spikes_t_Post, 0.0001)
+        spikes_t_Pre = check_spikes_isi(spikes_t_Pre, 0.0001)
 
-		spikes_t_Pre = np.array(spikes_t_Pre.flatten())*second
-		spikes_t_Post = np.array(spikes_t_Post.flatten())*second
+        spikes_t_Pre = np.array(spikes_t_Pre.flatten()) * second
+        spikes_t_Post = np.array(spikes_t_Post.flatten()) * second
 
-		inds_PRE = np.zeros(len(spikes_t_Pre))
-		inds_POST = np.zeros(len(spikes_t_Post))
+        inds_PRE = np.zeros(len(spikes_t_Pre))
+        inds_POST = np.zeros(len(spikes_t_Post))
 
-		Pre = SpikeGeneratorGroup(
-			N = N_Pre,
-			indices = inds_PRE,
-			times = spikes_t_Pre,
-			name = 'Pre')
+        Pre = SpikeGeneratorGroup(
+            N=N_Pre,
+            indices=inds_PRE,
+            times=spikes_t_Pre,
+            name='Pre')
 
-		Post = SpikeGeneratorGroup(
-			N = N_Post,
-			indices = inds_POST,
-			times = spikes_t_Post,
-			name = 'Post')
+        Post = SpikeGeneratorGroup(
+            N=N_Post,
+            indices=inds_POST,
+            times=spikes_t_Post,
+            name='Post')
 
-	elif neuron_type == 'poisson':
-		Pre = NeuronGroup(
-			N = N_Pre,
-			model = 'rates : Hz',
-			threshold = 'rand()<rates*dt',
-			name = 'Pre')
+    elif neuron_type == 'poisson':
+        Pre = NeuronGroup(
+            N=N_Pre,
+            model='rates1 : Hz',
+            threshold='rand()<rates1*dt',
+            name='Pre')
 
-		Post = NeuronGroup(
-			N = N_Post,
-			model = 'rates : Hz',
-			threshold = 'rand()<rates*dt',
-			name = 'Post')
+        Post = NeuronGroup(
+            N=N_Post,
+            model='rates1 : Hz',
+            threshold='rand()<rates1*dt',
+            name='Post')
 
-		Pre.rates = pre_rate*Hz
-		Post.rates = post_rate*Hz
-	else:
-		raise ValueError("\nneuron type should be 'poisson' or 'spikegenerator'")
+        Pre.rates = pre_rate * Hz
+        Post.rates = post_rate * Hz
+    else:
+        raise ValueError("\nneuron type should be 'poisson' or 'spikegenerator'")
 
-
-
-	return Pre, Post
+    return Pre, Post

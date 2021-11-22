@@ -13,22 +13,26 @@ Script arguments:
 Script output:
 -
 """
-
+import math
 import os, sys, pickle
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
 
 
-def plot_syn_matrix_heatmap(path_to_data):
-    pickled_list = os.listdir(path_to_data)
+def plot_syn_matrix_heatmap(path_to_data, show_last=False):
+    from natsort import natsorted
 
-    for pickled in pickled_list:
+    pickled_list = os.listdir(path_to_data)
+    pickled_list = natsorted(pickled_list)
+
+    for i, pickled in enumerate(pickled_list):
         pickled_file = os.path.join(path_to_data, pickled)
 
         timestep = pickled.split('_')[0]
 
-        with open(pickled_file, 'rb') as f: (synaptic_matrix) = pickle.load(f)
+        with open(pickled_file, 'rb') as f:
+            (synaptic_matrix) = pickle.load(f)
 
         plot = plt.imshow(
             synaptic_matrix,
@@ -41,8 +45,12 @@ def plot_syn_matrix_heatmap(path_to_data):
 
         plt.clim(-1.0, 1.0)
 
+        pad = math.floor(math.log10(len(pickled_list))) + 1
         plt.savefig(
-            os.path.join(path_to_data, pickled.replace('.pickle', '.png')),
+            f'{path_to_data}/{i:0{pad}}_{pickled.replace(".pickle", ".png")}',
             bbox_inches='tight')
 
-        plt.close()
+        if show_last and i == len(pickled_list):
+            plt.show()
+        else:
+            plt.close()

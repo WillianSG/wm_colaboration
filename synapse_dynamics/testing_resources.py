@@ -53,7 +53,7 @@ if not (is_dir):
 
 # Creating simulation ID
 idt = localtime()
-sim_id = strftime("%d%b%Y_%H-%M-%S_", localtime())
+sim_id = strftime("%d%b%Y_%H-%spikemon_P-%S_", localtime())
 
 # Starts a new scope for magic functions
 start_scope()
@@ -65,7 +65,7 @@ from helper_functions.load_neurons import *
 
 # 1 ========== Execution parameters ==========
 
-exp_type = 'showcase'  # 'showcase', 'rates'
+exp_type = 'showcase'  # 'showcase', 'rates1'
 dt_resolution = 0.001  # secs | simulation step time resolution
 t_run = 1  # simulation time (seconds)
 int_meth_syn = 'euler'  # Synaptic integration method
@@ -81,37 +81,37 @@ stoplearning = False
 resources = True
 
 [tau_xpre,
-	tau_xpost,
-	xpre_jump,
-	xpost_jump,
-	rho_neg,
-	rho_neg2,
-	rho_init,
-	tau_rho,
-	thr_post,
-	thr_pre,
-	thr_b_rho,
-	rho_min,
-	rho_max,
-	alpha,
-	beta,
-	xpre_factor,
-	w_max,
-	xpre_min,
-	xpost_min,
-	xpost_max,
-	xpre_max,
-	tau_xstop,
-	xstop_jump,
-	xstop_max,
-	xstop_min,
-	thr_stop_h,
-	thr_stop_l,
-	U,
-	tau_d,
-	tau_f] = load_rule_parameters(
-		plasticity_rule = plasticity_rule, 
-		parameter_set = parameter_set)
+ tau_xpost,
+ xpre_jump,
+ xpost_jump,
+ rho_neg,
+ rho_neg2,
+ rho_init,
+ tau_rho,
+ thr_post,
+ thr_pre,
+ thr_b_rho,
+ rho_min,
+ rho_max,
+ alpha,
+ beta,
+ xpre_factor,
+ w_max,
+ xpre_min,
+ xpost_min,
+ xpost_max,
+ xpre_max,
+ tau_xstop,
+ xstop_jump,
+ xstop_max,
+ xstop_min,
+ thr_stop_h,
+ thr_stop_l,
+ U,
+ tau_d,
+ tau_f] = load_rule_parameters(
+    plasticity_rule=plasticity_rule,
+    parameter_set=parameter_set)
 
 w_init = w_max * rho_init
 
