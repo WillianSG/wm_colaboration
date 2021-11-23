@@ -127,12 +127,12 @@ class RecurrentCompetitiveNet:
         # data save
         self.M_ee = []
 
-        self.E_E_syn_matrix_snaptshot = True
-        self.E_E_syn_matrix_snaptshot_dt = 100 * ms
+        self.E_E_syn_matrix_snapshot = True
+        self.E_E_syn_matrix_snapshot_dt = 100 * ms
         self.E_E_syn_matrix_path = ''
 
         # ------ data (monitors) parameters
-        self.rec_dt = 0.1 * ms
+        self.rec_dt = 1 * ms
 
         self.Input_to_E_mon_record = True
         self.Input_to_I_mon_record = True
@@ -466,7 +466,7 @@ class RecurrentCompetitiveNet:
 
         self.net_sim_data_path = network_sim_dir
 
-        if self.E_E_syn_matrix_snaptshot:
+        if self.E_E_syn_matrix_snapshot:
             E_E_syn_matrix_path = os.path.join(
                 self.net_sim_data_path,
                 'E_E_syn_matrix')
@@ -556,9 +556,10 @@ class RecurrentCompetitiveNet:
             name='stim_pulse_clk')
 
         self.E_E_syn_matrix_clock = Clock(
-            self.E_E_syn_matrix_snaptshot_dt,
+            self.E_E_syn_matrix_snapshot_dt,
             name='E_E_syn_matrix_clk')
 
+        # deactivate stimulus
         if self.stimulus_pulse:
             @network_operation(clock=self.stimulus_pulse_clock)
             def stimulus_pulse():
@@ -569,7 +570,7 @@ class RecurrentCompetitiveNet:
             def stimulus_pulse():
                 pass
 
-        if self.E_E_syn_matrix_snaptshot:
+        if self.E_E_syn_matrix_snapshot:
             @network_operation(clock=self.E_E_syn_matrix_clock)
             def store_E_E_syn_matrix_snapshot():
                 synaptic_matrix = np.full((len(self.E), len(self.E)), -1.0)
@@ -666,6 +667,9 @@ class RecurrentCompetitiveNet:
         return self.net_sim_data_path
 
     # 2.2 ------ neurons
+
+    def get_E_rates(self):
+        return [self.E_rec_rate.t[:], self.E_rec_rate.rate[:]]
 
     """
     Returns a 2D array containing recorded spikes from E population:
@@ -802,16 +806,16 @@ class RecurrentCompetitiveNet:
     def pickle_E_E_u_active_inp(self):
         us = []
         count = 0
-        sum_ = 0.0
+        avg = 0.0
 
         for aaa in self.E_E_rec.u:
-            if np.sum(aaa) / len(aaa) > 0.3 and np.sum(aaa) / len(aaa) != sum_:
+            if np.mean(aaa) > 0.3 and np.mean(aaa) != avg:
                 us.append(aaa)
-                sum_ = np.sum(aaa) / len(aaa)
+                avg = np.mean(aaa)
 
                 count += 1
-            if count > 10:
-                break
+            # if count > 5:
+            #     break
 
         fn = os.path.join(self.net_sim_data_path, 'stimulus_neur_u.pickle')
 
@@ -834,8 +838,8 @@ class RecurrentCompetitiveNet:
                 sum_ = np.sum(aaa) / len(aaa)
 
                 count += 1
-            if count > 10:
-                break
+            # if count > 10:
+            #     break
 
         fn = os.path.join(self.net_sim_data_path, 'stimulus_neur_x.pickle')
 

@@ -18,39 +18,40 @@ import os, pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_syn_vars(path):
-	path_u = 'stimulus_neur_u.pickle'
 
-	pickled_file = os.path.join(path, path_u)
+def plot_syn_vars(path, show=False):
+    path_u = 'stimulus_neur_u.pickle'
 
-	with open(pickled_file,'rb') as f:(
-		us,
-		mon_t) = pickle.load(f)
+    pickled_file = os.path.join(path, path_u)
 
-	path_x = 'stimulus_neur_x.pickle'
+    with open(pickled_file, 'rb') as f:
+        (
+            us,
+            mon_t) = pickle.load(f)
 
-	pickled_file = os.path.join(path, path_x)
+    path_x = 'stimulus_neur_x.pickle'
 
-	with open(pickled_file,'rb') as f:(
-		xs,
-		mon_t) = pickle.load(f)
+    pickled_file = os.path.join(path, path_x)
 
-	plt.plot(mon_t, us[0])
-	plt.plot(mon_t, us[1])
-	plt.plot(mon_t, us[2])
-	plt.plot(mon_t, us[3])
-	plt.plot(mon_t, us[4])
-	plt.plot(mon_t, us[5])
+    with open(pickled_file, 'rb') as f:
+        (
+            xs,
+            mon_t) = pickle.load(f)
 
-	plt.plot(mon_t, xs[0])
-	plt.plot(mon_t, xs[1])
-	plt.plot(mon_t, xs[2])
-	plt.plot(mon_t, xs[3])
-	plt.plot(mon_t, xs[4])
-	plt.plot(mon_t, xs[5])
+    for u in us:
+        plt.plot(mon_t, u, "b")
+    plt.plot([], [], "b", label="Calcium (u)")
+    for x in xs:
+        plt.plot(mon_t, x, "r")
+    plt.plot([], [], "r", label="Resources (x)")
 
-	plt.savefig(
-		os.path.join(path, 'synaptic_variables.png'), 
-		bbox_inches = 'tight')
+    plt.legend()
 
-	plt.close()
+    if show:
+        plt.show()
+
+    plt.savefig(
+        os.path.join(path, 'synaptic_variables.png'),
+        bbox_inches='tight')
+
+    plt.close()

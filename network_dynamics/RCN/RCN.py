@@ -13,9 +13,12 @@ Script arguments:
 Script output:
 -
 """
+import itertools
 import os, sys, pickle, shutil
 from brian2 import second, prefs
 import os.path as path
+import numpy as np
+from helper_functions.other import *
 
 from plotting_functions.plot_video import generate_video
 import multiprocessing as mp
@@ -42,7 +45,7 @@ from plotting_functions.plot_syn_vars import plot_syn_vars
 # 1 ------ initializing/running network ------
 
 rcn = RecurrentCompetitiveNet(
-    plasticity_rule='LR3',
+    plasticity_rule='LR4',
     parameter_set='2.0',
     t_run=3 * second)
 
@@ -57,6 +60,11 @@ rcn.set_stimulus_i(stimulus='flat_to_I', frequency=rcn.stim_freq_i)
 
 rcn.run_net(period=2)
 
+# try and free up memory
+# for mon in itertools.chain(rcn.spike_monitors, rcn.state_monitors):
+#     del mon
+# print(rcn.spike_monitors)
+# rcn.del_monitors()
 """
 In line 550 on the net obj this variable is used to flag when the input stimulus has to terminate 
 (basically it stops a second before the end of the simulation - line 58). 
@@ -75,7 +83,7 @@ rcn.run_net(period=2)
 if rcn.plasticity_rule == 'LR4':
     rcn.pickle_E_E_u_active_inp()  # records for some neurons active as input
     rcn.pickle_E_E_x_active_inp()
-    plot_syn_vars(path=rcn.net_sim_data_path)
+    plot_syn_vars(path=rcn.net_sim_data_path, show=True)
 
 population = "E_E"
 plot_conn_matrix(
@@ -105,4 +113,7 @@ plot_rcn_spiketrains_histograms(
     I_spks=rcn.get_I_spks()[0],
     I_ids=rcn.get_I_spks()[1],
     t_run=6,
-    path_to_plot=rcn.net_sim_data_path)
+    path_to_plot=rcn.net_sim_data_path,
+    show=True)
+
+print(has_spiked((0, 3) * second, rcn.E_mon))
