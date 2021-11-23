@@ -83,7 +83,12 @@ rcn.run_net(period=2)
 if rcn.plasticity_rule == 'LR4':
     rcn.pickle_E_E_u_active_inp()  # records for some neurons active as input
     rcn.pickle_E_E_x_active_inp()
-    plot_syn_vars(path=rcn.net_sim_data_path, show=True)
+    plot_syn_vars(path=rcn.net_sim_data_path,
+                  neurons=has_spiked((0, 3) * second, rcn.E_mon),
+                  show=True)
+    plot_syn_vars(path=rcn.net_sim_data_path,
+                  neurons=has_spiked((3, 6) * second, rcn.E_mon),
+                  show=True)
 
 population = "E_E"
 plot_conn_matrix(
@@ -115,6 +120,3 @@ plot_rcn_spiketrains_histograms(
     t_run=6,
     path_to_plot=rcn.net_sim_data_path,
     show=True)
-
-print(has_spiked((0, 3) * second, rcn.E_mon))
-print(has_spiked(3 * second, rcn.E_mon))
