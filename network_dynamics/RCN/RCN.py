@@ -117,3 +117,4 @@ plot_rcn_spiketrains_histograms(
     show=True)
 
 print(has_spiked((0, 3) * second, rcn.E_mon))
+print(has_spiked(3 * second, rcn.E_mon))
