@@ -31,7 +31,7 @@ def has_spiked(window, monitor):
     if window.size == 1:
         window = (0, window)
 
-    has_spiked = {}
+    has_spiked = np.zeros(len(monitor), dtype=bool)
     spikes = monitor.spike_trains()
     for i, spks in spikes.items():
         sp = spks[(spks > window[0]) & (spks < window[1])]
