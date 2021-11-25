@@ -71,7 +71,7 @@ class RecurrentCompetitiveNet:
         # excitatory population
 
         self.stim_freq_e = 6600 * Hz
-        self.stim_freq_i = 3900 * Hz
+        self.stim_freq_i = 5300 * Hz
 
         self.N_e = 256  # num. of neurons
         self.Vr_e = -65 * mV  # resting potential
@@ -837,8 +837,8 @@ class RecurrentCompetitiveNet:
                 x_.append(aaa)
                 sum_ = np.sum(aaa) / len(aaa)
 
-                count += 1
-            # if count > 10:
+            #     count += 1
+            # if count > 5:
             #     break
 
         fn = os.path.join(self.net_sim_data_path, 'stimulus_neur_x.pickle')

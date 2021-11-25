@@ -209,6 +209,6 @@ def plot_rcn_spiketrains_histograms(
     if show:
         plt.show()
 
-    plt.savefig(
+    fig.savefig(
         path_to_plot + '/rcn_population_spiking.png',
         bbox_inches='tight')

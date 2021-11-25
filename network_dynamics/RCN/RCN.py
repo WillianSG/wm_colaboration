@@ -71,6 +71,7 @@ In line 550 on the net obj this variable is used to flag when the input stimulus
 Since the simulation is running for 6s (3s at each run), I`m updating it so that the 2nd stimulus input ends a second 
 before the end of the 2nd simulation [this should be automatized].
 """
+# TODO automatise stimulus pulse duration setting
 rcn.stimulus_pulse_duration = 5 * second
 
 rcn.set_stimulus_e(stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100)
@@ -81,13 +82,13 @@ rcn.run_net(period=2)
 # 2 ------ plotting simulation data ------
 
 if rcn.plasticity_rule == 'LR4':
-    rcn.pickle_E_E_u_active_inp()  # records for some neurons active as input
-    rcn.pickle_E_E_x_active_inp()
+    # rcn.pickle_E_E_u_active_inp()  # records for some neurons active as input
+    # rcn.pickle_E_E_x_active_inp()
     plot_syn_vars(path=rcn.net_sim_data_path,
-                  neurons=has_spiked((0, 3) * second, rcn.E_mon),
-                  show=True)
-    plot_syn_vars(path=rcn.net_sim_data_path,
-                  neurons=has_spiked((3, 6) * second, rcn.E_mon),
+                  spiked_neurons=has_spiked((0, 3) * second, rcn.E_mon),
+                  synapse=rcn.E_E,
+                  synapse_monitor=rcn.E_E_rec,
+                  window=(0, 3) * second,
                   show=True)
 
 population = "E_E"
