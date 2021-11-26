@@ -40,7 +40,7 @@ from helper_functions.recurrent_competitive_network import RecurrentCompetitiveN
 from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
 from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
 from plotting_functions.plot_conn_matrix import plot_conn_matrix
-from plotting_functions.plot_syn_vars import plot_syn_vars
+from plotting_functions.plot_syn_vars import *
 
 # 1 ------ initializing/running network ------
 
@@ -65,6 +65,7 @@ rcn.run_net(period=2)
 #     del mon
 # print(rcn.spike_monitors)
 # rcn.del_monitors()
+
 """
 In line 550 on the net obj this variable is used to flag when the input stimulus has to terminate 
 (basically it stops a second before the end of the simulation - line 58). 
@@ -79,17 +80,24 @@ rcn.set_stimulus_i(stimulus='flat_to_I', frequency=rcn.stim_freq_i)
 
 rcn.run_net(period=2)
 
-# 2 ------ plotting simulation data ------
+# TODO display connectivity somehow
 
-if rcn.plasticity_rule == 'LR4':
-    # rcn.pickle_E_E_u_active_inp()  # records for some neurons active as input
-    # rcn.pickle_E_E_x_active_inp()
-    plot_syn_vars(path=rcn.net_sim_data_path,
-                  spiked_neurons=has_spiked((0, 3) * second, rcn.E_mon),
-                  synapse=rcn.E_E,
-                  synapse_monitor=rcn.E_E_rec,
-                  window=(0, 3) * second,
-                  show=True)
+# 2 ------ plotting simulation data ------
+# TODO integrate windows with stimulus presentation settings
+windows = [(0, 3), (3, 6)] * second
+for w in windows:
+    if rcn.plasticity_rule == 'LR4':
+        plot_syn_vars(path=rcn.net_sim_data_path,
+                      spiked_neurons=has_spiked(w, rcn.E_mon),
+                      synapse=rcn.E_E,
+                      synapse_monitor=rcn.E_E_rec,
+                      window=w,
+                      show=True)
+    plot_membrane_potentials(path=rcn.net_sim_data_path,
+                             spiked_neurons=has_spiked(w, rcn.E_mon),
+                             neuron_monitor=rcn.E_rec,
+                             window=w,
+                             show=True)
 
 population = "E_E"
 plot_conn_matrix(
