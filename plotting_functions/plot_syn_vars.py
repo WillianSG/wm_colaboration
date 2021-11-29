@@ -32,6 +32,7 @@ def plot_syn_vars(path, spiked_neurons, synapse, synapse_monitor, window, show=F
     # extract synaptic variables and filter them
     us = synapse_monitor[synapse[spiked_idx, :]].u[:, timepoints]
     xs = synapse_monitor[synapse[spiked_idx, :]].x_[:, timepoints]
+    ws = synapse_monitor[synapse[spiked_idx, :]].w[:, timepoints]
 
     t = synapse_monitor.t[timepoints]
 
@@ -42,10 +43,10 @@ def plot_syn_vars(path, spiked_neurons, synapse, synapse_monitor, window, show=F
     mpl.rcParams['axes.linewidth'] = lwdth
     plt.close('all')
     fig = plt.figure(figsize=(32, 22), constrained_layout=True)
-    gs = mpl.gridspec.GridSpec(nrows=4, ncols=5,
+    gs = mpl.gridspec.GridSpec(nrows=6, ncols=5,
                                hspace=0.1,
                                # wspace=0.2,
-                               height_ratios=[1, 1, 1.5, 1.5],
+                               height_ratios=[1, 1, 1.5, 1.5, 1.5, 1.5],
                                figure=fig)
     gs.update(top=0.965, bottom=0.03)
     fig.suptitle(
@@ -87,6 +88,22 @@ def plot_syn_vars(path, spiked_neurons, synapse, synapse_monitor, window, show=F
     ax3.set_ylabel('Mean resources ($\\bar{x}$)', size=s1, labelpad=5, horizontalalignment='center')
     ax3.legend()
 
+    ci_ws = confidence_interval(ws)
+    ax4 = fig.add_subplot(gs[4, :])
+    ax4.plot(t / second, np.mean(ws, axis=0), linewidth=1, color='green', label='Mean')
+    ax4.fill_between(t / second, ci_ws[0], ci_ws[1], facecolor='green', alpha=0.5, label='95% CI')
+    ax4.set_ylabel('Mean weight ($\\bar{w}$)', size=s1, labelpad=5, horizontalalignment='center')
+    ax4.legend()
+
+    ws_total = ws * us * xs
+    ci_ws_total = confidence_interval(ws_total)
+    ax5 = fig.add_subplot(gs[5, :])
+    ax5.plot(t / second, np.mean(ws_total, axis=0), linewidth=1, color='black', label='Mean')
+    ax5.fill_between(t / second, ci_ws_total[0], ci_ws_total[1], facecolor='black', alpha=0.5, label='95% CI')
+    ax5.set_ylabel('Mean total weight ($\\bar{u} \\times \\bar{x} \\times \\bar{w}$)', size=s1, labelpad=5,
+                   horizontalalignment='center')
+    ax5.legend()
+
     for ax in fig.get_axes():
         ax.tick_params(axis='both', which='major', labelsize=s1, width=lwdth, length=10, pad=15)
     plt.xlabel('Time (s)', size=s1)
@@ -123,7 +140,7 @@ def plot_membrane_potentials(path, spiked_neurons, neuron_monitor, window, show=
     # get indices of timepoints within the window
     timepoints = np.where((neuron_monitor.t > window[0]) & (neuron_monitor.t < window[1]))[0]
     # extract synaptic variables and filter them
-    Vepsps = neuron_monitor[neuron_sample].Vepsp[:, timepoints]
+    Vepsps = neuron_monitor[neuron_sample].Vm[:, timepoints]
     t = neuron_monitor.t[timepoints]
 
     # General plotting settings
@@ -141,11 +158,10 @@ def plot_membrane_potentials(path, spiked_neurons, neuron_monitor, window, show=
                                height_ratios=[1, 1, 1.5],
                                figure=fig)
     gs.update(top=0.965, bottom=0.03)
-    fig.suptitle(f'Calcium and resources for active neurons in t=[{window[0] * second}-{window[1] * second}] s',
+    fig.suptitle(f'Membrane potential for active neurons in t=[{window[0] * second}-{window[1] * second}] s',
                  size=s2)
 
-    idx = np.unravel_index(range(len(neuron_sample)), (2, 5))
-    for k, (i, j) in enumerate(zip(idx[0], idx[1])):
+    for k, (i, j) in enumerate(zip(*np.unravel_index(range(len(neuron_sample)), (2, 5)))):
         ax0 = fig.add_subplot(gs[i, j])
         ax0.plot(t / second, Vepsps[k], color='green')
         ax0.set_ylabel(f'Vepsp', size=s1, labelpad=5, horizontalalignment='center')

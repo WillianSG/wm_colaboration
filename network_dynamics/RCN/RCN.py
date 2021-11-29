@@ -44,6 +44,7 @@ from plotting_functions.plot_syn_vars import *
 
 # 1 ------ initializing/running network ------
 
+# TODO plot synaptic weights and compare with LR3 w*(x_*u)
 rcn = RecurrentCompetitiveNet(
     plasticity_rule='LR4',
     parameter_set='2.0',
