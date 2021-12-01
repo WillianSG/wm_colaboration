@@ -91,8 +91,8 @@ if make_plots:
     windows = [ (0, 3), (3, 6) ] * second
     for w in windows:
         if rcn.plasticity_rule == 'LR4':
-            plot_utilisation_resources( w, rcn.E_E, rcn.E_E_rec, rcn.E_mon )
-        plot_membrane_potentials( w, rcn.E_rec, rcn.E_mon )
+            plot_utilisation_resources( w, rcn.E_E, rcn.E_E_rec, rcn.E_mon, save_path=rcn.get_sim_data_path() )
+        plot_membrane_potentials( w, rcn.E_rec, rcn.E_mon, save_path=rcn.get_sim_data_path() )
     
     population = "E_E"
     plot_conn_matrix(
