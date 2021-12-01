@@ -40,16 +40,21 @@ from helper_functions.recurrent_competitive_network import RecurrentCompetitiveN
 from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
 from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
 from plotting_functions.plot_conn_matrix import plot_conn_matrix
-from plotting_functions.plot_syn_vars import *
+from plotting_functions.plot import *
 
 # 1 ------ initializing/running network ------
 
 make_plots = True
+# plasticity_rule = 'LR3'
+# parameter_set = '2.0'
+plasticity_rule = 'LR4'
+parameter_set = '2.0'
 
+# TODO add pre/post to syn matrix axes
 # TODO plot synaptic weights and compare with LR3 w*(x_*u)
 rcn = RecurrentCompetitiveNet(
-        plasticity_rule='LR4',
-        parameter_set='2.0',
+        plasticity_rule=plasticity_rule,
+        parameter_set=parameter_set,
         t_run=3 * second )
 
 rcn.stimulus_pulse = True
@@ -93,6 +98,7 @@ if make_plots:
         if rcn.plasticity_rule == 'LR4':
             plot_utilisation_resources( w, rcn.E_E, rcn.E_E_rec, rcn.E_mon, save_path=rcn.get_sim_data_path() )
         plot_membrane_potentials( w, rcn.E_rec, rcn.E_mon, save_path=rcn.get_sim_data_path() )
+        plot_synaptic_weights( w, rcn.E_E, rcn.E_E_rec, rcn.E_mon, save_path=rcn.get_sim_data_path() )
     
     population = "E_E"
     plot_conn_matrix(

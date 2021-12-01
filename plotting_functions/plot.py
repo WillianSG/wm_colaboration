@@ -119,8 +119,10 @@ def confidence_interval( data, cl=0.95 ):
     degrees_freedom = len( data ) - 1
     sampleMean = np.mean( data, axis=0 )
     sampleStandardError = st.sem( data, axis=0 )
-    confidenceInterval = st.t.interval( alpha=cl, df=degrees_freedom, loc=sampleMean,
-                                        scale=sampleStandardError )
+    eps = np.finfo( sampleStandardError.dtype ).eps
+    sampleStandardError[ sampleStandardError == 0 ] = eps
+    confidenceInterval = st.t.interval( alpha=cl, df=degrees_freedom, loc=sampleMean, scale=sampleStandardError )
+    
     return confidenceInterval
 
 
@@ -131,11 +133,11 @@ def plot_membrane_potentials( window, data_monitor, neuron_monitor, show_plot=Tr
     Vms = plot.get_variable( 'Vm', index_by_neuron=True )
     
     for i, v in Vms.items():
-        plot.add_top_plot( v, ylabel='Vm', colour='green', title=f'Neuron {i}' )
+        plot.add_top_plot( v, ylabel='Vm', colour='magenta', title=f'Neuron {i}' )
     
     Vms = plot.get_variable( 'Vm', sampled=False )
     plot.add_bottom_mean_plot( Vms, xlabel='Time (s)', ylabel='Mean membrane conductance', title='All neurons',
-                               colour='green' )
+                               colour='magenta' )
     
     if show_plot:
         plot.show_plot()
@@ -171,3 +173,25 @@ def plot_utilisation_resources( window, synapse, data_monitor, neuron_monitor, s
     
     if save_path:
         plot.save_plot( save_path, 'rcn_syn_vars' )
+
+
+def plot_synaptic_weights( window, synapse, data_monitor, neuron_monitor, show_plot=True, save_path='' ):
+    plot = Plot( window, data_monitor, neuron_monitor, synapse=synapse, sample_size=10, num_top_plots=10,
+                 num_bottom_plots=1 )
+    plot.set_suptitle( 'Synaptic weights' )
+    
+    ws = plot.get_variable( 'w', filter_by='synapse', index_by_neuron=True )
+    
+    for i, w in ws.items():
+        plot.add_top_plot( np.mean( w, axis=0 ), xlabel='Time (s)', ylabel='Weight (w)', colour='green',
+                           title=f'Neuron {i}' )
+    
+    ws = plot.get_variable( 'w', filter_by='synapse', sampled=False )
+    
+    plot.add_bottom_mean_plot( ws, xlabel='Time (s)', ylabel='Mean weight', title='All neurons', colour='green' )
+    
+    if show_plot:
+        plot.show_plot()
+    
+    if save_path:
+        plot.save_plot( save_path, 'rcn_syn_weights' )
