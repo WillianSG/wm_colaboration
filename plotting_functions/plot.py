@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,6 +6,40 @@ import math
 
 from brian2 import second
 from helper_functions.other import has_spiked
+
+"""
+@author: t.f.tiotto@rug.nl
+@university: University of Groningen
+@group: Cognitive Modelling
+
+Function:
+- Plot: Creates a Plot object that can be used to plot data from the brian2 simulator.
+- confidence_interval: Calculates a confidence interval for data series.
+- plot_membrane_potentials: Builds plot to display post-synaptic membrane potentials Vm.
+- plot_utilisation_resources: Builds plot to display synaptic variables and weights.
+- plot_utilisation_resources: Builds plot to display synaptic weights.
+
+Script arguments:
+-
+
+Script output:
+-
+
+Comments:
+- For examples on how to use Plot to build plots, see the `plot_*` functions in this file.
+
+Input:
+- window: time window in seconds as tuple e.g., window=(0,3)*second
+- data_monitor: the brian2 Monitor holding the data to plot
+- neuron_monitor: the brian2 Monitor for the neuronal population
+- sample_size: the number of neurons to sample among those which have fired in window
+- synapse: the brian2 Synapse addressed by data_monitor
+- num_top_plots: the number of top subplots
+- num_bottom_plots: the number of bottom subplots
+
+Output:
+-
+"""
 
 
 class Plot:
