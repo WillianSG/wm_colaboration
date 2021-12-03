@@ -38,8 +38,7 @@ def plot_rcn_spiketrains_histograms(
         I_ids,
         t_run,
         path_to_plot,
-        bin_width_desired=50 * ms,
-        show=False):
+        bin_width_desired=50 * ms):
     # General plotting settings
     lwdth = 3
     s1 = 60
@@ -206,9 +205,8 @@ def plot_rcn_spiketrains_histograms(
                     pad=15)
     plt.xlabel('Time (s)', size=s1)
 
-    if show:
-        plt.show()
-
     fig.savefig(
         path_to_plot + '/rcn_population_spiking.png',
         bbox_inches='tight')
+
+    plt.close()

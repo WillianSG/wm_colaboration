@@ -48,8 +48,9 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
             model_E_E_plastic = ''' 
 			w : volt
 			plastic : boolean (shared)
-			du/dt = ((U - u)/tau_f)*int(plastic) : 1 (clock-driven)
-			dx_/dt = ((1 - x_)/tau_d)*int(plastic) : 1 (clock-driven)
+            plastic_2 : boolean (shared)
+			du/dt = ((U - u)/tau_f)*int(plastic_2) : 1 (clock-driven)
+			dx_/dt = ((1 - x_)/tau_d)*int(plastic_2) : 1 (clock-driven)
 			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
 			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
 			drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
@@ -130,8 +131,8 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
 
     # - On pre (1) spike (LR4)
     xpre_update_LR4 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre) * int(plastic)'''}
-    x_update_LR4 = {'x_update': '''x_ = x_ - u*x_*int(plastic)'''}
-    u_update_LR4 = {'u_update': '''u = u + U*(1 - u)*int(plastic)'''}
+    x_update_LR4 = {'x_update': '''x_ = x_ - u*x_*int(plastic_2)'''}
+    u_update_LR4 = {'u_update': '''u = u + U*(1 - u)*int(plastic_2)'''}
 
     # - On pre (2) spike (both LR1/LR2/LR3)
     """
@@ -159,6 +160,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
     Vepsp_transmission = {'Vepsp_transmission': '''Vepsp += w'''}
 
     Vepsp_transmission_LR4 = {'Vepsp_transmission': '''Vepsp += w*(x_*u)'''}
+    # Vepsp_transmission_LR4 = {'Vepsp_transmission': '''Vepsp += w'''}
 
     # Creaing the equation structure (eqs) needed for Brian2
 
@@ -244,10 +246,5 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
 
     else:
         raise ValueError("invalid compination of learning rule and neuron type")
-
-    print('Synapse model:')
-    print('\tModel E_E:', model_E_E)
-    print('\tPre E_E:', pre_E_E)
-    print('\tPost E_E:', post_E_E)
 
     return model_E_E, pre_E_E, post_E_E

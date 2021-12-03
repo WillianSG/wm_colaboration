@@ -18,9 +18,7 @@ import os, sys, pickle, shutil
 from brian2 import second, prefs
 import os.path as path
 import numpy as np
-from helper_functions.other import *
 
-from plotting_functions.plot_video import generate_video
 import multiprocessing as mp
 
 prefs.codegen.target = 'numpy'
@@ -36,17 +34,17 @@ sys.path.append( os.path.join( parent_dir, helper_dir ) )
 sys.path.append( os.path.join( parent_dir, plotting_funcs_dir ) )
 
 # Helper modules
-from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
-from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
-from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
-from plotting_functions.plot_conn_matrix import plot_conn_matrix
-from plotting_functions.plot import *
+from other import *
+from recurrent_competitive_network import RecurrentCompetitiveNet
+from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+from plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
+from plot_conn_matrix import plot_conn_matrix
+from plot import *
+from plot_video import generate_video
 
 # 1 ------ initializing/running network ------
 
 make_plots = True
-# plasticity_rule = 'LR3'
-# parameter_set = '2.0'
 plasticity_rule = 'LR4'
 parameter_set = '2.0'
 
@@ -67,12 +65,6 @@ rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, 
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
 rcn.run_net( period=2 )
-
-# try and free up memory
-# for mon in itertools.chain(rcn.spike_monitors, rcn.state_monitors):
-#     del mon
-# print(rcn.spike_monitors)
-# rcn.del_monitors()
 
 """
 In line 550 on the net obj this variable is used to flag when the input stimulus has to terminate 
@@ -106,7 +98,7 @@ if make_plots:
             population=population,
             path=rcn.get_sim_data_path() )
     
-    plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path, show_last=True )
+    plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path, show_last=False )
     
     if __name__ == "__main__":
         mp.set_start_method( "fork" )
@@ -129,4 +121,4 @@ if make_plots:
             I_ids=rcn.get_I_spks()[ 1 ],
             t_run=6,
             path_to_plot=rcn.net_sim_data_path,
-            show=True )
+            show=False )

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from brian2 import second, ms
-from plot_firing_rates_distribution import *
+from plot_x_u_spks_from_basin import *
 
-plot_firing_rates_distribution(
-	target_data = '12Nov2021_19-06-00_RCN',
-	t_run = 1*second,
-	bin_width = 100*ms)
+path = '/home/p302242/PhD_codes/wm_colaboration/network_results/03Dec2021_16-31-38_RCN_LR4-2.X'
+
+plot_x_u_spks_from_basin(path = path)

@@ -226,6 +226,15 @@ class RecurrentCompetitiveNet:
         # rand init membrane voltages
         self.E.Vm = (self.Vrst_e + rand( self.N_e ) * (self.Vth_e_init - self.Vr_e))
         self.I.Vm = (self.Vrst_i + rand( self.N_i ) * (self.Vth_i - self.Vr_i))
+
+    """
+    Sets the ids of the active neurons on the input before actually loading the stimulus.
+    """
+    def set_active_E_ids(self, stimulus, offset = 0):
+        self.stimulus_neurons_e_ids = load_stimulus(
+            stimulus_type = stimulus,
+            stimulus_size = self.stim_size_e,
+            offset = offset)
     
     # 1.2 ------ synapses
     
@@ -344,7 +353,7 @@ class RecurrentCompetitiveNet:
         self.Input_I.w = self.w_input_i
         self.E_I.w = self.w_e_i
         self.I_E.w = self.w_i_e
-        self.E_E.w = self.w_e_e
+        # self.E_E.w = self.w_e_e
         self.I_I.w = self.w_i_i
         
         if self.plasticity_rule == 'LR4':
@@ -354,11 +363,16 @@ class RecurrentCompetitiveNet:
         self.E_E.Vepsp_transmission.delay = self.syn_delay_Vepsp_e_e
     
     """
-    Allows state variables change in synaptic model.
+    Allows weight state variables change in synaptic model.
     """
-    
     def set_E_E_plastic( self, plastic=False ):
         self.E_E.plastic = plastic
+
+    """
+    Allows resources (x) and utilization (u) state variables change in synaptic model.
+    """
+    def set_E_E_ux_vars_plastic( self, plastic=False ):
+        self.E_E.plastic_2 = plastic
     
     """
     Creates matrix spikemon_P from E to E connections.
@@ -383,12 +397,23 @@ class RecurrentCompetitiveNet:
                         self.E_E.rho[ pre_id, post_id ] = round( s, 2 )
                     else:
                         self.E_E.rho[ pre_id, post_id ] = 0.0
+
+    """
+    Set synapses between neurons receiving input potentiated.
+    Warning: method 'set_active_E_ids()' has to be called before the call of this function in case the stimulus to be provided to the network isn't set yet.
+    """
+    def set_potentiated_synapses(self):
+        syns_neurs_with_input = []
+
+        for x in range(0, len(self.E_E)):
+            if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
+
+                self.E_E.rho[self.E_E.i[x], self.E_E.j[x]] = 1.0
     
     # 1.4 ------ network operation
     
     """
     """
-    
     def run_net( self, report='stdout', period=1 ):
         self.net.run(
                 self.t_run,
@@ -417,7 +442,6 @@ class RecurrentCompetitiveNet:
     
     """
     """
-    
     def set_stimulus_i( self, stimulus, frequency, offset=0 ):
         if stimulus != '':
             self.stimulus_neurons_i_ids = load_stimulus(
@@ -428,6 +452,11 @@ class RecurrentCompetitiveNet:
             self.Input_to_I.rates[ self.stimulus_neurons_i_ids ] = frequency
         else:
             self.Input_to_I.rates[ self.stimulus_neurons_i_ids ] = frequency
+
+    """
+    """
+    def set_stimulus_pulse_duration(self, duration = 1*second):
+        self.stimulus_pulse_duration = duration
     
     # 1.3 ------ network initializers
     
@@ -767,6 +796,30 @@ class RecurrentCompetitiveNet:
                 pickle.dump( (
                         targeted_E_list,
                         targeted_I_list), f )
+
+    """
+    Retrieves the spikes recorded during simulation only from neurons receiving input simuli.
+    len(self.E_E.i) -> pre neurons
+    len(self.E_E.j) -> post neurons
+    """
+    def get_spks_from_pattern_neurons(self):
+        spk_mon_ids = []
+        spk_mon_ts = []
+
+        for x in range(0, len(self.E_mon.i[:])):
+            if self.E_mon.i[x] in self.stimulus_neurons_e_ids:
+                spk_mon_ids.append(self.E_mon.i[x])
+                spk_mon_ts.append(self.E_mon.t[x]/second)
+
+        fn = os.path.join(
+            self.net_sim_data_path,
+            'spks_neurs_with_input.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump((
+                spk_mon_ids,
+                spk_mon_ts,
+                self.t_run), f)
     
     # 2.3 ------ synapses
     
@@ -860,3 +913,120 @@ class RecurrentCompetitiveNet:
             ee_conn_matrix[ self.E_E.i, self.E_E.j ] = 1.0
         
         return ee_conn_matrix
+
+    """
+    Pickle to file current state of synaptic matrix.
+    """
+    def pickle_E_E_syn_matrix_state(self):
+        synaptic_matrix = np.full((len(self.E), len(self.E)), -1.0)
+        synaptic_matrix[self.E_E.i, self.E_E.j] = self.E_E.rho
+
+        E_E_syn_matrix_path = os.path.join(
+            self.net_sim_data_path,
+            'E_E_syn_matrix')
+            
+        if not (os.path.isdir(E_E_syn_matrix_path)):
+            os.mkdir(E_E_syn_matrix_path)
+        
+        self.E_E_syn_matrix_path = E_E_syn_matrix_path
+
+        fn = os.path.join(
+            self.E_E_syn_matrix_path,
+            '0_E_E_syn_matrix.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump((
+                synaptic_matrix), f)
+
+    """
+    Retrieves the synaptic traces recorded during simulation only from synapses connecting (both) neurons part receiving input simuli.
+    len(self.E_E.i) -> pre neurons
+    len(self.E_E.j) -> post neurons
+    self.E_E_rec[self.E_E[0]] -> 1st synapse
+    """
+    def get_syn_traces_from_pattern_neurons(self):
+        syns_neurs_with_input = []
+
+        for x in range(0, len(self.E_E)):
+            if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
+
+                temp_dict = {
+                    'pre': self.E_E.i[x],
+                    'post': self.E_E.j[x], 
+                    'syn_trace': self.E_E_rec[self.E_E[x]].rho
+                }
+
+                syns_neurs_with_input.append(temp_dict)
+
+        fn = os.path.join(
+            self.net_sim_data_path,
+            'syns_neurs_with_input.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump((
+                syns_neurs_with_input,
+                self.E_E_rec.t/second,
+                self.thr_b_rho), f)
+
+    """
+    Retrieves the neurotransmitter traces (x_) recorded during simulation only from synapses connecting (both) neurons part receiving input simuli.
+    len(self.E_E.i) -> pre neurons
+    len(self.E_E.j) -> post neurons
+    self.E_E_rec[self.E_E[0]] -> 1st synapse
+    """
+    def get_x_traces_from_pattern_neurons(self):
+        xs_neurs_with_input = []
+
+        for x in range(0, len(self.E_E)):
+            if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
+
+                temp_dict = {
+                    'pre': self.E_E.i[x],
+                    'post': self.E_E.j[x], 
+                    'x': self.E_E_rec[self.E_E[x]].x_
+                }
+
+                xs_neurs_with_input.append(temp_dict)
+
+        fn = os.path.join(
+            self.net_sim_data_path,
+            'xs_neurs_with_input.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump((
+                xs_neurs_with_input,
+                self.E_E_rec.t/second,
+                self.tau_d,
+                self.stimulus_pulse_duration), f)
+
+    """
+    Retrieves the utilization traces (u) recorded during simulation only from synapses connecting (both) neurons part receiving input simuli.
+    len(self.E_E.i) -> pre neurons
+    len(self.E_E.j) -> post neurons
+    self.E_E_rec[self.E_E[0]] -> 1st synapse
+    """
+    def get_u_traces_from_pattern_neurons(self):
+        us_neurs_with_input = []
+
+        for x in range(0, len(self.E_E)):
+            if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
+
+                temp_dict = {
+                    'pre': self.E_E.i[x],
+                    'post': self.E_E.j[x], 
+                    'u': self.E_E_rec[self.E_E[x]].u
+                }
+
+                us_neurs_with_input.append(temp_dict)
+
+        fn = os.path.join(
+            self.net_sim_data_path,
+            'us_neurs_with_input.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump((
+                us_neurs_with_input,
+                self.E_E_rec.t/second,
+                self.U,
+                self.tau_f,
+                self.stimulus_pulse_duration), f)
