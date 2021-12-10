@@ -145,7 +145,7 @@ def load_rule_parameters(
             U = 0.2
             tau_d = 200 * ms
             tau_f = 900 * ms
-        elif parameter_set == '2.X':
+        elif parameter_set == '2.1':
             tau_xpre = 20 * ms
             tau_xpost = 35 * ms
             tau_rho = 20000 * ms
@@ -156,7 +156,7 @@ def load_rule_parameters(
             rho_neg = -0.021
             rho_neg2 = -0.002
             xpre_factor = 0.1
-            w_max = 15 * mV
+            w_max = 10 * mV
             tau_xstop = 600 * ms
             xstop_jump = 0.03
             xstop_max = 1.0
@@ -164,8 +164,29 @@ def load_rule_parameters(
             thr_stop_h = 0.59
             thr_stop_l = 0.1
             U = 0.1
-            tau_d = 50 * ms
-            tau_f = 900 * ms
+            tau_d = 90 * ms # x's
+            tau_f = 700 * ms # u's'
+        elif parameter_set == '2.2':
+            tau_xpre = 20 * ms
+            tau_xpost = 35 * ms
+            tau_rho = 20000 * ms
+            xpre_jump = 0.4
+            xpost_jump = 0.5
+            thr_post = 0.33
+            thr_pre = 0.25
+            rho_neg = -0.021
+            rho_neg2 = -0.002
+            xpre_factor = 0.1
+            w_max = 10 * mV
+            tau_xstop = 600 * ms
+            xstop_jump = 0.03
+            xstop_max = 1.0
+            xstop_min = 0.0
+            thr_stop_h = 0.59
+            thr_stop_l = 0.1
+            U = 0.2
+            tau_d = 90 * ms # x's
+            tau_f = 700 * ms # u's'
     else:  # default '2.4'
         tau_xpre = 13 * ms
         tau_xpost = 33 * ms

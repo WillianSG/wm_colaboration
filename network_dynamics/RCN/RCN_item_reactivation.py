@@ -43,20 +43,19 @@ from plot import *
 from plot_video import generate_video
 from plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
 
-# 1 ------ initializing/running network ------
-
 make_plots = True
 plasticity_rule = 'LR4'
-parameter_set = '2.X'
-t_run = 0.5               # seconds
+parameter_set = '2.2'
+t_run = 1.0                     # seconds
 stim_pulse_duration = 20*ms
+percetage_stim_ids = 35         # percentage
 
 plastic_syn = False
 plastic_ux = True
 stimulus_pulse = True
 E_E_syn_matrix_snapshot = False
 
-show_plot = False
+# 1 ------ initializing/running network ------
 
 rcn = RecurrentCompetitiveNet(
         plasticity_rule = plasticity_rule,
@@ -65,15 +64,19 @@ rcn = RecurrentCompetitiveNet(
 
 rcn.stimulus_pulse = stimulus_pulse
 rcn.E_E_syn_matrix_snapshot = E_E_syn_matrix_snapshot
+rcn.w_e_i = 3 * mV                                  # for param. 2.1: 5*mV
+rcn.w_max = 10 * mV                                 # for param. 2.1: 10*mV
+rcn.spont_rate = 15 * Hz
 
 rcn.net_init()
 
 rcn.set_active_E_ids(stimulus = 'flat_to_E_fixed_size', offset = 0)
 rcn.set_potentiated_synapses()
 
-rcn.set_stimulus_e(
-    stimulus = 'flat_to_E_fixed_size', 
-    frequency = rcn.stim_freq_e,
+rcn.send_PS(
+    pattern = 'flat_to_E_fixed_size', 
+    frequency = rcn.stim_freq_e, 
+    stim_perc = percetage_stim_ids,
     offset = 0)
 
 rcn.set_E_E_plastic(plastic = plastic_syn)
