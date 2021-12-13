@@ -25,15 +25,15 @@ import multiprocessing as mp
 
 prefs.codegen.target = 'numpy'
 
-helper_dir = 'helper_functions'
-plotting_funcs_dir = 'plotting_functions'
+# helper_dir = 'helper_functions'
+# plotting_funcs_dir = 'plotting_functions'
 
 # Parent directory
-parent_dir = os.path.dirname( path.abspath( path.join( __file__, '../..' ) ) )
+# parent_dir = os.path.dirname( path.abspath( path.join( __file__, '../..' ) ) )
 
 # Adding parent dir to list of dirs that the interpreter will search in
-sys.path.append( os.path.join( parent_dir, helper_dir ) )
-sys.path.append( os.path.join( parent_dir, plotting_funcs_dir ) )
+# sys.path.append( os.path.join( parent_dir, helper_dir ) )
+# sys.path.append( os.path.join( parent_dir, plotting_funcs_dir ) )
 
 # Helper modules
 from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
@@ -45,12 +45,12 @@ from plotting_functions.plot import *
 # 1 ------ initializing/running network ------
 
 make_plots = True
-# plasticity_rule = 'LR3'
+plasticity_rule = 'LR3'
+parameter_set = '3.1'
+# plasticity_rule = 'LR4'
 # parameter_set = '2.0'
-plasticity_rule = 'LR4'
-parameter_set = '2.0'
 
-# TODO add pre/post to syn matrix axes
+# TODO add pre_neurons/post to syn matrix axes
 # TODO plot synaptic weights and compare with LR3 w*(x_*u)
 rcn = RecurrentCompetitiveNet(
         plasticity_rule=plasticity_rule,

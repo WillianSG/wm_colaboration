@@ -39,21 +39,21 @@ parameter_set = '1.0'
 helper_dir = 'helper_functions'
 
 # Parent directory
-parent_dir = os.path.dirname(os.getcwd())
+parent_dir = os.path.dirname( os.getcwd() )
 
 # Adding parent dir to list of dirs that the interpreter will search in
-sys.path.append(os.path.join(parent_dir, helper_dir))
+sys.path.append( os.path.join( parent_dir, helper_dir ) )
 
 # Results dir check
-results_path = os.path.join(parent_dir, 'synapse_results')
+results_path = os.path.join( parent_dir, 'synapse_results' )
 
-is_dir = os.path.isdir(results_path)
+is_dir = os.path.isdir( results_path )
 if not (is_dir):
-    os.mkdir(results_path)
+    os.mkdir( results_path )
 
 # Creating simulation ID
 idt = localtime()
-sim_id = strftime("%d%b%Y_%H-%spikemon_P-%S_", localtime())
+sim_id = strftime( "%d%b%Y_%H-%spikemon_P-%S_", localtime() )
 
 # Starts a new scope for magic functions
 start_scope()
@@ -80,38 +80,38 @@ bistability = True
 stoplearning = False
 resources = True
 
-[tau_xpre,
- tau_xpost,
- xpre_jump,
- xpost_jump,
- rho_neg,
- rho_neg2,
- rho_init,
- tau_rho,
- thr_post,
- thr_pre,
- thr_b_rho,
- rho_min,
- rho_max,
- alpha,
- beta,
- xpre_factor,
- w_max,
- xpre_min,
- xpost_min,
- xpost_max,
- xpre_max,
- tau_xstop,
- xstop_jump,
- xstop_max,
- xstop_min,
- thr_stop_h,
- thr_stop_l,
- U,
- tau_d,
- tau_f] = load_rule_parameters(
-    plasticity_rule=plasticity_rule,
-    parameter_set=parameter_set)
+[ tau_xpre,
+  tau_xpost,
+  xpre_jump,
+  xpost_jump,
+  rho_neg,
+  rho_neg2,
+  rho_init,
+  tau_rho,
+  thr_post,
+  thr_pre,
+  thr_b_rho,
+  rho_min,
+  rho_max,
+  alpha,
+  beta,
+  xpre_factor,
+  w_max,
+  xpre_min,
+  xpost_min,
+  xpost_max,
+  xpre_max,
+  tau_xstop,
+  xstop_jump,
+  xstop_max,
+  xstop_min,
+  thr_stop_h,
+  thr_stop_l,
+  U,
+  tau_d,
+  tau_f ] = load_rule_parameters(
+        plasticity_rule=plasticity_rule,
+        parameter_set=parameter_set )
 
 w_init = w_max * rho_init
 
@@ -123,40 +123,40 @@ else:
     neuron_type = 'poisson'
 
 # 2 ========== Learning rule as Brian2's synaptic model ==========
-[model_E_E,
- pre_E_E,
- post_E_E] = load_synapse_model(
-    plasticity_rule,
-    neuron_type,
-    bistability,
-    stoplearning=stoplearning,
-    resources=resources)
+[ model_E_E,
+  pre_E_E,
+  post_E_E ] = load_synapse_model(
+        plasticity_rule,
+        neuron_type,
+        bistability,
+        stoplearning=stoplearning,
+        resources=resources )
 
 # 3 ========== Brian2's neuron objects
 
 # only used when 'exp_type' is set to 'showcase'
-input_pre = np.array([100, 140, 180, 220, 260, 300, 340, 540]) / 1000
+input_pre = np.array( [ 100, 140, 180, 220, 260, 300, 340, 540 ] ) / 1000
 # input_post = np.array([15, 125, 180, 200, 300]) / 1000
-input_post = np.array([])
+input_post = np.array( [ ] )
 
 Pre, Post = load_neurons(
-    N_Pre, N_Post, neuron_type,
-    spikes_t_Pre=input_pre,
-    spikes_t_Post=input_post,
-    pre_rate=pre_rate,
-    post_rate=post_rate)
+        N_Pre, N_Post, neuron_type,
+        spikes_t_Pre=input_pre,
+        spikes_t_Post=input_post,
+        pre_rate=pre_rate,
+        post_rate=post_rate )
 
 # 3.1 ========== setting connections between neurons
 Pre_Post = Synapses(
-    source=Pre,
-    target=Post,
-    model=model_E_E,
-    on_pre=pre_E_E,
-    on_post=post_E_E,
-    method=int_meth_syn,
-    name='Pre_Post')
+        source=Pre,
+        target=Post,
+        model=model_E_E,
+        on_pre=pre_E_E,
+        on_post=post_E_E,
+        method=int_meth_syn,
+        name='Pre_Post' )
 
-Pre_Post.connect(j='i')
+Pre_Post.connect( j='i' )
 
 Pre_Post.x_ = 1.0  # so that it starts with value 1.0
 Pre_Post.u = U  # so that it starts with value U
@@ -167,56 +167,56 @@ Pre_Post.w = w_init
 
 # 3.2 ========== Setting simulation monitors
 
-StateMon = StateMonitor(Pre_Post, ['xpre', 'xpost', 'w', 'rho', 'x_', 'u'], record=True)
+StateMon = StateMonitor( Pre_Post, [ 'xpre', 'xpost', 'w', 'rho', 'x_', 'u' ], record=True )
 
 Pre_spk_mon = SpikeMonitor(
-    source=Pre,
-    record=True,
-    name='Pre_spk_mon')
+        source=Pre,
+        record=True,
+        name='Pre_spk_mon' )
 
 Post_spk_mon = SpikeMonitor(
-    source=Post,
-    record=True,
-    name='Post_spk_mon')
+        source=Post,
+        record=True,
+        name='Post_spk_mon' )
 
-run(t_run * second)
+run( t_run * second )
 
-fig = plt.figure(constrained_layout=True, figsize=(5, 8))
+fig = plt.figure( constrained_layout=True, figsize=(5, 8) )
 
-widths = [8]
-heights = [0.25, 2.5, 0.25]
+widths = [ 8 ]
+heights = [ 0.25, 2.5, 0.25 ]
 
 spec2 = gridspec.GridSpec(
-    ncols=1,
-    nrows=3,
-    width_ratios=widths,
-    height_ratios=heights,
-    figure=fig)
+        ncols=1,
+        nrows=3,
+        width_ratios=widths,
+        height_ratios=heights,
+        figure=fig )
 
-ax1 = fig.add_subplot(spec2[0, 0])
+ax1 = fig.add_subplot( spec2[ 0, 0 ] )
 
-y = [0] * len(Pre_spk_mon.t)
-plt.plot(Pre_spk_mon.t / ms, y, 'k|')
-plt.xlabel('Time (ms)')
-plt.ylabel('pre spikes')
+y = [ 0 ] * len( Pre_spk_mon.t )
+plt.plot( Pre_spk_mon.t / ms, y, 'k|' )
+plt.xlabel( 'Time (ms)' )
+plt.ylabel( 'pre_neurons spikes' )
 
-ax2 = fig.add_subplot(spec2[1, 0])
+ax2 = fig.add_subplot( spec2[ 1, 0 ] )
 
-plt.plot(StateMon.t / ms, StateMon.x_[0], label='x', color='tomato')
-plt.plot(StateMon.t / ms, StateMon.u[0], label='u', color='blue')
+plt.plot( StateMon.t / ms, StateMon.x_[ 0 ], label='x', color='tomato' )
+plt.plot( StateMon.t / ms, StateMon.u[ 0 ], label='u', color='blue' )
 plt.legend()
-plt.xlabel('Time (ms)')
-plt.ylabel('synaptic variables')
+plt.xlabel( 'Time (ms)' )
+plt.ylabel( 'synaptic variables' )
 
-ax3 = fig.add_subplot(spec2[2, 0])
+ax3 = fig.add_subplot( spec2[ 2, 0 ] )
 
-y = [0] * len(Post_spk_mon.t)
-plt.plot(Post_spk_mon.t / ms, y, 'k|')
-plt.xlabel('Time (ms)')
-plt.ylabel('post spikes')
+y = [ 0 ] * len( Post_spk_mon.t )
+plt.plot( Post_spk_mon.t / ms, y, 'k|' )
+plt.xlabel( 'Time (ms)' )
+plt.ylabel( 'post spikes' )
 
 fig.suptitle(
-    'rule: ' + str(rule) + ' | parameters: ' + str(parameter_set),
-    fontsize=10)
+        'rule: ' + str( rule ) + ' | parameters: ' + str( parameter_set ),
+        fontsize=10 )
 
 plt.show()

@@ -33,19 +33,20 @@ import numpy as np
 
 prefs.codegen.target = 'numpy'
 
-from load_rule_parameters import *
-from load_synapse_model import *
-from load_stimulus import *
+from helper_functions.load_rule_parameters import *
+from helper_functions.load_synapse_model import *
+from helper_functions.load_stimulus import *
 
 
 class RecurrentCompetitiveNet:
-    def __init__( self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second ):
+    def __init__( self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, save_path=None ):
         
         # ------ simulation parameters
         self.net_id = strftime( "%d%b%Y_%H-%M-%S", localtime() )
         
-        self.net_sim_path = os.path.dirname( os.path.abspath( os.path.join( __file__, '../' ) ) )
-        
+        self.net_sim_path = os.path.dirname(
+                os.path.abspath( os.path.join( __file__, '../' ) )
+                ) if not save_path else save_path
         self.net_sim_data_path = ''
         
         self.t_run = t_run
