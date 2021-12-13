@@ -53,7 +53,15 @@ def draw_graph3( networkx_graph, notebook=True, output_filename='graph.html', op
             # place at key 'value' the weight of the edge
             edge_attrs[ 'value' ] = edge_attrs[ 'weight' ]
         # add the edge
-        pyvis_graph.add_edge( source, target, **edge_attrs )
+        pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
+    
+    # add neighbor data to node hover data
+    neighbour_map = pyvis_graph.get_adj_list()
+    for node in pyvis_graph.nodes:
+        node[ 'title' ] += ' Neighbors:<br>' + '<br>'.join( neighbour_map[ node[ 'id' ] ] )
+        node[ 'value' ] = len( neighbour_map[ node[ 'id' ] ] )
+    for edge in pyvis_graph.edges:
+        edge[ 'title' ] = ' Weight:<br>' + str( edge[ 'weight' ] )
     
     # turn buttons on
     if show_buttons:
@@ -61,6 +69,10 @@ def draw_graph3( networkx_graph, notebook=True, output_filename='graph.html', op
             pyvis_graph.show_buttons( filter_=[ 'physics' ] )
         else:
             pyvis_graph.show_buttons()
+    
+    pyvis_graph.set_edge_smooth( 'dynamic' )
+    pyvis_graph.toggle_hide_edges_on_drag( True )
+    pyvis_graph.force_atlas_2based()
     
     # return and also save
     pyvis_graph.show( output_filename )
@@ -77,10 +89,10 @@ def rcn2nx( net, e_neurons, i_neurons, remove_zero_weight_edges=True ):
     import networkx as nx
     
     # ------- workaround for bug in Brian2
-    import brian2._version
-    from packaging import version
-    
-    brian_version = brian2._version.get_versions()[ 'version' ]
+    # import brian2._version
+    # from packaging import version
+    #
+    # brian_version = brian2._version.get_versions()[ 'version' ]
     # if version.parse( brian_version ) > version.parse( '2.5' ):
     #     syn_indices = np.arange( len( net.I_E ) )[ np.isin( net.I_E.i, i_neurons ) & np.isin( net.I_E.j, e_neurons ) ]
     #
@@ -101,10 +113,10 @@ def rcn2nx( net, e_neurons, i_neurons, remove_zero_weight_edges=True ):
     
     g = nx.DiGraph()
     
-    g.add_nodes_from( [ f'e_{i}' for i in e_neurons ], color='blue' )
+    g.add_nodes_from( [ f'e_{i}' for i in e_neurons ], color='blue', title='' )
     for i, j, w in zip( e2e_edges_pre, e2e_edges_post, e2e_edge_weights ):
         g.add_edge( f'e_{i}', f'e_{j}', weight=w )
-    g.add_nodes_from( [ f'i_{i}' for i in i_neurons ], color='red' )
+    g.add_nodes_from( [ f'i_{i}' for i in i_neurons ], color='red', title='' )
     for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edge_weights ):
         g.add_edge( f'i_{i}', f'e_{j}', weight=w )
     
