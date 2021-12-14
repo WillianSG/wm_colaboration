@@ -9,7 +9,7 @@ from brian2 import second, prefs, NeuronGroup, Synapses
 from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
 
 
-def draw_graph3( networkx_graph, notebook=True, output_filename='graph.html', open_output=False,
+def draw_graph3( networkx_graph, notebook=False, output_filename='graph', open_output=False,
                  show_buttons=False, only_physics_buttons=False ):
     """
     This function accepts a networkx graph object,
@@ -59,7 +59,8 @@ def draw_graph3( networkx_graph, notebook=True, output_filename='graph.html', op
     neighbour_map = pyvis_graph.get_adj_list()
     for node in pyvis_graph.nodes:
         node[ 'title' ] += ' Neighbors:<br>' + '<br>'.join( neighbour_map[ node[ 'id' ] ] )
-        node[ 'value' ] = len( neighbour_map[ node[ 'id' ] ] )
+        # TODO scale node value by activity
+        # node[ 'value' ] = len( neighbour_map[ node[ 'id' ] ] )
     for edge in pyvis_graph.edges:
         edge[ 'title' ] = ' Weight:<br>' + str( edge[ 'weight' ] )
     
@@ -75,17 +76,17 @@ def draw_graph3( networkx_graph, notebook=True, output_filename='graph.html', op
     pyvis_graph.force_atlas_2based()
     
     # return and also save
-    pyvis_graph.show( output_filename )
+    pyvis_graph.show( f'{output_filename}.html' )
     
     if open_output:
         import webbrowser
         import os
         
-        webbrowser.open( f'file://{os.getcwd()}/{output_filename}' )
+        webbrowser.open( f'file://{os.getcwd()}/{output_filename}.html' )
 
 
 # Build NetworkX graph
-def rcn2nx( net, e_neurons, i_neurons, remove_zero_weight_edges=True ):
+def rcn2nx( net, e_neurons, i_neurons, remove_zero_weight_edges=True, output_filename='graph' ):
     import networkx as nx
     
     # ------- workaround for bug in Brian2
@@ -113,12 +114,15 @@ def rcn2nx( net, e_neurons, i_neurons, remove_zero_weight_edges=True ):
     
     g = nx.DiGraph()
     
-    g.add_nodes_from( [ f'e_{i}' for i in e_neurons ], color='blue', title='' )
+    g.add_nodes_from( [ f'e_{i}' for i in e_neurons ], color='blue', title='', type='excitatory' )
     for i, j, w in zip( e2e_edges_pre, e2e_edges_post, e2e_edge_weights ):
         g.add_edge( f'e_{i}', f'e_{j}', weight=w )
-    g.add_nodes_from( [ f'i_{i}' for i in i_neurons ], color='red', title='' )
+    g.add_nodes_from( [ f'i_{i}' for i in i_neurons ], color='red', title='', type='inhibitory' )
     for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edge_weights ):
         g.add_edge( f'i_{i}', f'e_{j}', weight=w )
+    
+    if output_filename:
+        nx.write_graphml( g, f'{os.getcwd()}/{output_filename}.graphml' )
     
     return g
 
@@ -158,8 +162,8 @@ E_neuron_subgroup = np.concatenate(
         )
 I_neuron_subgroup = np.random.choice( rcn.N_input_i, num_subsample, replace=False )
 
-g = rcn2nx( rcn, E_neuron_subgroup, I_neuron_subgroup )
-draw_graph3( g, output_filename='initial.html', open_output=True, notebook=False, show_buttons=True,
+g = rcn2nx( rcn, E_neuron_subgroup, I_neuron_subgroup, output_filename='initial' )
+draw_graph3( g, output_filename='initial', open_output=True, show_buttons=True,
              only_physics_buttons=True )
 
 # -------- First attractor
@@ -171,8 +175,8 @@ rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
 rcn.run_net( period=2 )
 
-g = rcn2nx( rcn, E_neuron_subgroup, I_neuron_subgroup )
-draw_graph3( g, output_filename='first.html', open_output=True, notebook=False, show_buttons=True,
+g = rcn2nx( rcn, E_neuron_subgroup, I_neuron_subgroup, output_filename='first' )
+draw_graph3( g, output_filename='first', open_output=True, show_buttons=True,
              only_physics_buttons=True )
 
 # --------- Second attractor
@@ -188,8 +192,8 @@ rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
 rcn.run_net( period=2 )
 
-g = rcn2nx( rcn, E_neuron_subgroup, I_neuron_subgroup )
-draw_graph3( g, output_filename='second.html', open_output=True, notebook=False, show_buttons=True,
+g = rcn2nx( rcn, E_neuron_subgroup, I_neuron_subgroup, output_filename='second' )
+draw_graph3( g, output_filename='second', open_output=True, show_buttons=True,
              only_physics_buttons=True )
 
 plot_rcn_spiketrains_histograms(
@@ -208,3 +212,35 @@ plot_rcn_spiketrains_histograms(
         t_run=6,
         path_to_plot=os.getcwd(),
         show=True )
+
+import networkx as nx
+
+
+def tag_weakly_connected_components( g ):
+    idx_components = { u: i for i, node_set in enumerate( nx.weakly_connected_components( g ) ) for u in node_set }
+    for n, i in idx_components.items():
+        g.nodes[ n ][ 'attractor' ] = i
+
+
+def colour_by_attractor( g ):
+    import cmasher as cmr
+    
+    num_attractors = len( set( nx.get_node_attributes( g, 'attractor' ).values() ) )
+    colors = cmr.take_cmap_colors( 'viridis', num_attractors, return_fmt='hex' )
+    
+    for n, v in g.nodes( data=True ):
+        g.nodes[ n ][ 'color' ] = colors[ g.nodes[ n ][ 'attractor' ] ]
+
+
+e_nodes = [ n for n, v in g.nodes( data=True ) if v[ 'type' ] == 'excitatory' ]
+e_subgraph = g.subgraph( e_nodes )
+
+tag_weakly_connected_components( e_subgraph )
+colour_by_attractor( e_subgraph )
+
+from networkx.algorithms import community
+
+comp = community.girvan_newman( e_subgraph )
+print( tuple( sorted( c ) for c in next( comp ) ) )
+
+draw_graph3( e_subgraph, output_filename='third', open_output=True, show_buttons=True )
