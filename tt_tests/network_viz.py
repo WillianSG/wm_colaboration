@@ -36,7 +36,7 @@ rcn.net_init()
 # select neurons from both attractors
 
 
-g = rcn2nx( rcn, neurons_subsample=(50, 15), output_filename='initial' )
+g = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='initial' )
 nx2pyvis( g, output_filename='initial', open_output=True, show_buttons=True, only_physics_buttons=True )
 
 # -------- First attractor
@@ -48,13 +48,10 @@ rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
 rcn.run_net( period=2 )
 
-g = rcn2nx( rcn, neurons_subsample=(50, 15), output_filename='first' )
+g = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='first' )
 nx2pyvis( g, output_filename='first', open_output=True, show_buttons=True, only_physics_buttons=True )
 
 # --------- Second attractor
-
-# TODO set edges based on weight
-# TODO plot all neurons as clusters
 
 
 rcn.stimulus_pulse_duration = 5 * second
@@ -64,7 +61,7 @@ rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
 rcn.run_net( period=2 )
 
-g = rcn2nx( rcn, neurons_subsample=(50, 15), output_filename='second' )
+g = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='second' )
 nx2pyvis( g, output_filename='second', open_output=True, show_buttons=True, only_physics_buttons=True )
 
 # TODO save plots and graphs in same RCN directory

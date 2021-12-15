@@ -41,67 +41,7 @@ def colour_by_attractor( g ):
     
     for n, v in g.nodes( data=True ):
         col = list( colours[ g.nodes[ n ][ 'attractor' ] ] )
-        g.nodes[ n ][ 'color' ] = rgb_to_hex( *col )
-
-
-# TODO fade non-neighbourhood on click
-# TODO add attracting_components info to viz
-def nx2pyvis( networkx_graph, notebook=False, output_filename='graph',
-              scale_by='',
-              open_output=False,
-              show_buttons=False, only_physics_buttons=False ):
-    from pyvis import network as net
-    
-    # make a pyvis network
-    pyvis_graph = net.Network( notebook=notebook )
-    pyvis_graph.width = '1000px'
-    # for each node and its attributes in the networkx graph
-    for node, node_attrs in networkx_graph.nodes( data=True ):
-        pyvis_graph.add_node( node, **node_attrs )
-    
-    # for each edge and its attributes in the networkx graph
-    for source, target, edge_attrs in networkx_graph.edges( data=True ):
-        # if value/width not specified directly, and weight is specified, set 'value' to 'weight'
-        if not 'value' in edge_attrs and not 'width' in edge_attrs and 'weight' in edge_attrs:
-            # place at key 'value' the weight of the edge
-            edge_attrs[ 'value' ] = edge_attrs[ 'weight' ]
-        # add the edge
-        pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
-    
-    # add neighbor data to node hover data
-    neighbour_map = pyvis_graph.get_adj_list()
-    for node in pyvis_graph.nodes:
-        node[ 'title' ] += f' Node:<br> {node[ "id" ]}<br>' + ' Excites:<br>' + '<br>'.join(
-                node[ 'excites' ] ) + '<br> Inhibited by:<br>' + '<br>'.join( node[ 'inhibitors' ] )
-        # TODO scale node value by activity or other metrics
-        if scale_by == 'neighbours':
-            node[ 'value' ] = len( neighbour_map[ node[ 'id' ] ] )
-        elif scale_by == 'activity':
-            pass
-        elif scale_by == 'inhibition':
-            pass
-    for edge in pyvis_graph.edges:
-        edge[ 'title' ] = ' Weight:<br>' + str( edge[ 'weight' ] )
-    
-    # turn buttons on
-    if show_buttons:
-        if only_physics_buttons:
-            pyvis_graph.show_buttons( filter_=[ 'physics' ] )
-        else:
-            pyvis_graph.show_buttons()
-    
-    pyvis_graph.set_edge_smooth( 'dynamic' )
-    pyvis_graph.toggle_hide_edges_on_drag( True )
-    pyvis_graph.force_atlas_2based()
-    
-    # return and also save
-    pyvis_graph.show( f'{output_filename}.html' )
-    
-    if open_output:
-        import webbrowser
-        import os
-        
-        webbrowser.open( f'file://{os.getcwd()}/{output_filename}.html' )
+        g.nodes[ n ][ 'color' ] = f'rgba({col[ 0 ]},{col[ 1 ]},{col[ 2 ]},1)'
 
 
 # TODO remove edges smaller than max_weights?
@@ -160,7 +100,8 @@ def rcn2nx( net, neurons_subsample=None, subsample_attractors=False, seed=None,
     
     # Add excitatory neurons
     e_nodes = [ f'e_{i}' for i in e_neurons ]
-    g.add_nodes_from( e_nodes, color='rgba(0,0,255,1)', title='', type='excitatory' )
+    for n in e_nodes:
+        g.add_node( n, label=n, color='rgba(0,0,255,1)', title='', type='excitatory' )
     for i, j, w in zip( e2e_edges_pre, e2e_edges_post, e2e_edge_weights ):
         g.add_edge( f'e_{i}', f'e_{j}', weight=w )
     
@@ -172,20 +113,99 @@ def rcn2nx( net, neurons_subsample=None, subsample_attractors=False, seed=None,
     
     # Add inhibitory neurons
     i_nodes = [ f'i_{i}' for i in i_neurons ]
-    g.add_nodes_from( i_nodes, color='rgba(255,0,0,0.5)', title='', type='inhibitory' )
+    for n in i_nodes:
+        g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title='', type='inhibitory' )
     for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edge_weights ):
         g.add_edge( f'i_{i}', f'e_{j}', weight=w )
     
-    #  GraphML does not support list or any non-primitive type so we save before computing them
+    #  GraphML does not support list or any non-primitive type, so we save before computing them
     if output_filename:
         nx.write_graphml( g, f'{os.getcwd()}/{output_filename}.graphml' )
     
     # compute neighbourhoods
-    for n in e_nodes:
-        g.nodes[ n ][ 'inhibitors' ] = [ i for i in list( g.predecessors( n ) ) if 'i_' in i ]
-        g.nodes[ n ][ 'excites' ] = list( g.successors( n ) )
-    for n in i_nodes:
-        g.nodes[ n ][ 'inhibitors' ] = [ ]
-        g.nodes[ n ][ 'excites' ] = list( g.successors( n ) )
+    # for n in e_nodes:
+    #     g.nodes[ n ][ 'inhibitors' ] = [ i for i in list( g.predecessors( n ) ) if 'i_' in i ]
+    #     g.nodes[ n ][ 'excites' ] = list( g.successors( n ) )
+    # for n in i_nodes:
+    #     g.nodes[ n ][ 'inhibitors' ] = [ ]
+    #     g.nodes[ n ][ 'excites' ] = list( g.successors( n ) )
     
     return g
+
+
+# TODO fade non-neighbourhood on click
+# TODO add attracting_components info to viz
+def nx2pyvis( networkx_graph, notebook=False, output_filename='graph',
+              scale_by='',
+              open_output=False,
+              show_buttons=False, only_physics_buttons=False ):
+    from pyvis import network as net
+    
+    # make a pyvis network
+    pyvis_graph = net.Network( notebook=notebook )
+    pyvis_graph.width = '1000px'
+    pyvis_graph.height = '1000px'
+    # for each node and its attributes in the networkx graph
+    for node, node_attrs in networkx_graph.nodes( data=True ):
+        pyvis_graph.add_node( node, **node_attrs )
+    
+    # for each edge and its attributes in the networkx graph
+    for source, target, edge_attrs in networkx_graph.edges( data=True ):
+        # if value/width not specified directly, and weight is specified, set 'value' to 'weight'
+        if not 'value' in edge_attrs and not 'width' in edge_attrs and 'weight' in edge_attrs:
+            # place at key 'value' the weight of the edge
+            if 'i_' not in source and 'i_' not in target:
+                edge_attrs[ 'value' ] = edge_attrs[ 'weight' ]
+            else:
+                edge_attrs[ 'value' ] = ''
+        # add the edge
+        pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
+    
+    # add neighbor data to node hover data
+    neighbour_map = pyvis_graph.get_adj_list()
+    type_colours = { 'excitatory': 'blue', 'inhibitory': 'red' }
+    for node in pyvis_graph.nodes:
+        node[ 'title' ] += f'<center><h2>{node[ "id" ]}</h2></center>'
+        node[ 'title' ] += f'<h3 style="color: {type_colours[ node[ "type" ] ]}">Kind: {node[ "type" ]}</h3>'
+        if 'e_' in node[ 'id' ]:
+            node[ 'title' ] += f'<h3 style="color: {node[ "color" ]}">Attractor: {node[ "attractor" ]}</h3>'
+        node[ 'title' ] += '<h4>Excites:</h4>' + ' '.join(
+                [ f'<p style="color: {networkx_graph.nodes[ n ][ "color" ]}">{n} ('
+                  f'{networkx_graph.nodes[ n ][ "attractor" ]})</p>'
+                  for n in neighbour_map[ node[ 'id' ] ] if 'e_' in n ]
+                )
+        if 'e_' in node[ 'id' ]:
+            node[ 'title' ] += '<h4>Inhibited by:</h4>' + ' '.join(
+                    [ f'<p style="color: red">{n}</p>' for n in neighbour_map[ node[ 'id' ] ] if 'i_' in n ]
+                    )
+        
+        # TODO scale node value by activity or other metrics
+        if scale_by == 'neighbours':
+            node[ 'value' ] = len( neighbour_map[ node[ 'id' ] ] )
+        elif scale_by == 'activity':
+            pass
+        elif scale_by == 'inhibition':
+            pass
+    
+    for edge in pyvis_graph.edges:
+        edge[ 'title' ] = ' Weight:<br>' + str( edge[ 'weight' ] )
+    
+    # turn buttons on
+    if show_buttons:
+        if only_physics_buttons:
+            pyvis_graph.show_buttons( filter_=[ 'physics' ] )
+        else:
+            pyvis_graph.show_buttons()
+    
+    pyvis_graph.set_edge_smooth( 'dynamic' )
+    pyvis_graph.toggle_hide_edges_on_drag( True )
+    pyvis_graph.force_atlas_2based()
+    
+    # return and also save
+    pyvis_graph.show( f'{output_filename}.html' )
+    
+    if open_output:
+        import webbrowser
+        import os
+        
+        webbrowser.open( f'file://{os.getcwd()}/{output_filename}.html' )
