@@ -188,7 +188,11 @@ def nx2pyvis( networkx_graph, notebook=False, output_filename='graph',
             pass
     
     for edge in pyvis_graph.edges:
-        edge[ 'title' ] = ' Weight:<br>' + str( edge[ 'weight' ] )
+        edge[
+            'title' ] += f'<center><h3 style="color: ' \
+                         f'{type_colours[ networkx_graph.nodes[ edge[ "from" ] ][ "type" ] ]}">{edge[ "from" ]} → ' \
+                         f'{edge[ "to" ]}</h3></center>'
+        edge[ 'title' ] += 'Weight: ' + str( edge[ 'weight' ] )
     
     # turn buttons on
     if show_buttons:
