@@ -24,13 +24,17 @@ parent_dir = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
 sys.path.append(os.path.join(parent_dir, 'helper_functions'))
 
 def plot_x_u_spks_from_basin(path):
+	plt.close('all')
+
 	axis_label_size = 8
 	font_size1 = 10
 	font_size2 = 8
+
 	linewidth1 = 0.05
 	linewidth2 = 1.0
 	linewidth3 = 1.5
 	linewidth4 = 2.5
+	
 	label_size1 = 12
 	label_size2 = 10
 
@@ -78,7 +82,13 @@ def plot_x_u_spks_from_basin(path):
 		xs.append(xs_neurs_with_input[x]['x'])
 		us.append(us_neurs_with_input[x]['u'])
 
-	x_times_u = np.mean(xs, axis = 0)*np.mean(us, axis = 0)
+	x_times_u = (np.mean(xs, axis = 0)*np.mean(us, axis = 0))/U
+	
+	x_mean = np.mean(xs, axis = 0)
+	x_std = np.std(xs, axis = 0)
+	
+	u_mean = np.mean(us, axis = 0)
+	u_std = np.std(us, axis = 0)
 
 	fig = plt.figure(constrained_layout = True, figsize = (10, 4))
 
@@ -95,17 +105,31 @@ def plot_x_u_spks_from_basin(path):
 	f0_ax1 = fig.add_subplot(spec2[0, 0])
 
 	# 1st y axis: x's
-	for x in range(0, len(xs_neurs_with_input)):
-		f0_ax1.plot(
-			sim_t_array, 
-			xs_neurs_with_input[x]['x'],
-			color = x_color,
-			zorder = 0,
-			linewidth = linewidth1,
-			alpha = alpha1)
+	# for x in range(0, len(xs_neurs_with_input)):
+	# 	f0_ax1.plot(
+	# 		sim_t_array, 
+	# 		xs_neurs_with_input[x]['x'],
+	# 		color = x_color,
+	# 		zorder = 0,
+	# 		linewidth = linewidth1,
+	# 		alpha = alpha1)
+
+	f0_ax1.plot(
+		sim_t_array, 
+		x_mean,
+		color = x_color,
+		zorder = 0,
+		linewidth = linewidth2)
+
+	f0_ax1.fill_between(
+		sim_t_array, 
+		x_mean+x_std, 
+		x_mean-x_std, 
+		color = x_color, 
+		alpha = alpha2)
 
 	f0_ax1.set_ylabel(
-		'neurotransmitter concentration \n (a.u.)', 
+		'x (a.u.)', 
 		size = axis_label_size,
 		color = x_color)
 
@@ -117,17 +141,31 @@ def plot_x_u_spks_from_basin(path):
 	# 2nd y axis: u's
 	f0_ax2 = f0_ax1.twinx()
 
-	for x in range(0, len(us_neurs_with_input)):
-		f0_ax2.plot(
-			sim_t_array, 
-			us_neurs_with_input[x]['u'],
-			zorder = 0,
-			linewidth = linewidth1,
-			color = u_color,
-			alpha = alpha1)
+	# for x in range(0, len(us_neurs_with_input)):
+	# 	f0_ax2.plot(
+	# 		sim_t_array, 
+	# 		us_neurs_with_input[x]['u'],
+	# 		zorder = 0,
+	# 		linewidth = linewidth1,
+	# 		color = u_color,
+	# 		alpha = alpha1)
+
+	f0_ax2.plot(
+		sim_t_array, 
+		u_mean,
+		zorder = 0,
+		linewidth = linewidth2,
+		color = u_color)
+
+	f0_ax2.fill_between(
+		sim_t_array, 
+		u_mean+u_std, 
+		u_mean-u_std, 
+		color = u_color, 
+		alpha = alpha2)
 
 	f0_ax2.set_ylabel(
-		'neurotransmitter utilization \n (a.u.)', 
+		'u (a.u.)', 
 		size = axis_label_size,
 		color = u_color)
 
@@ -150,8 +188,8 @@ def plot_x_u_spks_from_basin(path):
 
 	plt.xticks(np.arange(
 		0.0, 
-		sim_t_array[-1]+0.1,
-		step = 0.1))
+		sim_t_array[-1]+0.5,
+		step = 0.5))
 
 	# spks
 	f1_ax1 = fig.add_subplot(spec2[1, 0])
@@ -167,8 +205,8 @@ def plot_x_u_spks_from_basin(path):
 
 	plt.xticks(np.arange(
 		0.0, 
-		sim_t_array[-1]+0.1,
-		step = 0.1))
+		sim_t_array[-1]+0.5,
+		step = 0.5))
 
 	f1_ax1.set_ylabel(
 		'Neuron ID', 
@@ -186,9 +224,14 @@ def plot_x_u_spks_from_basin(path):
 		alpha = alpha3)
 
 	f1_ax2.set_ylabel(
-		'x*u \n (a.u.)', 
+		'x*u*1/U \n (a.u.)', 
 		size = axis_label_size,
 		color = ux_color)
+
+	plt.yticks(np.arange(
+		0.0, 
+		6.0,
+		step = 1.0))
 
 	f1_ax2.tick_params(axis = 'y', labelcolor = ux_color)
 
@@ -201,3 +244,5 @@ def plot_x_u_spks_from_basin(path):
 	fig.savefig(
 		path + '/x_u_spks_from_basin.png',
 		bbox_inches='tight')
+
+	plt.close('all')
