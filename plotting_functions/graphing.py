@@ -2,27 +2,6 @@ import networkx as nx
 import numpy as np
 
 
-def tag_weakly_connected_components( g ):
-	idx_components = { n: i for i, node_set in enumerate( nx.weakly_connected_components( g ) ) for n in node_set if
-	                   'e_' in n }
-	for n, i in idx_components.items():
-		g.nodes[ n ][ 'attractor' ] = i
-
-
-def tag_attracting_components( g ):
-	from networkx.algorithms.components import is_attracting_component
-	
-	attracting_map = { }
-	for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
-		atr_nodes = [ n for n, v in g.nodes( data=True ) if v[ 'attractor' ] == atr ]
-		atr_subgraph = g.subgraph( atr_nodes )
-		is_attracting = is_attracting_component( atr_subgraph )
-		for n in atr_nodes:
-			attracting_map[ n ] = { 'is_attracting': is_attracting }
-	
-	nx.set_node_attributes( g, attracting_map )
-
-
 def rgb_to_hex( r, g, b ):
 	return ('#{:02X}{:02X}{:02X}').format( r, g, b )
 
@@ -33,23 +12,8 @@ def hex_to_rgb( h ):
 	return tuple( int( h[ i:i + 2 ], 16 ) for i in (0, 2, 4) )
 
 
-def colour_by_attractor( g ):
-	import cmasher as cmr
-	
-	num_attractors = len( set( nx.get_node_attributes( g, 'attractor' ).values() ) )
-	colours = cmr.take_cmap_colors( 'tab20', num_attractors, return_fmt='int' )
-	
-	for n, v in g.nodes( data=True ):
-		col = list( colours[ g.nodes[ n ][ 'attractor' ] ] )
-		g.nodes[ n ][ 'color' ] = f'rgba({col[ 0 ]},{col[ 1 ]},{col[ 2 ]},1)'
-
-
-# TODO remove edges smaller than max_weights?
-# TODO hide inhibitory?
-# Build NetworkX graph
 def rcn2nx( net, neurons_subsample=None, subsample_attractors=False, seed=None,
-            remove_zero_weight_edges=True, output_filename='graph',
-            colour_attractors=True ):
+            remove_edges_threshold=0, output_filename='graph' ):
 	import os
 	
 	# ------ Subsample graph nodes
@@ -74,17 +38,8 @@ def rcn2nx( net, neurons_subsample=None, subsample_attractors=False, seed=None,
 		e_neurons = np.array( range( 0, len( net.E ) ) )
 		i_neurons = np.array( range( 0, len( net.I ) ) )
 	
-	# ------- workaround for bug in Brian2 (not needed?)
-	# import brian2._version
-	# from packaging import version
-	#
-	# brian_version = brian2._version.get_versions()[ 'version' ]
-	# if version.parse( brian_version ) > version.parse( '2.5' ):
-	#     syn_indices = np.arange( len( net.I_E ) )[ np.isin( net.I_E.i, i_neurons ) & np.isin( net.I_E.j,
-	#     e_neurons ) ]
-	#
-	#     syn_indices_2 = [ (i, j) for i, j in zip( net.I_E.i, net.I_E.j ) if i in i_neurons and j in e_neurons ]
-	# else:
+	# ------- Make sure that there are no duplicates in neurons subsample or Brian2 indexing runs into a bug
+	assert len( np.unique( e_neurons ) ) == len( e_neurons ) or len( np.unique( i_neurons ) ) == len( i_neurons )
 	e2e_edges_pre = net.E_E.i[ e_neurons, e_neurons ].tolist()
 	e2e_edges_post = net.E_E.j[ e_neurons, e_neurons ].tolist()
 	e2e_edge_weights = net.E_E.w_[ e_neurons, e_neurons ].tolist()
@@ -92,66 +47,67 @@ def rcn2nx( net, neurons_subsample=None, subsample_attractors=False, seed=None,
 	i2e_edges_post = net.I_E.j[ i_neurons, e_neurons ].tolist()
 	i2e_edge_weights = net.I_E.w_[ i_neurons, e_neurons ].tolist()
 	
-	if remove_zero_weight_edges:
-		e2e_edges_pre = [ k for i, k in enumerate( e2e_edges_pre ) if e2e_edge_weights[ i ] != 0 ]
-		e2e_edges_post = [ k for i, k in enumerate( e2e_edges_post ) if e2e_edge_weights[ i ] != 0 ]
-		e2e_edge_weights = [ k for i, k in enumerate( e2e_edge_weights ) if e2e_edge_weights[ i ] != 0 ]
+	if remove_edges_threshold is not None:
+		e2e_edges_pre = [ k for i, k in enumerate( e2e_edges_pre ) if
+		                  e2e_edge_weights[ i ] > remove_edges_threshold ]
+		e2e_edges_post = [ k for i, k in enumerate( e2e_edges_post ) if
+		                   e2e_edge_weights[ i ] > remove_edges_threshold ]
+		e2e_edge_weights = [ k for i, k in enumerate( e2e_edge_weights ) if
+		                     e2e_edge_weights[ i ] > remove_edges_threshold ]
 	
 	g = nx.DiGraph()
 	
 	# Add excitatory neurons
 	e_nodes = [ f'e_{i}' for i in e_neurons ]
 	for n in e_nodes:
-		g.add_node( n, label=n, color='rgba(0,0,255,1)', title='', type='excitatory' )
+		g.add_node( n, label=n, color='rgba(0,0,255,1)', title=' ', type='excitatory' )
 	for i, j, w in zip( e2e_edges_pre, e2e_edges_post, e2e_edge_weights ):
 		g.add_edge( f'e_{i}', f'e_{j}', weight=w )
 	
 	# Classify excitatory neurons
 	tag_weakly_connected_components( g )
 	tag_attracting_components( g )
-	if colour_attractors:
-		colour_by_attractor( g )
+	colour_by_attractor( g )
 	
 	# Add inhibitory neurons
 	i_nodes = [ f'i_{i}' for i in i_neurons ]
 	for n in i_nodes:
-		g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title='', type='inhibitory' )
+		g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title=' ', type='inhibitory' )
 	for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edge_weights ):
 		g.add_edge( f'i_{i}', f'e_{j}', weight=w )
 	
-	#  GraphML does not support list or any non-primitive type, so we save before computing them
+	#  GraphML does not support list or any non-primitive type
 	if output_filename:
 		nx.write_graphml( g, f'{os.getcwd()}/{output_filename}.graphml' )
-	
-	# compute neighbourhoods
-	# for n in e_nodes:
-	#     g.nodes[ n ][ 'inhibitors' ] = [ i for i in list( g.predecessors( n ) ) if 'i_' in i ]
-	#     g.nodes[ n ][ 'excites' ] = list( g.successors( n ) )
-	# for n in i_nodes:
-	#     g.nodes[ n ][ 'inhibitors' ] = [ ]
-	#     g.nodes[ n ][ 'excites' ] = list( g.successors( n ) )
 	
 	return g
 
 
 # TODO fade non-neighbourhood on click
 # TODO add attracting_components info to viz
-def nx2pyvis( networkx_graph, notebook=False, output_filename='graph',
+# TODO hide inhibitory?
+def nx2pyvis( input, notebook=False, output_filename='graph',
               scale_by='',
-              open_output=False,
-              show_buttons=False, only_physics_buttons=False ):
+              neural_populations=None,
+              open_output=False, show_buttons=False, only_physics_buttons=False, window_size=(1000, 1000) ):
 	from pyvis import network as net
+	
+	import pathlib
+	if isinstance( input, nx.Graph ):
+		nx_graph = input
+	elif isinstance( input, str ) and pathlib.Path( input ).suffix == '.graphml':
+		nx_graph = nx.read_graphml( input )
 	
 	# make a pyvis network
 	pyvis_graph = net.Network( notebook=notebook )
-	pyvis_graph.width = '1000px'
-	pyvis_graph.height = '1000px'
+	pyvis_graph.width = f'{window_size[ 0 ]}px'
+	pyvis_graph.height = f'{window_size[ 1 ]}px'
 	# for each node and its attributes in the networkx graph
-	for node, node_attrs in networkx_graph.nodes( data=True ):
+	for node, node_attrs in nx_graph.nodes( data=True ):
 		pyvis_graph.add_node( node, **node_attrs )
 	
 	# for each edge and its attributes in the networkx graph
-	for source, target, edge_attrs in networkx_graph.edges( data=True ):
+	for source, target, edge_attrs in nx_graph.edges( data=True ):
 		# if value/width not specified directly, and weight is specified, set 'value' to 'weight'
 		if not 'value' in edge_attrs and not 'width' in edge_attrs and 'weight' in edge_attrs:
 			# place at key 'value' the weight of the edge
@@ -171,8 +127,8 @@ def nx2pyvis( networkx_graph, notebook=False, output_filename='graph',
 		if 'e_' in node[ 'id' ]:
 			node[ 'title' ] += f'<h3 style="color: {node[ "color" ]}">Attractor: {node[ "attractor" ]}</h3>'
 		node[ 'title' ] += '<h4>Excites:</h4>' + ' '.join(
-				[ f'<p style="color: {networkx_graph.nodes[ n ][ "color" ]}">{n} ('
-				  f'{networkx_graph.nodes[ n ][ "attractor" ]})</p>'
+				[ f'<p style="color: {nx_graph.nodes[ n ][ "color" ]}">{n} ('
+				  f'{nx_graph.nodes[ n ][ "attractor" ]})</p>'
 				  for n in neighbour_map[ node[ 'id' ] ] if 'e_' in n ]
 				)
 		if 'e_' in node[ 'id' ]:
@@ -190,10 +146,10 @@ def nx2pyvis( networkx_graph, notebook=False, output_filename='graph',
 	
 	for edge in pyvis_graph.edges:
 		edge[ 'title' ] += f'<center><h3 style="color: ' \
-		                   f'{type_colours[ networkx_graph.nodes[ edge[ "from" ] ][ "type" ] ]}">{edge[ "from" ]} → ' \
+		                   f'{type_colours[ nx_graph.nodes[ edge[ "from" ] ][ "type" ] ]}">{edge[ "from" ]} → ' \
 		                   f'{edge[ "to" ]}</h3></center>'
-		edge[ 'title' ] += f'<p style="color: {type_colours[ networkx_graph.nodes[ edge[ "from" ] ][ "type" ] ]}">' \
-		                   f'Kind: {networkx_graph.nodes[ edge[ "from" ] ][ "type" ]}</p>'
+		edge[ 'title' ] += f'<p style="color: {type_colours[ nx_graph.nodes[ edge[ "from" ] ][ "type" ] ]}">' \
+		                   f'Kind: {nx_graph.nodes[ edge[ "from" ] ][ "type" ]}</p>'
 		edge[ 'title' ] += 'Weight: ' + str( edge[ 'weight' ] )
 	
 	# turn buttons on
@@ -220,31 +176,133 @@ def nx2pyvis( networkx_graph, notebook=False, output_filename='graph',
 # TODO how much inhibition is each attractor giving?
 # TODO how many inhibitory neurons are shared between attractors?
 # TODO measure net exhitation between attractors
+# TODO measure connectedness within each attractor
+
+"""Colour each attractor in a different colour."""
+
+
+def colour_by_attractor( g ):
+	import cmasher as cmr
+	
+	num_attractors = len( set( nx.get_node_attributes( g, 'attractor' ).values() ) )
+	colours = cmr.take_cmap_colors( 'tab20', num_attractors, return_fmt='int' )
+	
+	for n, v in g.nodes( data=True ):
+		col = list( colours[ g.nodes[ n ][ 'attractor' ] ] )
+		g.nodes[ n ][ 'color' ] = f'rgba({col[ 0 ]},{col[ 1 ]},{col[ 2 ]},1)'
+
+
+"""Compute the attractors and store the information in the nodes by finding which weakly-connected component they belong
+to.
+Should work correctly for RCN when edges s.t. w(e) < w_max are removed from the graph."""
+
+
+def tag_weakly_connected_components( g ):
+	idx_components = { n: i for i, node_set in enumerate( nx.weakly_connected_components( g ) ) for n in node_set if
+	                   'e_' in n }
+	for n, i in idx_components.items():
+		g.nodes[ n ][ 'attractor' ] = i
+
+
+def tag_attracting_components( g ):
+	from networkx.algorithms.components import is_attracting_component
+	
+	attracting_map = { }
+	for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
+		try:
+			atr_nodes = [ n for n, v in g.nodes( data=True ) if v[ 'attractor' ] == atr ]
+			atr_subgraph = g.subgraph( atr_nodes )
+			is_attracting = is_attracting_component( atr_subgraph )
+			for n in atr_nodes:
+				attracting_map[ n ] = { 'is_attracting': is_attracting }
+		except:
+			continue
+	
+	nx.set_node_attributes( g, attracting_map )
+
+
 """Compute what fraction of inhibitory cells connected to each attractor and the number of these connections to
 quantify the degree of inhibition of each attractor.
-For ex. attractor_inhibition_amount={0: (0.8, 5), 1: (0.8, 4)} means that attractor 0 is receiving input from 80% of
-inhibitory cells via 5 connections, and attractor 1 from 80% via 4.
+For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells via
+5 connections, and attractor 1 via 4.
 """
 
 
 def attractor_inhibition( input ):
 	from networkx.algorithms.centrality import group_in_degree_centrality
+	from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
 	
-	if isinstance( input, nx.Graph ):
-		g = input
-	else:
-		g = rcn2nx( input )
+	if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
+		input = rcn2nx( input )
 	
 	attractor_inhibition_amount = { }
 	
-	for i in set( nx.get_node_attributes( g, 'attractor' ).values() ):
-		attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == i ]
-		inhibitory_nodes = [ n for n in g.nodes if 'i_' in n ]
-		subgraph = g.subgraph( attractor_nodes + inhibitory_nodes )
+	for i in set( nx.get_node_attributes( input, 'attractor' ).values() ):
+		attractor_nodes = [ n for n, v in input.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == i ]
+		inhibitory_nodes = [ n for n in input.nodes if 'i_' in n ]
+		subgraph = input.subgraph( attractor_nodes + inhibitory_nodes )
 		
-		attractor_inhibition_amount[ i ] = (
-				group_in_degree_centrality( subgraph, attractor_nodes ),
-				len( [ e for e in g.edges if e[ 0 ] in inhibitory_nodes and e[ 1 ] in attractor_nodes ] )
-				)
+		attractor_inhibition_amount[ i ] = \
+			len( [ e for e in input.edges if e[ 0 ] in inhibitory_nodes and e[ 1 ] in attractor_nodes ] )
 	
 	return attractor_inhibition_amount
+
+
+"""Computes the average connectivity within each attractor.
+The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of
+G.  Local node connectivity for two non adjacent nodes s and t is the minimum number of nodes that must be removed (
+along with their incident edges) to disconnect them.
+"""
+
+
+def attractor_connectivity( input ):
+	from networkx.algorithms.connectivity.connectivity import average_node_connectivity
+	from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+	
+	if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
+		input = rcn2nx( input )
+	
+	attractor_connectivity_amount = { }
+	
+	for i in set( nx.get_node_attributes( input, 'attractor' ).values() ):
+		attractor_nodes = [ n for n, v in input.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == i ]
+		subgraph = input.subgraph( attractor_nodes )
+		
+		attractor_connectivity_amount[ i ] = average_node_connectivity( subgraph )
+	
+	return attractor_connectivity_amount
+
+
+def save_graph_results( comment='', folder='interesting_graph_results', additional_files=None ):
+	import shutil
+	import datetime
+	import os
+	
+	if additional_files is None:
+		additional_files = [ ]
+	
+	new_folder = './' + folder + '/' + str( datetime.datetime.now().date() ) + '_' + \
+	             str( datetime.datetime.now().time().replace( microsecond=0 ) ).replace( ':', '.' )
+	os.makedirs( new_folder )
+	
+	files = [
+			        'initial.html', 'initial.graphml', 'initial_complete.graphml',
+			        'first.html', 'first.graphml', 'first_complete.graphml',
+			        'second.html', 'second.graphml', 'second_complete.graphml',
+			        'rcn_population_spiking.png',
+			        'test.graphml'
+			        ] + additional_files
+	
+	count = 0
+	for f in files:
+		try:
+			shutil.move( os.getcwd() + '/' + f, new_folder )
+			count += 1
+		except:
+			continue
+	
+	if count > 0:
+		print( f'Moved {count} files to {new_folder}' )
+	else:
+		os.rmdir( new_folder )
+		print( 'No files to move' )

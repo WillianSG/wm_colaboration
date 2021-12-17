@@ -33,41 +33,39 @@ rcn.stimulus_pulse = True
 
 rcn.net_init()
 
-# select neurons from both attractors
-
-
+#  ------ Create subsampled graph for visualisation and complete for analysis
 g_initial = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='initial' )
+rcn2nx( rcn, output_filename='initial_complete' )
 nx2pyvis( g_initial, output_filename='initial', open_output=True, show_buttons=True, only_physics_buttons=True )
 
 # -------- First attractor
-
 rcn.set_E_E_plastic( plastic=True )
-
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
-
 rcn.run_net( period=2 )
 
 g_first = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='first' )
+rcn2nx( rcn, output_filename='first_complete' )
 nx2pyvis( g_first, output_filename='first', open_output=True, show_buttons=True, only_physics_buttons=True )
 
 print( attractor_inhibition( g_first ) )
+print( attractor_connectivity( g_first ) )
 
 # --------- Second attractor
-
-
 rcn.stimulus_pulse_duration = 5 * second
-
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
-
 rcn.run_net( period=2 )
 
 g_second = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='second' )
+rcn2nx( rcn, output_filename='second_complete' )
 nx2pyvis( g_second, output_filename='second', open_output=True, show_buttons=True, only_physics_buttons=True )
 
 print( attractor_inhibition( g_second ) )
 print( attractor_inhibition( rcn ) )
+print( attractor_connectivity( g_second ) )
+# ---- Likely to be slow, wait ~2 minutes on Apple M1
+print( attractor_connectivity( rcn ) )
 
 # TODO save plots and graphs in same RCN directory
 plot_rcn_spiketrains_histograms(
@@ -87,14 +85,4 @@ plot_rcn_spiketrains_histograms(
 		path_to_plot=os.getcwd(),
 		show=True )
 
-import networkx as nx
-
-#
-# e_nodes = [ n for n, v in g.nodes( data=True ) if v[ 'type' ] == 'excitatory' ]
-# e_subgraph = g.subgraph( e_nodes )
-#
-# tag_weakly_connected_components( e_subgraph )
-# tag_attracting_components( e_subgraph )
-# colour_by_attractor( e_subgraph )
-#
-# draw_graph3( e_subgraph, output_filename='third', open_output=True, show_buttons=True )
+save_graph_results()

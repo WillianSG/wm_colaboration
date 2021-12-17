@@ -58,12 +58,12 @@ parent_dir = os.path.dirname( os.getcwd() )
 # Adding parent dir to list of dirs that the interpreter will search in
 sys.path.append( os.path.join( parent_dir, helper_dir ) )
 
-# Results dir check
+# interesting_graph_results dir check
 results_path = os.path.join( parent_dir, 'synapse_results' )
 
 is_dir = os.path.isdir( results_path )
 if not (is_dir):
-    os.mkdir( results_path )
+	os.mkdir( results_path )
 
 # Creating simulation ID
 idt = localtime()
@@ -120,17 +120,17 @@ stoplearning = True
   xstop_min,
   thr_stop_h,
   thr_stop_l ] = load_rule_parameters(
-        plasticity_rule=plasticity_rule,
-        parameter_set=parameter_set )
+		plasticity_rule=plasticity_rule,
+		parameter_set=parameter_set )
 
 w_init = w_max * rho_init
 
 # 1.2 ========== net parameters
 
 if exp_type == 'showcase':
-    neuron_type = 'spikegenerator'
+	neuron_type = 'spikegenerator'
 else:
-    neuron_type = 'poisson'
+	neuron_type = 'poisson'
 
 # 2 ========== Learning rule as Brian2's synaptic model ==========
 [ model_E_E,
@@ -144,21 +144,21 @@ input_pre = np.array( [ 10, 15, 18, 25, 27, 29, 31, 32 ] ) / 1000
 input_post = np.array( [ 15, 95, 105, 250 ] ) / 1000
 
 Pre, Post = load_neurons(
-        N_Pre, N_Post, neuron_type,
-        spikes_t_Pre=input_pre,
-        spikes_t_Post=input_post,
-        pre_rate=pre_rate,
-        post_rate=post_rate )
+		N_Pre, N_Post, neuron_type,
+		spikes_t_Pre=input_pre,
+		spikes_t_Post=input_post,
+		pre_rate=pre_rate,
+		post_rate=post_rate )
 
 # 3.1 ========== setting connections between neurons
 Pre_Post = Synapses(
-        source=Pre,
-        target=Post,
-        model=model_E_E,
-        on_pre=pre_E_E,
-        on_post=post_E_E,
-        method=int_meth_syn,
-        name='Pre_Post' )
+		source=Pre,
+		target=Post,
+		model=model_E_E,
+		on_pre=pre_E_E,
+		on_post=post_E_E,
+		method=int_meth_syn,
+		name='Pre_Post' )
 
 Pre_Post.connect( j='i' )
 
@@ -169,19 +169,19 @@ Pre_Post.w = w_init
 # 3.2 ========== Setting simulation monitors
 
 if stoplearning:
-    StateMon = StateMonitor( Pre_Post, [ 'xpre', 'xstop', 'xpost', 'w', 'rho' ], record=True )
+	StateMon = StateMonitor( Pre_Post, [ 'xpre', 'xstop', 'xpost', 'w', 'rho' ], record=True )
 else:
-    StateMon = StateMonitor( Pre_Post, [ 'xpre', 'xpost', 'w', 'rho' ], record=True )
+	StateMon = StateMonitor( Pre_Post, [ 'xpre', 'xpost', 'w', 'rho' ], record=True )
 
 Pre_spk_mon = SpikeMonitor(
-        source=Pre,
-        record=True,
-        name='Pre_spk_mon' )
+		source=Pre,
+		record=True,
+		name='Pre_spk_mon' )
 
 Post_spk_mon = SpikeMonitor(
-        source=Post,
-        record=True,
-        name='Post_spk_mon' )
+		source=Post,
+		record=True,
+		name='Post_spk_mon' )
 
 # 4. ========== Running network ==========
 
@@ -193,17 +193,17 @@ xpre_all = [ ]
 xstop_all = [ ]
 
 for x in range( 0, num_sim ):
-    print( '> running sim #', x )
-    restore()
-    
-    run( t_run * second )
-    
-    rho_all.append( StateMon.rho[ 0 ] )
-    xpost_all.append( StateMon.xpost[ 0 ] )
-    xpre_all.append( StateMon.xpre[ 0 ] )
-    
-    if stoplearning:
-        xstop_all.append( StateMon.xstop[ 0 ] )
+	print( '> running sim #', x )
+	restore()
+	
+	run( t_run * second )
+	
+	rho_all.append( StateMon.rho[ 0 ] )
+	xpost_all.append( StateMon.xpost[ 0 ] )
+	xpre_all.append( StateMon.xpre[ 0 ] )
+	
+	if stoplearning:
+		xstop_all.append( StateMon.xstop[ 0 ] )
 
 # ================== avg rho
 
@@ -218,35 +218,35 @@ rho_all = np.array( rho_all )
 avg_rho = np.zeros( len( rho_all[ 0 ] ) )
 
 for row in rho_all:
-    avg_rho += row
-    if row[ -1 ] > row[ 0 ]:
-        n_pot += 1
-        avg_pot_mag += row[ -1 ] - row[ 0 ]
-    elif row[ -1 ] < row[ 0 ]:
-        n_dep += 1
-        avg_dep_mag += row[ 0 ] - row[ -1 ]
-    else:
-        pass
+	avg_rho += row
+	if row[ -1 ] > row[ 0 ]:
+		n_pot += 1
+		avg_pot_mag += row[ -1 ] - row[ 0 ]
+	elif row[ -1 ] < row[ 0 ]:
+		n_dep += 1
+		avg_dep_mag += row[ 0 ] - row[ -1 ]
+	else:
+		pass
 
 if n_dep > 0:
-    avg_dep_mag = avg_dep_mag / n_dep
+	avg_dep_mag = avg_dep_mag / n_dep
 else:
-    avg_dep_mag = 0.0
+	avg_dep_mag = 0.0
 
 if n_pot > 0:
-    avg_pot_mag = avg_pot_mag / n_pot
+	avg_pot_mag = avg_pot_mag / n_pot
 else:
-    avg_pot_mag = 0.0
+	avg_pot_mag = 0.0
 
 if n_pot == 0:
-    pot_perc = 0.0
+	pot_perc = 0.0
 else:
-    pot_perc = int( (n_pot / num_sim) * 100 )
+	pot_perc = int( (n_pot / num_sim) * 100 )
 
 if n_dep == 0:
-    dep_perc = 0.0
+	dep_perc = 0.0
 else:
-    dep_perc = int( (n_dep / num_sim) * 100 )
+	dep_perc = int( (n_dep / num_sim) * 100 )
 
 avg_rho = avg_rho / num_sim
 
@@ -260,20 +260,20 @@ avg_xpre = np.zeros( len( xpre_all[ 0 ] ) )
 avg_xpost = np.zeros( len( xpost_all[ 0 ] ) )
 
 if stoplearning:
-    avg_xstop = np.zeros( len( xstop_all[ 0 ] ) )
+	avg_xstop = np.zeros( len( xstop_all[ 0 ] ) )
 
 for x in range( 0, num_sim ):
-    avg_xpre += xpre_all[ x ]
-    avg_xpost += xpost_all[ x ]
-    
-    if stoplearning:
-        avg_xstop += xstop_all[ x ]
+	avg_xpre += xpre_all[ x ]
+	avg_xpost += xpost_all[ x ]
+	
+	if stoplearning:
+		avg_xstop += xstop_all[ x ]
 
 avg_xpre = avg_xpre / num_sim
 avg_xpost = avg_xpost / num_sim
 
 if stoplearning:
-    avg_xstop = avg_xstop / num_sim
+	avg_xstop = avg_xstop / num_sim
 
 # 5. ========== Plots ==========
 
@@ -285,22 +285,22 @@ widths = [ 8, 8 ]
 heights = [ 8, 8 ]
 
 spec2 = gridspec.GridSpec(
-        ncols=2,
-        nrows=2,
-        width_ratios=widths,
-        height_ratios=heights,
-        figure=fig0 )
+		ncols=2,
+		nrows=2,
+		width_ratios=widths,
+		height_ratios=heights,
+		figure=fig0 )
 
 if stoplearning:
-    widths = [ 8, 8 ]
-    heights = [ 8, 8, 8 ]
-    
-    spec2 = gridspec.GridSpec(
-            ncols=2,
-            nrows=3,
-            width_ratios=widths,
-            height_ratios=heights,
-            figure=fig0 )
+	widths = [ 8, 8 ]
+	heights = [ 8, 8, 8 ]
+	
+	spec2 = gridspec.GridSpec(
+			ncols=2,
+			nrows=3,
+			width_ratios=widths,
+			height_ratios=heights,
+			figure=fig0 )
 
 # fig0.suptitle('Param. set ' + parameter_set, fontsize = 8)
 
@@ -308,7 +308,7 @@ if stoplearning:
 f2_ax1 = fig0.add_subplot( spec2[ 0, 0 ] )
 
 for row in rho_all:
-    plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
+	plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
 
 plt.plot( StateMon.t, avg_rho, color='k', linestyle='-', label='$\\rho_{avg}$' )
 
@@ -340,7 +340,7 @@ plt.title( 'Pot. vs Dep.', size=8 )
 f2_ax3 = fig0.add_subplot( spec2[ 1, 0 ] )
 
 for row in xpre_all:
-    plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
+	plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
 
 plt.plot( StateMon.t, avg_xpre, color='lightcoral', linestyle='-', label='$Ca^{2+}_{avg}$' )
 
@@ -360,7 +360,7 @@ f2_ax3.legend( prop={ 'size': 5 } )
 f2_ax4 = fig0.add_subplot( spec2[ 1, 1 ] )
 
 for row in xpost_all:
-    plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
+	plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
 
 plt.plot( StateMon.t, avg_xpost, color='lightblue', linestyle='-', label='$Ca^{2+}_{avg}$' )
 
@@ -378,35 +378,35 @@ f2_ax4.legend( prop={ 'size': 5 } )
 
 # Stop learning
 if stoplearning:
-    f2_ax5 = fig0.add_subplot( spec2[ 2, 1 ] )
-    
-    for row in xstop_all:
-        plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
-    
-    plt.plot( StateMon.t, avg_xstop, color='green', linestyle='-', label='$Ca^{stop}_{avg}$' )
-    
-    plt.hlines( thr_stop_h, 0, StateMon.t[ -1 ], color='green', linestyle='-.', label='$\\theta_{stop}^{h}$' )
-    
-    plt.hlines( thr_stop_l, 0, StateMon.t[ -1 ], color='green', linestyle='--', label='$\\theta_{stop}^{l}$' )
-    
-    plt.ylabel( '$Ca^{stop}$', size=6 )
-    plt.xlabel( 'time (sec)', size=6 )
-    plt.title( '$Ca^{stop}$ evolution (' + str( post_rate ) + 'Hz)', size=8 )
-    
-    f2_ax5.set_ylim( [ 0.0, 1.0 ] )
-    
-    plt.yticks( np.arange( 0.0, 1.2, step=0.2 ) )
-    
-    f2_ax5.legend( prop={ 'size': 5 } )
+	f2_ax5 = fig0.add_subplot( spec2[ 2, 1 ] )
+	
+	for row in xstop_all:
+		plt.plot( StateMon.t, row, color='lightgrey', linestyle='--', linewidth=0.5 )
+	
+	plt.plot( StateMon.t, avg_xstop, color='green', linestyle='-', label='$Ca^{stop}_{avg}$' )
+	
+	plt.hlines( thr_stop_h, 0, StateMon.t[ -1 ], color='green', linestyle='-.', label='$\\theta_{stop}^{h}$' )
+	
+	plt.hlines( thr_stop_l, 0, StateMon.t[ -1 ], color='green', linestyle='--', label='$\\theta_{stop}^{l}$' )
+	
+	plt.ylabel( '$Ca^{stop}$', size=6 )
+	plt.xlabel( 'time (sec)', size=6 )
+	plt.title( '$Ca^{stop}$ evolution (' + str( post_rate ) + 'Hz)', size=8 )
+	
+	f2_ax5.set_ylim( [ 0.0, 1.0 ] )
+	
+	plt.yticks( np.arange( 0.0, 1.2, step=0.2 ) )
+	
+	f2_ax5.legend( prop={ 'size': 5 } )
 
 fig0.suptitle(
-        'rule: ' + str( rule ) + ' | parameters: ' + str( parameter_set ),
-        fontsize=10 )
+		'rule: ' + str( rule ) + ' | parameters: ' + str( parameter_set ),
+		fontsize=10 )
 
 plot_name = sim_id + '_statistics_' + str( num_sim ) + '_' + plasticity_rule + '_' + parameter_set.replace( '.',
                                                                                                             '-' ) + \
             '_bist' + str(
-        bistability ) + '_stopl' + str( stoplearning ) + '_pre' + str( pre_rate ) + '_post' + str( post_rate )
+		bistability ) + '_stopl' + str( stoplearning ) + '_pre' + str( pre_rate ) + '_post' + str( post_rate )
 
 plt.savefig( os.path.join( results_path, plot_name ),
              bbox_inches='tight',

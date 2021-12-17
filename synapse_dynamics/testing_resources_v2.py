@@ -44,12 +44,12 @@ parent_dir = os.path.dirname( os.getcwd() )
 # Adding parent dir to list of dirs that the interpreter will search in
 sys.path.append( os.path.join( parent_dir, helper_dir ) )
 
-# Results dir check
+# interesting_graph_results dir check
 results_path = os.path.join( parent_dir, 'synapse_results' )
 
 is_dir = os.path.isdir( results_path )
 if not (is_dir):
-    os.mkdir( results_path )
+	os.mkdir( results_path )
 
 # Creating simulation ID
 idt = localtime()
@@ -111,8 +111,8 @@ resources = True
   U,
   tau_d,
   tau_f ] = load_rule_parameters(
-        plasticity_rule=plasticity_rule,
-        parameter_set=parameter_set )
+		plasticity_rule=plasticity_rule,
+		parameter_set=parameter_set )
 
 rho_init = 1.0
 w_max = 20 * mV
@@ -122,11 +122,11 @@ w_init = w_max * rho_init
 [ model_E_E,
   pre_E_E,
   post_E_E ] = load_synapse_model(
-        plasticity_rule,
-        neuron_type,
-        bistability,
-        stoplearning=stoplearning,
-        resources=resources )
+		plasticity_rule,
+		neuron_type,
+		bistability,
+		stoplearning=stoplearning,
+		resources=resources )
 
 # 3 ========== Brian2's neuron objects
 
@@ -144,13 +144,13 @@ Vth_e_incr = 5 * mV  # post-spike threshold voltage increase
 
 # 3.1 ========== setting connections between neurons
 Pre_Post = Synapses(
-        source=Pre,
-        target=Post,
-        model=model_E_E,
-        on_pre=pre_E_E,
-        on_post=post_E_E,
-        method=int_meth_syn,
-        name='Pre_Post' )
+		source=Pre,
+		target=Post,
+		model=model_E_E,
+		on_pre=pre_E_E,
+		on_post=post_E_E,
+		method=int_meth_syn,
+		name='Pre_Post' )
 
 Pre_Post.connect( j='i' )
 
@@ -166,21 +166,21 @@ Pre_Post.w = w_init
 StateMon = StateMonitor( Pre_Post, [ 'xpre', 'xpost', 'w', 'rho', 'x_', 'u' ], record=True )
 
 Pre_spk_mon = SpikeMonitor(
-        source=Pre,
-        record=True,
-        name='Pre_spk_mon' )
+		source=Pre,
+		record=True,
+		name='Pre_spk_mon' )
 
 Post_spk_mon = SpikeMonitor(
-        source=Post,
-        record=True,
-        name='Post_spk_mon' )
+		source=Post,
+		record=True,
+		name='Post_spk_mon' )
 
 post_rec = StateMonitor(
-        source=Post,
-        variables=[ 'Vm' ],
-        record=True,
-        dt=0.1 * ms,
-        name='post_rec' )
+		source=Post,
+		variables=[ 'Vm' ],
+		record=True,
+		dt=0.1 * ms,
+		name='post_rec' )
 
 run( t_run * second )
 
@@ -190,11 +190,11 @@ widths = [ 8 ]
 heights = [ 0.25, 2.5, 0.25, 1.5 ]
 
 spec2 = gridspec.GridSpec(
-        ncols=1,
-        nrows=4,
-        width_ratios=widths,
-        height_ratios=heights,
-        figure=fig )
+		ncols=1,
+		nrows=4,
+		width_ratios=widths,
+		height_ratios=heights,
+		figure=fig )
 
 ax1 = fig.add_subplot( spec2[ 0, 0 ] )
 
@@ -228,7 +228,7 @@ plt.xlabel( 'Time (ms)' )
 plt.ylabel( r'$V_{mem}$ post (mV)' );
 
 fig.suptitle(
-        'rule: ' + str( rule ) + ' | parameters: ' + str( parameter_set ),
-        fontsize=10 )
+		'rule: ' + str( rule ) + ' | parameters: ' + str( parameter_set ),
+		fontsize=10 )
 
 plt.show()
