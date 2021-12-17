@@ -35,7 +35,7 @@ rcn.net_init()
 #  ------ Create subsampled graph for visualisation and complete for analysis
 g_initial = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='initial' )
 rcn2nx( rcn, output_filename='initial_complete' )
-nx2pyvis( g_initial, output_filename='initial', open_output=True, show_buttons=True, only_physics_buttons=True )
+nx2pyvis( g_initial, output_filename='initial' )
 
 # -------- First attractor
 rcn.set_E_E_plastic( plastic=True )
@@ -45,7 +45,7 @@ rcn.run_net( period=2 )
 
 g_first = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='first' )
 rcn2nx( rcn, output_filename='first_complete' )
-nx2pyvis( g_first, output_filename='first', open_output=True, show_buttons=True, only_physics_buttons=True )
+nx2pyvis( g_first, output_filename='first' )
 
 print( attractor_inhibition( g_first ) )
 print( attractor_connectivity( g_first ) )
@@ -58,12 +58,12 @@ rcn.run_net( period=2 )
 
 g_second = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='second' )
 rcn2nx( rcn, output_filename='second_complete' )
-nx2pyvis( g_second, output_filename='second', open_output=True, show_buttons=True, only_physics_buttons=True )
+nx2pyvis( g_second, output_filename='second' )
 
 print( attractor_inhibition( g_second ) )
 print( attractor_inhibition( rcn ) )
 print( attractor_connectivity( g_second ) )
-# ---- Likely to be slow, wait ~2 minutes on Apple M1
+# ---- Likely to be slow, wait ~3 minutes on Apple M1
 print( attractor_connectivity( rcn ) )
 
 # TODO save plots and graphs in same RCN directory

@@ -12,6 +12,7 @@ def hex_to_rgb( h ):
 	return tuple( int( h[ i:i + 2 ], 16 ) for i in (0, 2, 4) )
 
 
+# TODO include all connections
 def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
             remove_edges_threshold=0.0, output_filename='graph' ):
 	"""Given an instance of a RecurrentCompetitiveNet builds the corresponding NetworkX graph.
@@ -103,7 +104,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
               scale_by='',
               neural_populations=None,
               synapse_types=None,
-              open_output=False, show_buttons=False, only_physics_buttons=False, window_size=(1000, 1000) ):
+              open_output=True, show_buttons=True, only_physics_buttons=True, window_size=(1000, 1000) ):
 	"""Given an instance of a Networx.Graph builds the corresponding PyVis graph for display purposes.
 
 	Parameters:
@@ -284,7 +285,7 @@ def tag_attracting_components( g ):
 	nx.set_node_attributes( g, attracting_map )
 
 
-def attractor_inhibition( input, normalise=False ):
+def attractor_inhibition( input, normalise=False, output_filename='attractor_inhibition' ):
 	"""Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
 	This should be useful to quantify the degree of inhibition of each attractor.
 	For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells
@@ -294,12 +295,15 @@ def attractor_inhibition( input, normalise=False ):
 	input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
 	inhibition amount
 	normalise (bool): if True the inhibition value is normalised by the total number of inhibitory connections
+	output_filename (str): the name of the txt file to write results to in os.getcwd()
 	
 	Returns:
 	attractor_inhibition_amount (dict): dictionary of attractors with the amount of inhibition as the value
 	
 	"""
 	from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+	import os
+	from pprint import pprint
 	
 	if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
 		g = rcn2nx( input )
@@ -312,7 +316,6 @@ def attractor_inhibition( input, normalise=False ):
 		norm = len( [ e for e in g.edges if 'i_' in e[ 0 ] ] )
 	else:
 		norm = 1
-	print( norm )
 	
 	attractor_inhibition_amount = { }
 	
@@ -324,19 +327,33 @@ def attractor_inhibition( input, normalise=False ):
 		attractor_inhibition_amount[ i ] = \
 			len( [ e for e in subgraph.edges if e[ 0 ] in inhibitory_nodes and e[ 1 ] in attractor_nodes ] ) / norm
 	
+	with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
+		f.write( """Generated via the graphing/attractor_inhibition function.
+		
+Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
+This should be useful to quantify the degree of inhibition of each attractor.
+For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells via
+5 connections, and attractor 1 via 4.
+
+Result:
+""" )
+		pprint( attractor_inhibition_amount, stream=f )
+	
 	return attractor_inhibition_amount
 
 
-def attractor_connectivity( input ):
+def attractor_connectivity( input, output_filename='attractor_connectivity' ):
 	"""Computes the average node connectivity within each attractor in the NetworkX graph.
 	This should be useful to quantify the amount of self-excitation each attractor has.
 	The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
 	Local node connectivity for two non adjacent nodes s and t is the minimum number of nodes that must be removed (
 	along with their incident edges) to disconnect them.
+	This functions is likely to be slow on the full network ( ~4 minutes on Apple M1).
 	
 	Parameters:
 	input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
 	connectivity
+	output_filename (str): the name of the txt file to write results to in os.getcwd()
 	
 	Returns:
 	attractor_connectivity_amount (dict): dictionary of attractors with the average node connectivity as the value
@@ -344,6 +361,8 @@ def attractor_connectivity( input ):
 """
 	from networkx.algorithms.connectivity.connectivity import average_node_connectivity
 	from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+	import os
+	from pprint import pprint
 	
 	if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
 		g = rcn2nx( input )
@@ -360,11 +379,24 @@ def attractor_connectivity( input ):
 		
 		attractor_connectivity_amount[ i ] = average_node_connectivity( subgraph )
 	
+	with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
+		f.write( """Generated via the graphing/attractor_connectivity function.
+		
+Computes the average node connectivity within each attractor in the NetworkX graph.
+This should be useful to quantify the amount of self-excitation each attractor has.
+The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
+Local node connectivity for two non adjacent nodes s and t is the minimum number of nodes that must be removed (
+along with their incident edges) to disconnect them.
+
+Result:
+""" )
+		pprint( attractor_connectivity_amount, stream=f )
+	
 	return attractor_connectivity_amount
 
 
 # TODO save generated statistics too
-def save_graph_results( folder='interesting_graph_results', additional_files=None, comment='' ):
+def save_graph_results( folder='interesting_graph_results', additional_files=None, comments='' ):
 	"""Saves files resulting from graphing in a folder
 
 	Parameters:
@@ -392,7 +424,7 @@ def save_graph_results( folder='interesting_graph_results', additional_files=Non
 			        'first.html', 'first.graphml', 'first_complete.graphml',
 			        'second.html', 'second.graphml', 'second_complete.graphml',
 			        'rcn_population_spiking.png',
-			        'test.graphml'
+			        'attractor_inhibition.txt', 'attractor_connectivity.txt',
 			        ] + additional_files
 	
 	count = 0
@@ -405,6 +437,14 @@ def save_graph_results( folder='interesting_graph_results', additional_files=Non
 	
 	if count > 0:
 		print( f'Moved {count} files to {new_folder}' )
+		
+		if comments:
+			with open( f'{new_folder}/comments.txt', 'w' ) as f:
+				f.write( comments )
+		else:
+			with open( f'{new_folder}/comments.txt', 'w' ) as f:
+				f.write( 'Nothing particular to remark.' )
+	
 	else:
 		os.rmdir( new_folder )
 		print( 'No files to move' )
