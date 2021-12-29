@@ -14,6 +14,8 @@ from helper_functions.recurrent_competitive_network import RecurrentCompetitiveN
 from plotting_functions.plot import *
 from plotting_functions.graphing import *
 
+clean_folder()
+
 # 1 ------ initializing/running network ------
 
 make_plots = True
@@ -32,8 +34,12 @@ rcn.stimulus_pulse = True
 
 rcn.net_init()
 
+subsample_e = 15
+subsample_i = 5
+
 #  ------ Create subsampled graph for visualisation and complete for analysis
-g_initial = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='initial' )
+g_initial = rcn2nx( rcn, neurons_subsample=(subsample_e, subsample_i), subsample_attractors=True,
+                    output_filename='initial' )
 rcn2nx( rcn, output_filename='initial_complete' )
 nx2pyvis( g_initial, output_filename='initial' )
 
@@ -43,13 +49,17 @@ rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, 
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 rcn.run_net( period=2 )
 
-g_first = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='first' )
+g_first = rcn2nx( rcn, neurons_subsample=(subsample_e, subsample_i), subsample_attractors=True,
+                  output_filename='first' )
 rcn2nx( rcn, output_filename='first_complete' )
 nx2pyvis( g_first, output_filename='first' )
 
-print('---- First attractor learned')
-print( 'Attractor inhibition',attractor_inhibition( g_first ) )
-print('Attractor connectivity', attractor_connectivity( g_first ) )
+comment = '---- First attractor learned'
+print( comment )
+print( 'Attractor inhibition',
+       attractor_inhibition( g_first, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )
+print( 'Attractor connectivity',
+       attractor_connectivity( g_first, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )
 
 # --------- Second attractor
 rcn.stimulus_pulse_duration = 5 * second
@@ -57,16 +67,20 @@ rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, 
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 rcn.run_net( period=2 )
 
-g_second = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, output_filename='second' )
+g_second = rcn2nx( rcn, neurons_subsample=(subsample_e, subsample_i), subsample_attractors=True,
+                   output_filename='second' )
 rcn2nx( rcn, output_filename='second_complete' )
 nx2pyvis( g_second, output_filename='second' )
 
-print('---- Second attractor learned')
-print( 'Attractor inhibition',attractor_inhibition( g_second ) )
-print( 'Attractor inhibition',attractor_connectivity( g_second ) )
-print('\n')
-print( 'Attractor connectivity (full net)',attractor_inhibition( rcn ) )
-print( 'Attractor connectivity (full net)',attractor_connectivity( rcn ) ) # Likely to be slow, wait ~3 minutes on Apple M1
+comment = '---- Second attractor learned'
+print( comment )
+print( 'Attractor inhibition',
+       attractor_inhibition( g_second, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )
+print( 'Attractor connectivity',
+       attractor_connectivity( g_second, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )
+# print( 'Attractor inhibition (full net)',attractor_inhibition( rcn,comment=comment+' (full net)' ) )
+# print( 'Attractor connectivity (full net)',attractor_connectivity( rcn ,comment=comment+' (full net)') ) # Likely
+# to be slow, wait ~3 minutes on Apple M1
 
 # TODO save plots and graphs in same RCN directory
 plot_rcn_spiketrains_histograms(
@@ -86,4 +100,4 @@ plot_rcn_spiketrains_histograms(
 		path_to_plot=os.getcwd(),
 		show=True )
 
-save_graph_results()
+# save_graph_results()

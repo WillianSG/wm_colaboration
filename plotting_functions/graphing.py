@@ -3,7 +3,7 @@ import numpy as np
 
 
 def rgb_to_hex( r, g, b ):
-	return ('#{:02X}{:02X}{:02X}').format( r, g, b )
+	return '#{:02X}{:02X}{:02X}'.format( r, g, b )
 
 
 def hex_to_rgb( h ):
@@ -285,7 +285,7 @@ def tag_attracting_components( g ):
 	nx.set_node_attributes( g, attracting_map )
 
 
-def attractor_inhibition( input, normalise=False, output_filename='attractor_inhibition' ):
+def attractor_inhibition( input, normalise=False, output_filename='attractor_inhibition', comment='' ):
 	"""Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
 	This should be useful to quantify the degree of inhibition of each attractor.
 	For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells
@@ -327,22 +327,30 @@ def attractor_inhibition( input, normalise=False, output_filename='attractor_inh
 		attractor_inhibition_amount[ i ] = \
 			len( [ e for e in subgraph.edges if e[ 0 ] in inhibitory_nodes and e[ 1 ] in attractor_nodes ] ) / norm
 	
-	with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
-		f.write( """Generated via the graphing/attractor_inhibition function.
-		
-Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
-This should be useful to quantify the degree of inhibition of each attractor.
-For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells via
-5 connections, and attractor 1 via 4.
-
-Result:
-""" )
-		pprint( attractor_inhibition_amount, stream=f )
+	if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
+		with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
+			f.write( """Generated via the graphing/attractor_inhibition function.
+			
+	Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
+	This should be useful to quantify the degree of inhibition of each attractor.
+	For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells
+	via
+	5 connections, and attractor 1 via 4.
+	
+	Results:
+	
+	""" )
+			f.write( f'\t{comment}\n\t' )
+			pprint( attractor_inhibition_amount, stream=f )
+	else:
+		with open( f'{os.getcwd()}/{output_filename}.txt', 'a' ) as f:
+			f.write( f'\t{comment}\n\t' )
+			pprint( attractor_inhibition_amount, stream=f )
 	
 	return attractor_inhibition_amount
 
 
-def attractor_connectivity( input, output_filename='attractor_connectivity' ):
+def attractor_connectivity( input, output_filename='attractor_connectivity', comment='' ):
 	"""Computes the average node connectivity within each attractor in the NetworkX graph.
 	This should be useful to quantify the amount of self-excitation each attractor has.
 	The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
@@ -379,23 +387,39 @@ def attractor_connectivity( input, output_filename='attractor_connectivity' ):
 		
 		attractor_connectivity_amount[ i ] = average_node_connectivity( subgraph )
 	
-	with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
-		f.write( """Generated via the graphing/attractor_connectivity function.
-		
-Computes the average node connectivity within each attractor in the NetworkX graph.
-This should be useful to quantify the amount of self-excitation each attractor has.
-The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
-Local node connectivity for two non adjacent nodes s and t is the minimum number of nodes that must be removed (
-along with their incident edges) to disconnect them.
+	if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
+		with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
+			f.write( """Generated via the graphing/attractor_connectivity function.
+			
+	Computes the average node connectivity within each attractor in the NetworkX graph.
+	This should be useful to quantify the amount of self-excitation each attractor has.
+	The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
+	Local node connectivity for two non adjacent nodes s and t is the minimum number of nodes that must be removed (
+	along with their incident edges) to disconnect them.
+	
+	Results:
 
-Result:
-""" )
-		pprint( attractor_connectivity_amount, stream=f )
+	""" )
+			f.write( f'\t{comment}\n' )
+			pprint( attractor_connectivity_amount, stream=f )
+	
+	else:
+		with open( f'{os.getcwd()}/{output_filename}.txt', 'a' ) as f:
+			f.write( f'\t{comment}\n' )
+			pprint( attractor_connectivity_amount, stream=f )
 	
 	return attractor_connectivity_amount
 
 
-# TODO save generated statistics too
+files = [
+		'initial.html', 'initial.graphml', 'initial_complete.graphml',
+		'first.html', 'first.graphml', 'first_complete.graphml',
+		'second.html', 'second.graphml', 'second_complete.graphml',
+		'rcn_population_spiking.png',
+		'attractor_inhibition.txt', 'attractor_connectivity.txt',
+		]
+
+
 def save_graph_results( folder='interesting_graph_results', additional_files=None, comments='' ):
 	"""Saves files resulting from graphing in a folder
 
@@ -419,16 +443,10 @@ def save_graph_results( folder='interesting_graph_results', additional_files=Non
 	             str( datetime.datetime.now().time().replace( microsecond=0 ) ).replace( ':', '.' )
 	os.makedirs( new_folder )
 	
-	files = [
-			        'initial.html', 'initial.graphml', 'initial_complete.graphml',
-			        'first.html', 'first.graphml', 'first_complete.graphml',
-			        'second.html', 'second.graphml', 'second_complete.graphml',
-			        'rcn_population_spiking.png',
-			        'attractor_inhibition.txt', 'attractor_connectivity.txt',
-			        ] + additional_files
+	files_local = files + additional_files
 	
 	count = 0
-	for f in files:
+	for f in files_local:
 		try:
 			shutil.move( os.getcwd() + '/' + f, new_folder )
 			count += 1
@@ -448,3 +466,22 @@ def save_graph_results( folder='interesting_graph_results', additional_files=Non
 	else:
 		os.rmdir( new_folder )
 		print( 'No files to move' )
+
+
+def clean_folder( additional_files=None ):
+	import os
+	
+	if additional_files is None:
+		additional_files = [ ]
+	
+	files_local = files + additional_files
+	
+	count = 0
+	for f in files_local:
+		try:
+			os.remove( f )
+			count += 1
+		except:
+			continue
+	
+	print( f'Removed {count} files' )
