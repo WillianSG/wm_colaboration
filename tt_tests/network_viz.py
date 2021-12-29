@@ -47,8 +47,9 @@ g_first = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, out
 rcn2nx( rcn, output_filename='first_complete' )
 nx2pyvis( g_first, output_filename='first' )
 
-print( attractor_inhibition( g_first ) )
-print( attractor_connectivity( g_first ) )
+print('---- First attractor learned')
+print( 'Attractor inhibition',attractor_inhibition( g_first ) )
+print('Attractor connectivity', attractor_connectivity( g_first ) )
 
 # --------- Second attractor
 rcn.stimulus_pulse_duration = 5 * second
@@ -60,11 +61,12 @@ g_second = rcn2nx( rcn, neurons_subsample=(15, 5), subsample_attractors=True, ou
 rcn2nx( rcn, output_filename='second_complete' )
 nx2pyvis( g_second, output_filename='second' )
 
-print( attractor_inhibition( g_second ) )
-print( attractor_inhibition( rcn ) )
-print( attractor_connectivity( g_second ) )
-# ---- Likely to be slow, wait ~3 minutes on Apple M1
-print( attractor_connectivity( rcn ) )
+print('---- Second attractor learned')
+print( 'Attractor inhibition',attractor_inhibition( g_second ) )
+print( 'Attractor inhibition',attractor_connectivity( g_second ) )
+print('\n')
+print( 'Attractor connectivity (full net)',attractor_inhibition( rcn ) )
+print( 'Attractor connectivity (full net)',attractor_connectivity( rcn ) ) # Likely to be slow, wait ~3 minutes on Apple M1
 
 # TODO save plots and graphs in same RCN directory
 plot_rcn_spiketrains_histograms(

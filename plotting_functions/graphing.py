@@ -373,9 +373,9 @@ def attractor_connectivity( input, output_filename='attractor_connectivity' ):
 	
 	attractor_connectivity_amount = { }
 	
-	for i in set( nx.get_node_attributes( input, 'attractor' ).values() ):
-		attractor_nodes = [ n for n, v in input.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == i ]
-		subgraph = input.subgraph( attractor_nodes )
+	for i in set( nx.get_node_attributes( g, 'attractor' ).values() ):
+		attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == i ]
+		subgraph = g.subgraph( attractor_nodes )
 		
 		attractor_connectivity_amount[ i ] = average_node_connectivity( subgraph )
 	
