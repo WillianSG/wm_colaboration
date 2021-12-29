@@ -1,7 +1,7 @@
 **/sim_results
 **/plots_results
 **/net_simulation
-tt_tests/network_results
+graph_analysis/network_results
 sim_results/
 plots_results/
 *.pickle
