@@ -12,7 +12,6 @@ def hex_to_rgb( h ):
 	return tuple( int( h[ i:i + 2 ], 16 ) for i in (0, 2, 4) )
 
 
-# TODO include all connections
 def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
             remove_edges_threshold=0.0, output_filename='graph' ):
 	"""Given an instance of a RecurrentCompetitiveNet builds the corresponding NetworkX graph.
@@ -54,12 +53,22 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
 	
 	# ------- Make sure that there are no duplicates in neurons subsample or Brian2 indexing runs into a bug
 	assert len( np.unique( e_neurons ) ) == len( e_neurons ) or len( np.unique( i_neurons ) ) == len( i_neurons )
+	# ----- Add Excitatory-to-Excitatory connections
 	e2e_edges_pre = rcn.E_E.i[ e_neurons, e_neurons ].tolist()
 	e2e_edges_post = rcn.E_E.j[ e_neurons, e_neurons ].tolist()
 	e2e_edge_weights = rcn.E_E.w_[ e_neurons, e_neurons ].tolist()
+	# ----- Add Inhibitory-to-Excitatory connections
 	i2e_edges_pre = rcn.I_E.i[ i_neurons, e_neurons ].tolist()
 	i2e_edges_post = rcn.I_E.j[ i_neurons, e_neurons ].tolist()
 	i2e_edge_weights = rcn.I_E.w_[ i_neurons, e_neurons ].tolist()
+	# ----- Add Excitatory-to-Inhibitory connections
+	e2i_edges_pre = rcn.E_I.i[ e_neurons, i_neurons ].tolist()
+	e2i_edges_post = rcn.E_I.j[ e_neurons, i_neurons ].tolist()
+	e2i_edge_weights = rcn.E_I.w_[ e_neurons, i_neurons ].tolist()
+	# ----- Add Inhibitory-to-Inhibitory connections
+	i2i_edges_pre = rcn.I_I.i[ i_neurons, i_neurons ].tolist()
+	i2i_edges_post = rcn.I_I.j[ i_neurons, i_neurons ].tolist()
+	i2i_edge_weights = rcn.I_I.w_[ i_neurons, i_neurons ].tolist()
 	
 	if remove_edges_threshold is not None:
 		e2e_edges_pre = [ k for i, k in enumerate( e2e_edges_pre ) if
@@ -68,6 +77,24 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
 		                   e2e_edge_weights[ i ] > remove_edges_threshold ]
 		e2e_edge_weights = [ k for i, k in enumerate( e2e_edge_weights ) if
 		                     e2e_edge_weights[ i ] > remove_edges_threshold ]
+		i2e_edges_pre = [ k for i, k in enumerate( i2e_edges_pre ) if
+		                  i2e_edge_weights[ i ] > remove_edges_threshold ]
+		i2e_edges_post = [ k for i, k in enumerate( i2e_edges_post ) if
+		                   i2e_edge_weights[ i ] > remove_edges_threshold ]
+		i2e_edge_weights = [ k for i, k in enumerate( i2e_edge_weights ) if
+		                     i2e_edge_weights[ i ] > remove_edges_threshold ]
+		e2i_edges_pre = [ k for i, k in enumerate( e2i_edges_pre ) if
+		                  e2i_edge_weights[ i ] > remove_edges_threshold ]
+		e2i_edges_post = [ k for i, k in enumerate( e2i_edges_post ) if
+		                   e2i_edge_weights[ i ] > remove_edges_threshold ]
+		e2i_edge_weights = [ k for i, k in enumerate( e2i_edge_weights ) if
+		                     e2i_edge_weights[ i ] > remove_edges_threshold ]
+		i2i_edges_pre = [ k for i, k in enumerate( i2i_edges_pre ) if
+		                  i2i_edge_weights[ i ] > remove_edges_threshold ]
+		i2i_edges_post = [ k for i, k in enumerate( i2i_edges_post ) if
+		                   i2i_edge_weights[ i ] > remove_edges_threshold ]
+		i2i_edge_weights = [ k for i, k in enumerate( i2i_edge_weights ) if
+		                     i2i_edge_weights[ i ] > remove_edges_threshold ]
 	
 	g = nx.DiGraph()
 	
@@ -89,6 +116,8 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
 		g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title=' ', type='inhibitory' )
 	for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edge_weights ):
 		g.add_edge( f'i_{i}', f'e_{j}', weight=w )
+	for i, j, w in zip( e2i_edges_pre, e2i_edges_post, e2i_edge_weights ):
+		g.add_edge( f'e_{i}', f'i_{j}', weight=w )
 	
 	# GraphML does not support list or any non-primitive type
 	if output_filename:
@@ -123,8 +152,11 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 
 	"""
 	from pyvis import network as net
-	
 	import pathlib
+	
+	if synapse_types is None:
+		synapse_types = [ 'e_e', 'e_i', 'i_e', 'i_i' ]
+	
 	if isinstance( input, nx.Graph ):
 		nx_graph = input
 	elif isinstance( input, str ) and pathlib.Path( input ).suffix == '.graphml':
@@ -140,17 +172,26 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 	
 	# for each edge and its attributes in the networkx graph
 	for source, target, edge_attrs in nx_graph.edges( data=True ):
+		# remove edges that aren't of included type
+		include = False
+		for s in synapse_types:
+			if source.split( '_' )[ 0 ] == s.split( '_' )[ 0 ] and target.split( '_' )[ 0 ] == s.split( '_' )[ 1 ]:
+				include = True
+				break
+		if not include:
+			continue
+		
 		# if value/width not specified directly, and weight is specified, set 'value' to 'weight'
 		if not 'value' in edge_attrs and not 'width' in edge_attrs and 'weight' in edge_attrs:
 			# place at key 'value' the weight of the edge
-			if 'i_' not in source and 'i_' not in target:
+			if 'e_' in source and 'e_' in target:
 				edge_attrs[ 'value' ] = edge_attrs[ 'weight' ]
 			else:
 				edge_attrs[ 'value' ] = ''
 		# add the edge
 		pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
 	
-	# add neighbor data to node hover data
+	# add neighbour data to node hover data
 	neighbour_map = pyvis_graph.get_adj_list()
 	type_colours = { 'excitatory': 'blue', 'inhibitory': 'red' }
 	for node in pyvis_graph.nodes:
@@ -207,7 +248,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 
 # TODO how much inhibition is each attractor giving?
 # TODO how many inhibitory neurons are shared between attractors?
-# TODO measure net exhitation between attractors
+# TODO measure net excitation between attractors
 # TODO measure connectedness within each attractor
 
 
