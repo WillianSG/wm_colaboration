@@ -126,20 +126,19 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
 	return g
 
 
-# TODO fade non-neighbourhood on click
 def nx2pyvis( input, notebook=False, output_filename='graph',
-              scale_by='',
-              neuron_types=None,
-              synapse_types=None,
+              scale_by='balance',
+              neuron_types=None, synapse_types=None,
               open_output=True, show_buttons=True, only_physics_buttons=True, window_size=(1000, 1000) ):
 	"""Given an instance of a Networx.Graph builds the corresponding PyVis graph for display purposes.
 
 	Parameters:
 	input (nx.Graph or str): the NetworkX graph to convert to PyVis or the path to a GraphML file to convert
 	output_filename (str): the name of the file HTML to save to disk in os.getcwd()
-	TODO - scale_by (str): the node parameter whose value is used to visually scale the nodes
-	TODO - neural_population (): which neural populations to include
-	TODO - synapse_types (): which synapse types to include
+	TODO - scale_by (str): the node parameter whose value is used to visually scale the nodes.  'neighbours'
+	neural_population (set of str): which neural populations to include.  For example, 'e_e' includes
+		excitatory-to-excitatory connections, 'i_e' includes inhibitory-to-excitatory connections
+	synapse_types (set of str): which synapse types to include.  'e' includes excitatory neurons, 'i' inhibitory ones
 	open_output (bool): set to True to open the HTML file in the default browser
 	show_buttons (bool): set to true to display the PyVis configuration UI in the HTML
 	only_physics_buttons (bool): set to true to display the physics PyVis configuration UI in the HTML
@@ -194,8 +193,31 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 			# add the edge
 			pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
 	
+	def successors():
+		successors = { }
+		
+		for n in pyvis_graph.get_nodes():
+			successors[ n ] = set()
+			for e in pyvis_graph.get_edges():
+				if e[ 'from' ] == n:
+					successors[ n ].add( e[ 'to' ] )
+		
+		return successors
+	
+	def predecessors():
+		predecessors = { }
+		
+		for n in pyvis_graph.get_nodes():
+			predecessors[ n ] = set()
+			for e in pyvis_graph.get_edges():
+				if e[ 'to' ] == n:
+					predecessors[ n ].add( e[ 'from' ] )
+		
+		return predecessors
+	
 	# add neighbour data to node hover data
-	neighbour_map = pyvis_graph.get_adj_list()
+	successors = successors()
+	predecessors = predecessors()
 	type_colours = { 'excitatory': 'blue', 'inhibitory': 'red' }
 	for node in pyvis_graph.nodes:
 		node[ 'title' ] += f'<center><h2>{node[ "id" ]}</h2></center>'
@@ -205,19 +227,25 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 		node[ 'title' ] += '<h4>Excites:</h4>' + ' '.join(
 				[ f'<p style="color: {nx_graph.nodes[ n ][ "color" ]}">{n} ('
 				  f'{nx_graph.nodes[ n ][ "attractor" ]})</p>'
-				  for n in neighbour_map[ node[ 'id' ] ] if 'e_' in n ]
+				  for n in successors[ node[ 'id' ] ] if 'e_' in n ]
+				)
+		node[ 'title' ] += '<h4>Excited by:</h4>' + ' '.join(
+				[ f'<p style="color: blue">{n}</p>' for n in predecessors[ node[ 'id' ] ] if 'e_' in n ]
 				)
 		if 'e_' in node[ 'id' ]:
 			node[ 'title' ] += '<h4>Inhibited by:</h4>' + ' '.join(
-					[ f'<p style="color: red">{n}</p>' for n in neighbour_map[ node[ 'id' ] ] if 'i_' in n ]
+					[ f'<p style="color: red">{n}</p>' for n in predecessors[ node[ 'id' ] ] if 'i_' in n ]
 					)
 		
 		# TODO scale node value by activity or other metrics
-		if scale_by == 'neighbours':
-			node[ 'value' ] = len( neighbour_map[ node[ 'id' ] ] )
+		if scale_by == 'excitation':  # # more excitation, larger node
+			node[ 'value' ] = len( [ n for n in predecessors[ node[ 'id' ] ] if 'e_' in n ] )
+		elif scale_by == 'inhibition':  # more inhibition, smaller node
+			node[ 'value' ] = 1 - len( [ n for n in predecessors[ node[ 'id' ] ] if 'i_' in n ] )
+		elif scale_by == 'balance':
+			node[ 'value' ] = len( [ n for n in predecessors[ node[ 'id' ] ] if 'e_' in n ] ) - \
+			                  len( [ n for n in predecessors[ node[ 'id' ] ] if 'i_' in n ] )
 		elif scale_by == 'activity':
-			pass
-		elif scale_by == 'inhibition':
 			pass
 	
 	for edge in pyvis_graph.edges:
