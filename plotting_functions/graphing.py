@@ -127,11 +127,9 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
 
 
 # TODO fade non-neighbourhood on click
-# TODO add attracting_components info to viz
-# TODO hide inhibitory?
 def nx2pyvis( input, notebook=False, output_filename='graph',
               scale_by='',
-              neural_populations=None,
+              neuron_types=None,
               synapse_types=None,
               open_output=True, show_buttons=True, only_physics_buttons=True, window_size=(1000, 1000) ):
 	"""Given an instance of a Networx.Graph builds the corresponding PyVis graph for display purposes.
@@ -154,8 +152,10 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 	from pyvis import network as net
 	import pathlib
 	
+	if neuron_types is None:
+		neuron_types = { 'e', 'i' }
 	if synapse_types is None:
-		synapse_types = [ 'e_e', 'e_i', 'i_e', 'i_i' ]
+		synapse_types = { 'e_e', 'i_e', 'e_i', 'i_i' }
 	
 	if isinstance( input, nx.Graph ):
 		nx_graph = input
@@ -168,28 +168,31 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 	pyvis_graph.height = f'{window_size[ 1 ]}px'
 	# for each node and its attributes in the networkx graph
 	for node, node_attrs in nx_graph.nodes( data=True ):
-		pyvis_graph.add_node( node, **node_attrs )
-	
-	# for each edge and its attributes in the networkx graph
-	for source, target, edge_attrs in nx_graph.edges( data=True ):
-		# remove edges that aren't of included type
+		# remove nodes that aren't of included type
 		include = False
-		for s in synapse_types:
-			if source.split( '_' )[ 0 ] == s.split( '_' )[ 0 ] and target.split( '_' )[ 0 ] == s.split( '_' )[ 1 ]:
+		for n in neuron_types:
+			if node.split( '_' )[ 0 ] == n:
 				include = True
 				break
 		if not include:
 			continue
 		
-		# if value/width not specified directly, and weight is specified, set 'value' to 'weight'
-		if not 'value' in edge_attrs and not 'width' in edge_attrs and 'weight' in edge_attrs:
-			# place at key 'value' the weight of the edge
-			if 'e_' in source and 'e_' in target:
-				edge_attrs[ 'value' ] = edge_attrs[ 'weight' ]
-			else:
-				edge_attrs[ 'value' ] = ''
-		# add the edge
-		pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
+		pyvis_graph.add_node( node, **node_attrs )
+	
+	# for each edge and its attributes in the networkx graph
+	for source, target, edge_attrs in nx_graph.edges( data=True ):
+		# remove edges that aren't of included type
+		if (source.split( '_' )[ 0 ] in neuron_types and target.split( '_' )[ 0 ] in neuron_types) and (
+				source.split( '_' )[ 0 ] + '_' + target.split( '_' )[ 0 ] in synapse_types):
+			# if value/width not specified directly, and weight is specified, set 'value' to 'weight'
+			if not 'value' in edge_attrs and not 'width' in edge_attrs and 'weight' in edge_attrs:
+				# place at key 'value' the weight of the edge
+				if 'e_' in source and 'e_' in target:
+					edge_attrs[ 'value' ] = edge_attrs[ 'weight' ]
+				else:
+					edge_attrs[ 'value' ] = ''
+			# add the edge
+			pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
 	
 	# add neighbour data to node hover data
 	neighbour_map = pyvis_graph.get_adj_list()
