@@ -33,7 +33,7 @@ def rcn2nx( rcn,
     import os
     
     # ------ Subsample graph nodes
-    rng = np.random.RandomState( seed )
+    rng = np.random.default_rng( seed )
     
     def closestNumber( n, m ):
         """Function to find the number closest to n and divisible by m"""
@@ -58,7 +58,7 @@ def rcn2nx( rcn,
         return n2
     
     if neurons_subsample:
-        assert neurons_subsample >= 0 and neurons_subsample <= 1
+        assert neurons_subsample > 0 and neurons_subsample <= 1
         
         e_neurons_subsample = round( len( rcn.E ) * neurons_subsample )
         i_neurons_subsample = round( len( rcn.I ) * neurons_subsample )
@@ -85,64 +85,40 @@ def rcn2nx( rcn,
     e2e_edges_pre = rcn.E_E.i[ e_neurons, e_neurons ].tolist()
     e2e_edges_post = rcn.E_E.j[ e_neurons, e_neurons ].tolist()
     e2e_edges_weight = rcn.E_E.w_[ e_neurons, e_neurons ].tolist()
+    e2e_edges = np.vstack( (e2e_edges_pre, e2e_edges_post, e2e_edges_weight) )
     # ----- Add Inhibitory-to-Excitatory connections
     i2e_edges_pre = rcn.I_E.i[ i_neurons, e_neurons ].tolist()
     i2e_edges_post = rcn.I_E.j[ i_neurons, e_neurons ].tolist()
     i2e_edges_weight = rcn.I_E.w_[ i_neurons, e_neurons ].tolist()
+    i2e_edges = np.vstack( (i2e_edges_pre, i2e_edges_post, i2e_edges_weight) )
     # ----- Add Excitatory-to-Inhibitory connections
     e2i_edges_pre = rcn.E_I.i[ e_neurons, i_neurons ].tolist()
     e2i_edges_post = rcn.E_I.j[ e_neurons, i_neurons ].tolist()
     e2i_edges_weight = rcn.E_I.w_[ e_neurons, i_neurons ].tolist()
+    e2i_edges = np.vstack( (e2i_edges_pre, e2i_edges_post, e2i_edges_weight) )
     # ----- Add Inhibitory-to-Inhibitory connections
     i2i_edges_pre = rcn.I_I.i[ i_neurons, i_neurons ].tolist()
     i2i_edges_post = rcn.I_I.j[ i_neurons, i_neurons ].tolist()
     i2i_edges_weight = rcn.I_I.w_[ i_neurons, i_neurons ].tolist()
+    i2i_edges = np.vstack( (i2i_edges_pre, i2i_edges_post, i2i_edges_weight) )
     
     if edges_subsample:
-        assert edges_subsample >= 0 and edges_subsample <= 1
+        assert edges_subsample > 0 and edges_subsample <= 1
         
         e2e_edges_subsample = round( len( e2e_edges_pre ) * edges_subsample )
-        e2e_edges_pre = rng.choice( e2e_edges_pre, e2e_edges_subsample, replace=False )
-        e2e_edges_post = rng.choice( e2e_edges_post, e2e_edges_subsample, replace=False )
-        e2e_edges_weight = rng.choice( e2e_edges_weight, e2e_edges_subsample, replace=False )
+        e2e_edges = rng.choice( e2e_edges, e2e_edges_subsample, replace=False, axis=1 )
         i2e_edges_subsample = round( len( i2e_edges_pre ) * edges_subsample )
-        i2e_edges_pre = rng.choice( i2e_edges_pre, i2e_edges_subsample, replace=False )
-        i2e_edges_post = rng.choice( i2e_edges_post, i2e_edges_subsample, replace=False )
-        i2e_edges_weight = rng.choice( i2e_edges_weight, i2e_edges_subsample, replace=False )
+        i2e_edges = rng.choice( i2e_edges, i2e_edges_subsample, replace=False, axis=1 )
         e2i_edges_subsample = round( len( e2i_edges_pre ) * edges_subsample )
-        e2i_edges_pre = rng.choice( e2i_edges_pre, e2i_edges_subsample, replace=False )
-        e2i_edges_post = rng.choice( e2i_edges_post, e2i_edges_subsample, replace=False )
-        e2i_edges_weight = rng.choice( e2i_edges_weight, e2i_edges_subsample, replace=False )
+        e2i_edges = rng.choice( e2i_edges, e2i_edges_subsample, replace=False, axis=1 )
         i2i_edges_subsample = round( len( i2i_edges_pre ) * edges_subsample )
-        i2i_edges_pre = rng.choice( i2i_edges_pre, i2i_edges_subsample, replace=False )
-        i2i_edges_post = rng.choice( i2i_edges_post, i2i_edges_subsample, replace=False )
-        i2i_edges_weight = rng.choice( i2i_edges_weight, i2i_edges_subsample, replace=False )
+        i2i_edges = rng.choice( i2i_edges, i2i_edges_subsample, replace=False, axis=1 )
     
     if remove_edges_threshold is not None:
-        e2e_edges_pre = [ k for i, k in enumerate( e2e_edges_pre ) if
-                          e2e_edges_weight[ i ] > remove_edges_threshold ]
-        e2e_edges_post = [ k for i, k in enumerate( e2e_edges_post ) if
-                           e2e_edges_weight[ i ] > remove_edges_threshold ]
-        e2e_edges_weight = [ k for i, k in enumerate( e2e_edges_weight ) if
-                             e2e_edges_weight[ i ] > remove_edges_threshold ]
-        i2e_edges_pre = [ k for i, k in enumerate( i2e_edges_pre ) if
-                          i2e_edges_weight[ i ] > remove_edges_threshold ]
-        i2e_edges_post = [ k for i, k in enumerate( i2e_edges_post ) if
-                           i2e_edges_weight[ i ] > remove_edges_threshold ]
-        i2e_edges_weight = [ k for i, k in enumerate( i2e_edges_weight ) if
-                             i2e_edges_weight[ i ] > remove_edges_threshold ]
-        e2i_edges_pre = [ k for i, k in enumerate( e2i_edges_pre ) if
-                          e2i_edges_weight[ i ] > remove_edges_threshold ]
-        e2i_edges_post = [ k for i, k in enumerate( e2i_edges_post ) if
-                           e2i_edges_weight[ i ] > remove_edges_threshold ]
-        e2i_edges_weight = [ k for i, k in enumerate( e2i_edges_weight ) if
-                             e2i_edges_weight[ i ] > remove_edges_threshold ]
-        i2i_edges_pre = [ k for i, k in enumerate( i2i_edges_pre ) if
-                          i2i_edges_weight[ i ] > remove_edges_threshold ]
-        i2i_edges_post = [ k for i, k in enumerate( i2i_edges_post ) if
-                           i2i_edges_weight[ i ] > remove_edges_threshold ]
-        i2i_edges_weight = [ k for i, k in enumerate( i2i_edges_weight ) if
-                             i2i_edges_weight[ i ] > remove_edges_threshold ]
+        e2e_edges = e2e_edges[ :, e2e_edges[ 2 ] > remove_edges_threshold ]
+        i2e_edges = i2e_edges[ :, i2e_edges[ 2 ] > remove_edges_threshold ]
+        e2i_edges = e2i_edges[ :, e2i_edges[ 2 ] > remove_edges_threshold ]
+        i2i_edges = i2i_edges[ :, i2i_edges[ 2 ] > remove_edges_threshold ]
     
     g = nx.DiGraph()
     
@@ -150,8 +126,9 @@ def rcn2nx( rcn,
     e_nodes = [ f'e_{i}' for i in e_neurons ]
     for n in e_nodes:
         g.add_node( n, label=n, color='rgba(0,0,255,1)', title=' ', type='excitatory' )
-    for i, j, w in zip( e2e_edges_pre, e2e_edges_post, e2e_edges_weight ):
-        g.add_edge( f'e_{i}', f'e_{j}', weight=w )
+    # Add synapses using excitatory neurons
+    for col in e2e_edges.T:
+        g.add_edge( f'e_{int( col[ 0 ] )}', f'e_{int( col[ 1 ] )}', weight=col[ 2 ] )
     
     # Classify excitatory neurons
     tag_weakly_connected_components( g )
@@ -162,10 +139,13 @@ def rcn2nx( rcn,
     i_nodes = [ f'i_{i}' for i in i_neurons ]
     for n in i_nodes:
         g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title=' ', type='inhibitory' )
-    for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edges_weight ):
-        g.add_edge( f'i_{i}', f'e_{j}', weight=w )
-    for i, j, w in zip( e2i_edges_pre, e2i_edges_post, e2i_edges_weight ):
-        g.add_edge( f'e_{i}', f'i_{j}', weight=w )
+    # Add synapses using inhibitory neurons
+    for col in i2e_edges.T:
+        g.add_edge( f'i_{int( col[ 0 ] )}', f'e_{int( col[ 1 ] )}', weight=col[ 2 ] )
+    for col in e2i_edges.T:
+        g.add_edge( f'e_{int( col[ 0 ] )}', f'i_{int( col[ 1 ] )}', weight=col[ 2 ] )
+    for col in i2i_edges.T:
+        g.add_edge( f'i_{int( col[ 0 ] )}', f'i_{int( col[ 1 ] )}', weight=col[ 2 ] )
     
     # GraphML does not support list or any non-primitive type
     if output_filename:
@@ -175,13 +155,14 @@ def rcn2nx( rcn,
 
 
 def nx2pyvis( input, notebook=False, output_filename='graph',
-              scale_by='neighbours',
+              scale_by='e-i balance',
               neuron_types=None, synapse_types=None,
               open_output=True, show_buttons=True, only_physics_buttons=True, window_size=(1000, 1000) ):
     """Given an instance of a Networx.Graph builds the corresponding PyVis graph for display purposes.
 
     Parameters:
-    input (nx.Graph or str): the NetworkX graph to convert to PyVis or the path to a GraphML file to convert
+    input (nx.Graph, RecurrentCompetitiveNet, or str): the NetworkX graph or the RecurrentCompetitiveNet to convert
+    to PyVis, or the path to a GraphML file to convert
     output_filename (str): the name of the file HTML to save to disk in os.getcwd()
     scale_by (str): the node parameter whose value is used to visually scale the nodes.  Can be 'neighbours',
     'excitation', 'inhibition','e-i balance', 'activity'
@@ -199,6 +180,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
     """
     from pyvis import network as net
     import pathlib
+    from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
     
     if neuron_types is None:
         neuron_types = { 'e', 'i' }
@@ -207,6 +189,8 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
     
     if isinstance( input, nx.Graph ):
         nx_graph = input
+    elif isinstance( input, RecurrentCompetitiveNet ):
+        nx_graph = rcn2nx( input )
     elif isinstance( input, str ) and pathlib.Path( input ).suffix == '.graphml':
         nx_graph = nx.read_graphml( input )
     
