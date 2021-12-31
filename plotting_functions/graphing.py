@@ -12,13 +12,15 @@ def hex_to_rgb( h ):
     return tuple( int( h[ i:i + 2 ], 16 ) for i in (0, 2, 4) )
 
 
-def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
+def rcn2nx( rcn,
+            neurons_subsample=None, edges_subsample=None, subsample_attractors=False, seed=None,
             remove_edges_threshold=0.0, output_filename='graph' ):
     """Given an instance of a RecurrentCompetitiveNet builds the corresponding NetworkX graph.
     
     Parameters:
     net (RecurrentCompetitiveNet): the Brian2 net of which to build the graph
-    neurons_subsample (tuple): number of neurons to sample from excitatory and inhibitory population
+    neurons_subsample (float): percentage of neurons to sample
+    edges_subsample (float): percentage of edges to sample
     subsample_attractors (bool): ad-hoc sampling from attractor A, attractor B, and non-specific population
     seed (int): set seed to make the subsampling reproducible
     remove_edges_threshold (float): remove edges whose weight is smaller than remove_edges_threshold from graph
@@ -31,13 +33,39 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
     import os
     
     # ------ Subsample graph nodes
-    if neurons_subsample:
-        e_neurons_subsample = np.clip( neurons_subsample[ 0 ], 0, len( rcn.E ) )
-        i_neurons_subsample = np.clip( neurons_subsample[ 1 ], 0, len( rcn.I ) )
+    rng = np.random.RandomState( seed )
+    
+    def closestNumber( n, m ):
+        """Function to find the number closest to n and divisible by m"""
         
-        rng = np.random.RandomState( seed )
+        # Find the quotient
+        q = int( n / m )
+        
+        # 1st possible closest number
+        n1 = m * q
+        
+        # 2nd possible closest number
+        if ((n * m) > 0):
+            n2 = (m * (q + 1))
+        else:
+            n2 = (m * (q - 1))
+        
+        # if true, then n1 is the required closest number
+        if (abs( n - n1 ) < abs( n - n2 )):
+            return n1
+        
+        # else n2 is the required closest number
+        return n2
+    
+    if neurons_subsample:
+        assert neurons_subsample >= 0 and neurons_subsample <= 1
+        
+        e_neurons_subsample = round( len( rcn.E ) * neurons_subsample )
+        i_neurons_subsample = round( len( rcn.I ) * neurons_subsample )
+        
         if subsample_attractors:
-            assert e_neurons_subsample % 3 == 0
+            e_neurons_subsample = closestNumber( e_neurons_subsample, 3 )
+            
             e_neurons = np.concatenate(
                     [ rng.choice( range( 0, 64 ), int( e_neurons_subsample / 3 ), replace=False ),
                       rng.choice( range( 100, 164 ), int( e_neurons_subsample / 3 ), replace=False ),
@@ -51,50 +79,70 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
         e_neurons = np.array( range( 0, len( rcn.E ) ) )
         i_neurons = np.array( range( 0, len( rcn.I ) ) )
     
-    # ------- Make sure that there are no duplicates in neurons subsample or Brian2 indexing runs into a bug
+    # ----- Make sure that there are no duplicates in neurons subsample or Brian2 indexing runs into a bug when slicing
     assert len( np.unique( e_neurons ) ) == len( e_neurons ) or len( np.unique( i_neurons ) ) == len( i_neurons )
     # ----- Add Excitatory-to-Excitatory connections
     e2e_edges_pre = rcn.E_E.i[ e_neurons, e_neurons ].tolist()
     e2e_edges_post = rcn.E_E.j[ e_neurons, e_neurons ].tolist()
-    e2e_edge_weights = rcn.E_E.w_[ e_neurons, e_neurons ].tolist()
+    e2e_edges_weight = rcn.E_E.w_[ e_neurons, e_neurons ].tolist()
     # ----- Add Inhibitory-to-Excitatory connections
     i2e_edges_pre = rcn.I_E.i[ i_neurons, e_neurons ].tolist()
     i2e_edges_post = rcn.I_E.j[ i_neurons, e_neurons ].tolist()
-    i2e_edge_weights = rcn.I_E.w_[ i_neurons, e_neurons ].tolist()
+    i2e_edges_weight = rcn.I_E.w_[ i_neurons, e_neurons ].tolist()
     # ----- Add Excitatory-to-Inhibitory connections
     e2i_edges_pre = rcn.E_I.i[ e_neurons, i_neurons ].tolist()
     e2i_edges_post = rcn.E_I.j[ e_neurons, i_neurons ].tolist()
-    e2i_edge_weights = rcn.E_I.w_[ e_neurons, i_neurons ].tolist()
+    e2i_edges_weight = rcn.E_I.w_[ e_neurons, i_neurons ].tolist()
     # ----- Add Inhibitory-to-Inhibitory connections
     i2i_edges_pre = rcn.I_I.i[ i_neurons, i_neurons ].tolist()
     i2i_edges_post = rcn.I_I.j[ i_neurons, i_neurons ].tolist()
-    i2i_edge_weights = rcn.I_I.w_[ i_neurons, i_neurons ].tolist()
+    i2i_edges_weight = rcn.I_I.w_[ i_neurons, i_neurons ].tolist()
+    
+    if edges_subsample:
+        assert edges_subsample >= 0 and edges_subsample <= 1
+        
+        e2e_edges_subsample = round( len( e2e_edges_pre ) * edges_subsample )
+        e2e_edges_pre = rng.choice( e2e_edges_pre, e2e_edges_subsample, replace=False )
+        e2e_edges_post = rng.choice( e2e_edges_post, e2e_edges_subsample, replace=False )
+        e2e_edges_weight = rng.choice( e2e_edges_weight, e2e_edges_subsample, replace=False )
+        i2e_edges_subsample = round( len( i2e_edges_pre ) * edges_subsample )
+        i2e_edges_pre = rng.choice( i2e_edges_pre, i2e_edges_subsample, replace=False )
+        i2e_edges_post = rng.choice( i2e_edges_post, i2e_edges_subsample, replace=False )
+        i2e_edges_weight = rng.choice( i2e_edges_weight, i2e_edges_subsample, replace=False )
+        e2i_edges_subsample = round( len( e2i_edges_pre ) * edges_subsample )
+        e2i_edges_pre = rng.choice( e2i_edges_pre, e2i_edges_subsample, replace=False )
+        e2i_edges_post = rng.choice( e2i_edges_post, e2i_edges_subsample, replace=False )
+        e2i_edges_weight = rng.choice( e2i_edges_weight, e2i_edges_subsample, replace=False )
+        i2i_edges_subsample = round( len( i2i_edges_pre ) * edges_subsample )
+        i2i_edges_pre = rng.choice( i2i_edges_pre, i2i_edges_subsample, replace=False )
+        i2i_edges_post = rng.choice( i2i_edges_post, i2i_edges_subsample, replace=False )
+        i2i_edges_weight = rng.choice( i2i_edges_weight, i2i_edges_subsample, replace=False )
     
     if remove_edges_threshold is not None:
         e2e_edges_pre = [ k for i, k in enumerate( e2e_edges_pre ) if
-                          e2e_edge_weights[ i ] > remove_edges_threshold ]
+                          e2e_edges_weight[ i ] > remove_edges_threshold ]
         e2e_edges_post = [ k for i, k in enumerate( e2e_edges_post ) if
-                           e2e_edge_weights[ i ] > remove_edges_threshold ]
-        e2e_edge_weights = [ k for i, k in enumerate( e2e_edge_weights ) if
-                             e2e_edge_weights[ i ] > remove_edges_threshold ]
+                           e2e_edges_weight[ i ] > remove_edges_threshold ]
+        e2e_edges_weight = [ k for i, k in enumerate( e2e_edges_weight ) if
+                             e2e_edges_weight[ i ] > remove_edges_threshold ]
         i2e_edges_pre = [ k for i, k in enumerate( i2e_edges_pre ) if
-                          i2e_edge_weights[ i ] > remove_edges_threshold ]
+                          i2e_edges_weight[ i ] > remove_edges_threshold ]
         i2e_edges_post = [ k for i, k in enumerate( i2e_edges_post ) if
-                           i2e_edge_weights[ i ] > remove_edges_threshold ]
-        i2e_edge_weights = [ k for i, k in enumerate( i2e_edge_weights ) if
-                             i2e_edge_weights[ i ] > remove_edges_threshold ]
+                           i2e_edges_weight[ i ] > remove_edges_threshold ]
+        i2e_edges_weight = [ k for i, k in enumerate( i2e_edges_weight ) if
+                             i2e_edges_weight[ i ] > remove_edges_threshold ]
         e2i_edges_pre = [ k for i, k in enumerate( e2i_edges_pre ) if
-                          e2i_edge_weights[ i ] > remove_edges_threshold ]
+                          e2i_edges_weight[ i ] > remove_edges_threshold ]
         e2i_edges_post = [ k for i, k in enumerate( e2i_edges_post ) if
-                           e2i_edge_weights[ i ] > remove_edges_threshold ]
-        e2i_edge_weights = [ k for i, k in enumerate( e2i_edge_weights ) if
-                             e2i_edge_weights[ i ] > remove_edges_threshold ]
+                           e2i_edges_weight[ i ] > remove_edges_threshold ]
+        e2i_edges_weight = [ k for i, k in enumerate( e2i_edges_weight ) if
+                             e2i_edges_weight[ i ] > remove_edges_threshold ]
         i2i_edges_pre = [ k for i, k in enumerate( i2i_edges_pre ) if
-                          i2i_edge_weights[ i ] > remove_edges_threshold ]
+                          i2i_edges_weight[ i ] > remove_edges_threshold ]
         i2i_edges_post = [ k for i, k in enumerate( i2i_edges_post ) if
-                           i2i_edge_weights[ i ] > remove_edges_threshold ]
-        i2i_edge_weights = [ k for i, k in enumerate( i2i_edge_weights ) if
-                             i2i_edge_weights[ i ] > remove_edges_threshold ]
+                           i2i_edges_weight[ i ] > remove_edges_threshold ]
+        i2i_edges_weight = [ k for i, k in enumerate( i2i_edges_weight ) if
+                             i2i_edges_weight[ i ] > remove_edges_threshold ]
     
     g = nx.DiGraph()
     
@@ -102,7 +150,7 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
     e_nodes = [ f'e_{i}' for i in e_neurons ]
     for n in e_nodes:
         g.add_node( n, label=n, color='rgba(0,0,255,1)', title=' ', type='excitatory' )
-    for i, j, w in zip( e2e_edges_pre, e2e_edges_post, e2e_edge_weights ):
+    for i, j, w in zip( e2e_edges_pre, e2e_edges_post, e2e_edges_weight ):
         g.add_edge( f'e_{i}', f'e_{j}', weight=w )
     
     # Classify excitatory neurons
@@ -114,9 +162,9 @@ def rcn2nx( rcn, neurons_subsample=None, subsample_attractors=False, seed=None,
     i_nodes = [ f'i_{i}' for i in i_neurons ]
     for n in i_nodes:
         g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title=' ', type='inhibitory' )
-    for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edge_weights ):
+    for i, j, w in zip( i2e_edges_pre, i2e_edges_post, i2e_edges_weight ):
         g.add_edge( f'i_{i}', f'e_{j}', weight=w )
-    for i, j, w in zip( e2i_edges_pre, e2i_edges_post, e2i_edge_weights ):
+    for i, j, w in zip( e2i_edges_pre, e2i_edges_post, e2i_edges_weight ):
         g.add_edge( f'e_{i}', f'i_{j}', weight=w )
     
     # GraphML does not support list or any non-primitive type
@@ -581,4 +629,4 @@ def clean_folder( additional_files=None ):
         except:
             continue
     
-    print( f'Removed {count} files' )
+    print( f'Removed {count} leftover files from {os.getcwd()}' )
