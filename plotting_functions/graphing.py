@@ -122,10 +122,12 @@ def rcn2nx( rcn,
     
     g = nx.DiGraph()
     
+    # TODO compute more advanced statistics on nx
     # Add excitatory neurons
     e_nodes = [ f'e_{i}' for i in e_neurons ]
-    for n in e_nodes:
-        g.add_node( n, label=n, color='rgba(0,0,255,1)', title=' ', type='excitatory' )
+    e_neuron_spikes = np.array( rcn.E_mon.count )[ e_neurons ]
+    for n, spk in zip( e_nodes, e_neuron_spikes ):
+        g.add_node( n, label=n, color='rgba(0,0,255,1)', title=' ', type='excitatory', activity=int( spk ) )
     # Add synapses using excitatory neurons
     for col in e2e_edges.T:
         g.add_edge( f'e_{int( col[ 0 ] )}', f'e_{int( col[ 1 ] )}', weight=col[ 2 ] )
@@ -137,8 +139,9 @@ def rcn2nx( rcn,
     
     # Add inhibitory neurons
     i_nodes = [ f'i_{i}' for i in i_neurons ]
-    for n in i_nodes:
-        g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title=' ', type='inhibitory' )
+    i_neuron_spikes = np.array( rcn.I_mon.count )[ i_neurons ]
+    for n, spk in zip( i_nodes, i_neuron_spikes ):
+        g.add_node( n, label=n, color='rgba(255,0,0,0.5)', title=' ', type='inhibitory', activity=int( spk ) )
     # Add synapses using inhibitory neurons
     for col in i2e_edges.T:
         g.add_edge( f'i_{int( col[ 0 ] )}', f'e_{int( col[ 1 ] )}', weight=col[ 2 ] )
@@ -155,7 +158,7 @@ def rcn2nx( rcn,
 
 
 def nx2pyvis( input, notebook=False, output_filename='graph',
-              scale_by='e-i balance',
+              scale_by='activity',
               neuron_types=None, synapse_types=None,
               open_output=True, show_buttons=True, only_physics_buttons=True, window_size=(1000, 1000) ):
     """Given an instance of a Networx.Graph builds the corresponding PyVis graph for display purposes.
@@ -276,24 +279,24 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         node[ 'title' ] += f'<center><h2>{node[ "id" ]}</h2></center>'
         node[ 'title' ] += f'<h3 style="color: {type_colours[ node[ "type" ] ]}">Kind: {node[ "type" ]}</h3>'
         node[ 'title' ] += f'<h3>E-I balance: {total_excitation - total_inhibition}</h3>'
+        node[ 'title' ] += f'<h3># spikes: {node[ "activity" ]}</h3>'
         if 'e_' in node[ 'id' ]:
             node[ 'title' ] += f'<h3 style="color: {node[ "color" ]}">Attractor: {node[ "attractor" ]}</h3>'
-        node[ 'title' ] += f'<h4>Excites excitatory ({len( node_succ_exc )}):</h4>' + ' '.join(
+        verb = 'Excites' if 'e_' in node[ 'id' ] else 'Inhibits'
+        node[ 'title' ] += f'<h4>{verb} excitatory ({len( node_succ_exc )}):</h4>' + ' '.join(
                 [ f'<p style="color: {nx_graph.nodes[ n ][ "color" ]}">{n} ('
                   f'{nx_graph.nodes[ n ][ "attractor" ]})</p>' for n in node_succ_exc ]
                 )
-        node[ 'title' ] += f'<h4>Excites inhibitory ({len( node_succ_inh )}):</h4>' + ' '.join(
+        node[ 'title' ] += f'<h4>{verb} inhibitory ({len( node_succ_inh )}):</h4>' + ' '.join(
                 [ f'<p style="color: red">{n}</p>' for n in node_succ_inh ]
                 )
         node[ 'title' ] += f'<h4>Excited by ({len( node_pred_exc )}/{total_excitation}):</h4>' + ' '.join(
                 [ f'<p style="color: {nx_graph.nodes[ n ][ "color" ]}">{n}</p>' for n in node_pred_exc ]
                 )
-        if 'e_' in node[ 'id' ]:
-            node[ 'title' ] += f'<h4>Inhibited by ({len( node_pred_inh )}/{total_inhibition}):</h4>' + ' '.join(
-                    [ f'<p style="color: red">{n}</p>' for n in node_pred_inh ]
-                    )
+        node[ 'title' ] += f'<h4>Inhibited by ({len( node_pred_inh )}/{total_inhibition}):</h4>' + ' '.join(
+                [ f'<p style="color: red">{n}</p>' for n in node_pred_inh ]
+                )
         
-        # TODO scale node value by activity and other metrics
         if scale_by == 'neighbours':
             node[ 'value' ] = len( node_pred + node_succ )
         elif scale_by == 'excitation':  # # more excitation, larger node
@@ -303,7 +306,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         elif scale_by == 'e-i balance':
             node[ 'value' ] = total_excitation - total_inhibition
         elif scale_by == 'activity':
-            pass
+            node[ 'value' ] = node[ 'activity' ]
     
     for edge in pyvis_graph.edges:
         edge[ 'title' ] += f'<center><h3 style="color: ' \
@@ -337,7 +340,6 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
 # TODO how much inhibition is each attractor giving?
 # TODO how many inhibitory neurons are shared between attractors?
 # TODO measure net excitation between attractors
-# TODO measure connectedness within each attractor
 
 
 def colour_by_attractor( g ):
