@@ -273,19 +273,26 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         node_succ_exc = [ n for n in succ[ node[ 'id' ] ] if 'e_' in n ]
         node_succ_inh = [ n for n in succ[ node[ 'id' ] ] if 'i_' in n ]
         
+        # TODo add activity to excitation calculation
         total_excitation = np.sum( get_weights( node[ 'id' ], node_pred_exc ) )
         total_inhibition = np.sum( get_weights( node[ 'id' ], node_pred_inh ) )
+        attractor_excitation = sorted(
+                np.array( np.unique( [ nx_graph.nodes( data=True )[ n ][ 'attractor' ] for n in node_succ_exc ],
+                                     return_counts=True ) ).T,
+                key=lambda x: x[ 1 ], reverse=True )
+        attractor_colours = { n[ 1 ][ 'attractor' ]: n[ 1 ][ 'color' ] for n in nx_graph.nodes( data=True ) if
+                              'e_' in n[ 0 ] }
         
         node[ 'title' ] += f'<center><h2>{node[ "id" ]}</h2></center>'
-        node[ 'title' ] += f'<h3 style="color: {type_colours[ node[ "type" ] ]}">Kind: {node[ "type" ]}</h3>'
+        node[ 'title' ] += f'<h3 style="color: {"blue" if "e_" in node[ "id" ] else "red"}">Kind: {node[ "type" ]}</h3>'
         node[ 'title' ] += f'<h3>E-I balance: {total_excitation - total_inhibition}</h3>'
         node[ 'title' ] += f'<h3># spikes: {node[ "activity" ]}</h3>'
         if 'e_' in node[ 'id' ]:
             node[ 'title' ] += f'<h3 style="color: {node[ "color" ]}">Attractor: {node[ "attractor" ]}</h3>'
         verb = 'Excites' if 'e_' in node[ 'id' ] else 'Inhibits'
-        node[ 'title' ] += f'<h4>{verb} excitatory ({len( node_succ_exc )}):</h4>' + ' '.join(
-                [ f'<p style="color: {nx_graph.nodes[ n ][ "color" ]}">{n} ('
-                  f'{nx_graph.nodes[ n ][ "attractor" ]})</p>' for n in node_succ_exc ]
+        node[ 'title' ] += f'<h4>{verb} attractors (total neurons: {len( node_succ_exc )}):</h4>' + ' '.join(
+                [ f'<p style="color: {attractor_colours[ a[ 0 ] ]}">{a[ 0 ]} ({a[ 1 ]})</p>' for a in
+                  attractor_excitation ]
                 )
         node[ 'title' ] += f'<h4>{verb} inhibitory ({len( node_succ_inh )}):</h4>' + ' '.join(
                 [ f'<p style="color: red">{n}</p>' for n in node_succ_inh ]
