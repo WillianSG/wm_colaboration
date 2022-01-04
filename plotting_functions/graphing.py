@@ -158,7 +158,7 @@ def rcn2nx( rcn,
 
 
 def nx2pyvis( input, notebook=False, output_filename='graph',
-              scale_by='activity',
+              scale_by='e-i balance',
               neuron_types=None, synapse_types=None,
               open_output=True, show_buttons=True, only_physics_buttons=True, window_size=(1000, 1000) ):
     """Given an instance of a Networx.Graph builds the corresponding PyVis graph for display purposes.
@@ -183,6 +183,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
     """
     from pyvis import network as net
     import pathlib
+    from collections import defaultdict
     from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
     
     if neuron_types is None:
@@ -261,46 +262,61 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         
         return weights
     
-    # add neighbour data to node hover data
+    # add neighbour data and statistics to node hover popup
     pred = predecessors()
     succ = successors()
     type_colours = { 'excitatory': 'blue', 'inhibitory': 'red' }
     for node in pyvis_graph.nodes:
         node_pred = [ n for n in pred[ node[ 'id' ] ] ]
-        node_pred_exc = [ n for n in pred[ node[ 'id' ] ] if 'e_' in n ]
-        node_pred_inh = [ n for n in pred[ node[ 'id' ] ] if 'i_' in n ]
+        node_pred_exc = [ n for n in node_pred if 'e_' in n ]
+        node_pred_inh = [ n for n in node_pred if 'i_' in n ]
         node_succ = [ n for n in succ[ node[ 'id' ] ] ]
-        node_succ_exc = [ n for n in succ[ node[ 'id' ] ] if 'e_' in n ]
-        node_succ_inh = [ n for n in succ[ node[ 'id' ] ] if 'i_' in n ]
+        node_succ_exc = [ n for n in node_succ if 'e_' in n ]
+        node_succ_inh = [ n for n in node_succ if 'i_' in n ]
         
-        # TODo add activity to excitation calculation
-        total_excitation = np.sum( get_weights( node[ 'id' ], node_pred_exc ) )
-        total_inhibition = np.sum( get_weights( node[ 'id' ], node_pred_inh ) )
-        attractor_excitation = sorted(
+        # associate each incoming attractor with its effect on the current node
+        attractor_pred_exc = defaultdict( float )
+        for w, act, atr in zip( get_weights( node[ 'id' ], node_pred_exc ),
+                                [ nx_graph.nodes( data=True )[ n ][ 'activity' ] for n in node_pred_exc ],
+                                [ nx_graph.nodes( data=True )[ n ][ 'attractor' ] for n in node_pred_exc ] ):
+            attractor_pred_exc[ atr ] += (w * act)
+        total_excitation = sum( attractor_pred_exc.values() )
+        # compute inhibition acting on this node
+        total_inhibition = np.sum( np.array( get_weights( node[ 'id' ], node_pred_inh ) ) * np.array(
+                [ nx_graph.nodes( data=True )[ n ][ 'activity' ] for n in node_pred_inh ] ) )
+        
+        # compute the effect this node has on attractors
+        attractor_succ_exc = sorted(
                 np.array( np.unique( [ nx_graph.nodes( data=True )[ n ][ 'attractor' ] for n in node_succ_exc ],
                                      return_counts=True ) ).T,
                 key=lambda x: x[ 1 ], reverse=True )
+        # compute the effect attractors have on this node
+        attractor_pred_exc = sorted( attractor_pred_exc.items(), key=lambda x: x[ 1 ], reverse=True )
+        
         attractor_colours = { n[ 1 ][ 'attractor' ]: n[ 1 ][ 'color' ] for n in nx_graph.nodes( data=True ) if
                               'e_' in n[ 0 ] }
         
-        node[ 'title' ] += f'<center><h2>{node[ "id" ]}</h2></center>'
-        node[ 'title' ] += f'<h3 style="color: {"blue" if "e_" in node[ "id" ] else "red"}">Kind: {node[ "type" ]}</h3>'
-        node[ 'title' ] += f'<h3>E-I balance: {total_excitation - total_inhibition}</h3>'
-        node[ 'title' ] += f'<h3># spikes: {node[ "activity" ]}</h3>'
+        node[ 'title' ] += f'<center><h3>{node[ "id" ]}</h3></center>'
+        node[ 'title' ] += f'<h4 style="color: {"blue" if "e_" in node[ "id" ] else "red"}">Kind: {node[ "type" ]}</h4>'
         if 'e_' in node[ 'id' ]:
-            node[ 'title' ] += f'<h3 style="color: {node[ "color" ]}">Attractor: {node[ "attractor" ]}</h3>'
+            node[ 'title' ] += f'<h4 style="color: {node[ "color" ]}">Attractor: {node[ "attractor" ]}</h4>'
+        node[ 'title' ] += f'<h4>E-I balance: {total_excitation - total_inhibition}</h4>'
+        node[ 'title' ] += f'<h4># spikes: {node[ "activity" ]}</h4>'
+        node[ 'title' ] += f'<h4>Excitation (total {total_excitation}):</h4>'
         verb = 'Excites' if 'e_' in node[ 'id' ] else 'Inhibits'
         node[ 'title' ] += f'<h4>{verb} attractors (total neurons: {len( node_succ_exc )}):</h4>' + ' '.join(
                 [ f'<p style="color: {attractor_colours[ a[ 0 ] ]}">{a[ 0 ]} ({a[ 1 ]})</p>' for a in
-                  attractor_excitation ]
+                  attractor_succ_exc ]
                 )
+        node[ 'title' ] += f'<h4>Excited by attractors (total neurons: {len( node_pred_exc )}):</h4>' + ' '.join(
+                [ f'<p style="color: {attractor_colours[ a[ 0 ] ]}">{a[ 0 ]} ({a[ 1 ]})</p>' for a in
+                  attractor_pred_exc ]
+                )
+        node[ 'title' ] += f'<h3>Inhibition (total {total_inhibition}):</h3>'
         node[ 'title' ] += f'<h4>{verb} inhibitory ({len( node_succ_inh )}):</h4>' + ' '.join(
                 [ f'<p style="color: red">{n}</p>' for n in node_succ_inh ]
                 )
-        node[ 'title' ] += f'<h4>Excited by ({len( node_pred_exc )}/{total_excitation}):</h4>' + ' '.join(
-                [ f'<p style="color: {nx_graph.nodes[ n ][ "color" ]}">{n}</p>' for n in node_pred_exc ]
-                )
-        node[ 'title' ] += f'<h4>Inhibited by ({len( node_pred_inh )}/{total_inhibition}):</h4>' + ' '.join(
+        node[ 'title' ] += f'<h4>Inhibited by ({len( node_pred_inh )}):</h4>' + ' '.join(
                 [ f'<p style="color: red">{n}</p>' for n in node_pred_inh ]
                 )
         
