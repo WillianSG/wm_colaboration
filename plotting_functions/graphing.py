@@ -157,6 +157,7 @@ def rcn2nx( rcn,
     return g
 
 
+# TODO BUG!!!!! There are fewer edges in PyVis graph than in NetworkX
 def nx2pyvis( input, notebook=False, output_filename='graph',
               scale_by='e-i balance',
               neuron_types=None, synapse_types=None,
@@ -215,6 +216,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         
         pyvis_graph.add_node( node, **node_attrs )
     
+    count = 0
     # for each edge and its attributes in the networkx graph
     for source, target, edge_attrs in nx_graph.edges( data=True ):
         # remove edges that aren't of included type
@@ -228,7 +230,12 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
                 else:
                     edge_attrs[ 'value' ] = ''
             # add the edge
+            count += 1
             pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
+    
+    assert count == len( nx_graph.edges )
+    
+    # TODO Probably pyvis is undirected so it ignores one of the edges of kind (0,1),(1,0)
     
     def successors():
         successors = { }
@@ -350,6 +357,9 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
     pyvis_graph.toggle_hide_edges_on_drag( True )
     pyvis_graph.force_atlas_2based( damping=0.7 )
     
+    print( len( pyvis_graph.nodes ) )
+    print( len( pyvis_graph.edges ) )
+    
     # return and also save
     pyvis_graph.show( f'{output_filename}.html' )
     
@@ -439,6 +449,18 @@ def tag_attracting_components( g ):
     nx.set_node_attributes( g, attracting_map )
 
 
+def get_incoming_weights( nx_graph, i, js ):
+    weights = [ ]
+    
+    for j in js:
+        try:
+            weights.append( nx_graph.get_edge_data( j, i )[ 'weight' ] )
+        except:
+            pass
+    
+    return weights
+
+
 def attractor_inhibition( input, normalise=False, output_filename='attractor_inhibition', comment='' ):
     """Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
     This should be useful to quantify the degree of inhibition of each attractor.
@@ -458,6 +480,7 @@ def attractor_inhibition( input, normalise=False, output_filename='attractor_inh
     from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
     import os
     from pprint import pprint
+    from collections import defaultdict
     
     if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
         g = rcn2nx( input )
@@ -466,20 +489,22 @@ def attractor_inhibition( input, normalise=False, output_filename='attractor_inh
     else:
         raise ValueError( 'input must be of type nx.Graph or RecurrentCompetitiveNet' )
     
+    attractor_inhibition_amount = defaultdict( float )
+    for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
+        attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
+        inhibitory_nodes = [ n for n in g.nodes if 'i_' in n ]
+        # subgraph = g.subgraph( attractor_nodes + inhibitory_nodes )
+        
+        for n in attractor_nodes:
+            pred_n_inh = [ i for i in list( g.predecessors( n ) ) if 'i_' in i ]
+            w = get_incoming_weights( g, n, pred_n_inh )
+            a = [ g.nodes( data=True )[ n ][ 'activity' ] for n in pred_n_inh ]
+            attractor_inhibition_amount[ atr ] += np.sum( np.array( w ) * np.array( a ) )
+    
     if normalise:
         norm = len( [ e for e in g.edges if 'i_' in e[ 0 ] ] )
     else:
         norm = 1
-    
-    attractor_inhibition_amount = { }
-    
-    for i in set( nx.get_node_attributes( g, 'attractor' ).values() ):
-        attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == i ]
-        inhibitory_nodes = [ n for n in g.nodes if 'i_' in n ]
-        subgraph = g.subgraph( attractor_nodes + inhibitory_nodes )
-        
-        attractor_inhibition_amount[ i ] = \
-            len( [ e for e in subgraph.edges if e[ 0 ] in inhibitory_nodes and e[ 1 ] in attractor_nodes ] ) / norm
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
