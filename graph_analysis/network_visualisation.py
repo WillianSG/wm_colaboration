@@ -34,7 +34,7 @@ rcn.stimulus_pulse = True
 
 rcn.net_init()
 
-neurons_subsample = 0.1
+neurons_subsample = 0.05
 edges_subsample = 1
 
 #  ------ Create subsampled graph for visualisation and complete for analysis

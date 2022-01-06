@@ -157,7 +157,6 @@ def rcn2nx( rcn,
     return g
 
 
-# TODO BUG!!!!! There are fewer edges in PyVis graph than in NetworkX
 def nx2pyvis( input, notebook=False, output_filename='graph',
               scale_by='e-i balance',
               neuron_types=None, synapse_types=None,
@@ -200,7 +199,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         nx_graph = nx.read_graphml( input )
     
     # make a pyvis network
-    pyvis_graph = net.Network( notebook=notebook )
+    pyvis_graph = net.Network( notebook=notebook, directed=True )
     pyvis_graph.width = f'{window_size[ 0 ]}px'
     pyvis_graph.height = f'{window_size[ 1 ]}px'
     # for each node and its attributes in the networkx graph
@@ -216,7 +215,6 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         
         pyvis_graph.add_node( node, **node_attrs )
     
-    count = 0
     # for each edge and its attributes in the networkx graph
     for source, target, edge_attrs in nx_graph.edges( data=True ):
         # remove edges that aren't of included type
@@ -230,66 +228,27 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
                 else:
                     edge_attrs[ 'value' ] = ''
             # add the edge
-            count += 1
             pyvis_graph.add_edge( source, target, **edge_attrs, title='', arrows='to', dashes=True )
     
-    assert count == len( nx_graph.edges )
-    
-    # TODO Probably pyvis is undirected so it ignores one of the edges of kind (0,1),(1,0)
-    
-    def successors():
-        successors = { }
-        
-        for n in pyvis_graph.get_nodes():
-            successors[ n ] = set()
-            for e in pyvis_graph.get_edges():
-                if e[ 'from' ] == n:
-                    successors[ n ].add( e[ 'to' ] )
-        
-        return successors
-    
-    def predecessors():
-        predecessors = { }
-        
-        for n in pyvis_graph.get_nodes():
-            predecessors[ n ] = set()
-            for e in pyvis_graph.get_edges():
-                if e[ 'to' ] == n:
-                    predecessors[ n ].add( e[ 'from' ] )
-        
-        return predecessors
-    
-    def get_weights( i, js ):
-        weights = [ ]
-        
-        for j in js:
-            for e in pyvis_graph.get_edges():
-                if e[ 'from' ] == j and e[ 'to' ] == i:
-                    weights.append( e[ 'weight' ] )
-        
-        return weights
-    
     # add neighbour data and statistics to node hover popup
-    pred = predecessors()
-    succ = successors()
     type_colours = { 'excitatory': 'blue', 'inhibitory': 'red' }
     for node in pyvis_graph.nodes:
-        node_pred = [ n for n in pred[ node[ 'id' ] ] ]
+        node_pred = [ n for n in nx_graph.predecessors( node[ 'id' ] ) ]
         node_pred_exc = [ n for n in node_pred if 'e_' in n ]
         node_pred_inh = [ n for n in node_pred if 'i_' in n ]
-        node_succ = [ n for n in succ[ node[ 'id' ] ] ]
+        node_succ = [ n for n in nx_graph.successors( node[ 'id' ] ) ]
         node_succ_exc = [ n for n in node_succ if 'e_' in n ]
         node_succ_inh = [ n for n in node_succ if 'i_' in n ]
         
         # associate each incoming attractor with its effect on the current node
         attractor_pred_exc = defaultdict( float )
-        for w, act, atr in zip( get_weights( node[ 'id' ], node_pred_exc ),
+        for w, act, atr in zip( get_incoming_weights( nx_graph, node[ 'id' ], node_pred_exc ),
                                 [ nx_graph.nodes( data=True )[ n ][ 'activity' ] for n in node_pred_exc ],
                                 [ nx_graph.nodes( data=True )[ n ][ 'attractor' ] for n in node_pred_exc ] ):
             attractor_pred_exc[ atr ] += (w * act)
         total_excitation = sum( attractor_pred_exc.values() )
         # compute inhibition acting on this node
-        total_inhibition = np.sum( np.array( get_weights( node[ 'id' ], node_pred_inh ) ) * np.array(
+        total_inhibition = np.sum( np.array( get_incoming_weights( nx_graph, node[ 'id' ], node_pred_inh ) ) * np.array(
                 [ nx_graph.nodes( data=True )[ n ][ 'activity' ] for n in node_pred_inh ] ) )
         
         # compute the effect this node has on attractors
@@ -309,7 +268,7 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
             node[ 'title' ] += f'<h4 style="color: {node[ "color" ]}">Attractor: {node[ "attractor" ]}</h4>'
         node[ 'title' ] += f'<h4>E-I balance: {total_excitation - total_inhibition}</h4>'
         node[ 'title' ] += f'<h4># spikes: {node[ "activity" ]}</h4>'
-        node[ 'title' ] += f'<h4>Excitation (total {total_excitation}):</h4>'
+        node[ 'title' ] += f'<h3>Excitation (total {total_excitation}):</h3>'
         verb = 'Excites' if 'e_' in node[ 'id' ] else 'Inhibits'
         node[ 'title' ] += f'<h4>{verb} attractors (total neurons: {len( node_succ_exc )}):</h4>' + ' '.join(
                 [ f'<p style="color: {attractor_colours[ a[ 0 ] ]}">{a[ 0 ]} ({a[ 1 ]})</p>' for a in
@@ -356,9 +315,6 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
     pyvis_graph.set_edge_smooth( 'dynamic' )
     pyvis_graph.toggle_hide_edges_on_drag( True )
     pyvis_graph.force_atlas_2based( damping=0.7 )
-    
-    print( len( pyvis_graph.nodes ) )
-    print( len( pyvis_graph.edges ) )
     
     # return and also save
     pyvis_graph.show( f'{output_filename}.html' )
@@ -492,8 +448,6 @@ def attractor_inhibition( input, normalise=False, output_filename='attractor_inh
     attractor_inhibition_amount = defaultdict( float )
     for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
         attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
-        inhibitory_nodes = [ n for n in g.nodes if 'i_' in n ]
-        # subgraph = g.subgraph( attractor_nodes + inhibitory_nodes )
         
         for n in attractor_nodes:
             pred_n_inh = [ i for i in list( g.predecessors( n ) ) if 'i_' in i ]
@@ -502,9 +456,8 @@ def attractor_inhibition( input, normalise=False, output_filename='attractor_inh
             attractor_inhibition_amount[ atr ] += np.sum( np.array( w ) * np.array( a ) )
     
     if normalise:
-        norm = len( [ e for e in g.edges if 'i_' in e[ 0 ] ] )
-    else:
-        norm = 1
+        norm = max( attractor_inhibition_amount.values() )
+        attractor_inhibition_amount = { k: v / norm for k, v in attractor_inhibition_amount.keys() }
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
