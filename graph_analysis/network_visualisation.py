@@ -59,7 +59,14 @@ nx2pyvis( g_first, output_filename='first' )
 comment = '---- First attractor learned'
 print( comment )
 print( 'Attractor inhibition',
-       attractor_inhibition( g_first, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_statistics( g_first, 'inhibition',
+                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+print( 'Attractor excitation',
+       attractor_statistics( g_first, 'excitation',
+                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+print( 'Attractor self-excitation',
+       attractor_statistics( g_first, 'self-excitation',
+                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor connectivity',
        attractor_connectivity( g_first, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 
@@ -79,6 +86,8 @@ comment = '---- Second attractor learned'
 print( comment )
 print( 'Attractor inhibition',
        attractor_inhibition( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+print( 'Attractor excitation',
+       attractor_excitation( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor connectivity',
        attractor_connectivity( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 # print( 'Attractor inhibition (full net)',attractor_inhibition( rcn,comment=comment+' (full net)' ) )

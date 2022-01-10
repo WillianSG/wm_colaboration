@@ -1,5 +1,6 @@
 import networkx as nx
 import numpy as np
+from collections import defaultdict
 
 
 def rgb_to_hex( r, g, b ):
@@ -242,13 +243,13 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         
         # associate each incoming attractor with its effect on the current node
         attractor_pred_exc = defaultdict( float )
-        for w, act, atr in zip( get_incoming_weights( nx_graph, node[ 'id' ], node_pred_exc ),
+        for w, act, atr in zip( get_weights( nx_graph, node_pred_exc, node[ 'id' ] ),
                                 [ nx_graph.nodes( data=True )[ n ][ 'activity' ] for n in node_pred_exc ],
                                 [ nx_graph.nodes( data=True )[ n ][ 'attractor' ] for n in node_pred_exc ] ):
-            attractor_pred_exc[ atr ] += (w * act)
+            attractor_pred_exc[ atr ] += float( w * act )
         total_excitation = sum( attractor_pred_exc.values() )
         # compute inhibition acting on this node
-        total_inhibition = np.sum( np.array( get_incoming_weights( nx_graph, node[ 'id' ], node_pred_inh ) ) * np.array(
+        total_inhibition = np.sum( get_weights( nx_graph, node_pred_inh, node[ 'id' ] ) * np.array(
                 [ nx_graph.nodes( data=True )[ n ][ 'activity' ] for n in node_pred_inh ] ) )
         
         # compute the effect this node has on attractors
@@ -405,84 +406,137 @@ def tag_attracting_components( g ):
     nx.set_node_attributes( g, attracting_map )
 
 
-def get_incoming_weights( nx_graph, i, js ):
-    weights = [ ]
+def get_weights( nx_graph, source, target ):
+    import numbers
     
-    for j in js:
-        try:
-            weights.append( nx_graph.get_edge_data( j, i )[ 'weight' ] )
-        except:
-            pass
+    if isinstance( source, numbers.Number ) or isinstance( source, str ):
+        target = [ source ]
+    if isinstance( target, numbers.Number ) or isinstance( target, str ):
+        target = [ target ]
+    
+    weights = np.zeros( (len( source ), len( target )) )
+    
+    for i, s in enumerate( source ):
+        for j, t in enumerate( target ):
+            try:
+                weights[ i, j ] = nx_graph.get_edge_data( s, t )[ 'weight' ]
+            except:
+                pass
     
     return weights
 
 
-def attractor_inhibition( input, normalise=False, output_filename='attractor_inhibition', comment='' ):
-    """Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
-    This should be useful to quantify the degree of inhibition of each attractor.
-    For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells
-    via 5 connections, and attractor 1 via 4.
-    
-    Parameters:
-    input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
-    inhibition amount
-    normalise (bool): if True the inhibition value is normalised by the total number of inhibitory connections
-    output_filename (str): the name of the txt file to write results to in os.getcwd()
-    
-    Returns:
-    attractor_inhibition_amount (dict): dictionary of attractors with the amount of inhibition as the value
-    
-    """
+def check_input( input ):
     from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+    
+    if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
+        return rcn2nx( input )
+    elif isinstance( input, nx.Graph ):
+        return input
+    else:
+        raise ValueError( 'input must be of type nx.Graph or RecurrentCompetitiveNet' )
+
+
+def attractor_statistics( input, statistic,
+                          include_weights=False, include_activity=False, normalise=False,
+                          comment='' ):
+    """Compute the attracting components in the NetworkX graph and store the information in the nodes.
+
+    An attracting component in a directed graph G is a strongly connected component with the property that a random
+    walker on the graph will never leave the component, once it enters the component.  The nodes in attracting
+    components can also be thought of as recurrent nodes. If a random walker enters the attractor containing the node,
+    then the node will be visited infinitely often.
+
+    Parameters:
+    input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the statistic
+    statistic (str): the statistic to compute.  One between "inhibition", "excitation", "self-excitation'.
+    include_weights (bool): whether to account for the edge weights in the calculation
+    include_activity (bool): whether to account for the neuronal activity as spikes in the calculation
+    normalise (bool): whether to normalise the computed statistic
+    comment (str): the comment to append to the generated txt file in os.getcwd()
+
+    Returns:
+    None
+
+    """
+    
     import os
     from pprint import pprint
     from collections import defaultdict
     
-    if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
-        g = rcn2nx( input )
-    elif isinstance( input, nx.Graph ):
-        g = input
-    else:
-        raise ValueError( 'input must be of type nx.Graph or RecurrentCompetitiveNet' )
+    if statistic == 'inhibition':
+        pred_nodes = lambda i, atr: 'i_' in i
+        output_filename = 'attractor_inhibition'
+        file_header = """Generated via the graphing/attractor_inhibition function.
+			
+	Compute the inhibition of each attractor in the NetworkX graph as the sum of inhibitory neuron activity times
+    the connection weight.
+	This should be useful to quantify the degree of inhibition of each attractor.
+	
+	Results:
+	
+	"""
+    elif statistic == 'excitation':
+        pred_nodes = lambda i, atr: 'e_' in i
+        output_filename = 'attractor_excitation'
+        file_header = """Generated via the graphing/attractor_inhibition function.
+			
+    Compute the excitation of each attractor in the NetworkX graph as the sum of excitatory neuron activity times
+    the connection weight.
+	This should be useful to quantify the degree of excitation of each attractor.
+	
+	Results:
+	
+	"""
+    elif statistic == 'self-excitation':
+        pred_nodes = lambda i, atr: 'e_' in i and atr == g.nodes( data=True )[ i ][ 'attractor' ]
+        output_filename = 'attractor_self_excitation'
+        file_header = """Generated via the graphing/attractor_inhibition function.
+			
+    Compute the self-excitation of each attractor in the NetworkX graph as the sum of activity of excitatory
+    neurons within the attractor times the connection weight.
+	This should be useful to quantify the degree of excitation of each attractor.
+	
+	Results:
+	
+	"""
     
-    attractor_inhibition_amount = defaultdict( float )
+    g = check_input( input )
+    
+    attractor_statistic_amount = defaultdict( float )
     for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
         attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
         
         for n in attractor_nodes:
-            pred_n_inh = [ i for i in list( g.predecessors( n ) ) if 'i_' in i ]
-            w = get_incoming_weights( g, n, pred_n_inh )
-            a = [ g.nodes( data=True )[ n ][ 'activity' ] for n in pred_n_inh ]
-            attractor_inhibition_amount[ atr ] += np.sum( np.array( w ) * np.array( a ) )
+            pred_n = [ i for i in list( g.predecessors( n ) ) if pred_nodes( i, atr ) ]
+            if include_weights:
+                w = get_weights( g, n, pred_n )
+            else:
+                w = np.ones( len( pred_n ) )
+            if include_activity:
+                a = [ g.nodes( data=True )[ n ][ 'activity' ] for n in pred_n ]
+            else:
+                a = np.ones( len( pred_n ) )
+            attractor_statistic_amount[ atr ] += np.sum( np.array( w ) * np.array( a ) )
     
     if normalise:
-        norm = max( attractor_inhibition_amount.values() )
-        attractor_inhibition_amount = { k: v / norm for k, v in attractor_inhibition_amount.keys() }
+        norm = max( attractor_statistic_amount.values() )
+        attractor_statistic_amount = { k: v / norm for k, v in attractor_statistic_amount.items() }
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
-            f.write( """Generated via the graphing/attractor_inhibition function.
-			
-	Compute the number of inhibitory connections incident to each attractor in the NetworkX graph.
-	This should be useful to quantify the degree of inhibition of each attractor.
-	For ex. attractor_inhibition_amount={0: 5, 1: 4} means that attractor 0 is receiving input from inhibitory cells
-	via
-	5 connections, and attractor 1 via 4.
-	
-	Results:
-	
-	""" )
+            f.write( file_header )
             f.write( f'\t{comment}\n\t' )
-            pprint( attractor_inhibition_amount, stream=f )
+            pprint( attractor_statistic_amount, stream=f )
     else:
         with open( f'{os.getcwd()}/{output_filename}.txt', 'a' ) as f:
             f.write( f'\t{comment}\n\t' )
-            pprint( attractor_inhibition_amount, stream=f )
+            pprint( attractor_statistic_amount, stream=f )
     
-    return attractor_inhibition_amount
+    return attractor_statistic_amount
 
 
-def attractor_connectivity( input, output_filename='attractor_connectivity', comment='' ):
+def attractor_connectivity( input, comment='' ):
     """Computes the average node connectivity within each attractor in the NetworkX graph.
     This should be useful to quantify the amount of self-excitation each attractor has.
     The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
@@ -493,23 +547,20 @@ def attractor_connectivity( input, output_filename='attractor_connectivity', com
     Parameters:
     input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
     connectivity
-    output_filename (str): the name of the txt file to write results to in os.getcwd()
+    comment (str): the comment to append to the generated txt file in os.getcwd()
+
     
     Returns:
     attractor_connectivity_amount (dict): dictionary of attractors with the average node connectivity as the value
     
 """
     from networkx.algorithms.connectivity.connectivity import average_node_connectivity
-    from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
     import os
     from pprint import pprint
     
-    if not isinstance( input, nx.Graph ) and isinstance( input, RecurrentCompetitiveNet ):
-        g = rcn2nx( input )
-    elif isinstance( input, nx.Graph ):
-        g = input
-    else:
-        raise ValueError( 'input must be of type nx.Graph or RecurrentCompetitiveNet' )
+    output_filename = 'attractor_connectivity'
+    
+    g = check_input( input )
     
     attractor_connectivity_amount = { }
     
@@ -541,6 +592,84 @@ def attractor_connectivity( input, output_filename='attractor_connectivity', com
             pprint( attractor_connectivity_amount, stream=f )
     
     return attractor_connectivity_amount
+
+
+def attractor_mutual_inhibition( input,
+                                 include_weights=False, include_activity=False,
+                                 comment='' ):
+    """Computes how much each attractor inhibits the others in the NetworkX graph.
+    
+    Parameters:
+    input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
+    connectivity
+    include_weights (bool): whether to account for the edge weights in the calculation
+    include_activity (bool): whether to account for the neuronal activity as spikes in the calculation
+    comment (str): the comment to append to the generated txt file in os.getcwd()
+
+    Returns:
+    attractor_inhibition_amount (dict): dictionary of attractors with the average node connectivity as the value
+    
+"""
+    import os
+    from pprint import pprint
+    
+    output_filename = 'attractor_mutual_inhibition'
+    
+    g = check_input( input )
+    
+    attractors = set( nx.get_node_attributes( g, 'attractor' ).values() )
+    attractor_inhibition_amount = defaultdict( dict )
+    for source_atr in attractors:
+        source_attractor_nodes = [ n for n, v in g.nodes( data=True )
+                                   if 'e_' in n and v[ 'attractor' ] == source_atr ]
+        
+        # find successor inhibitory nodes from source attractor
+        succ_inh = set()
+        for n in source_attractor_nodes:
+            succ_inh.update( [ i for i in list( g.successors( n ) ) if 'i_' in i ] )
+        
+        # check current attractor against all others
+        for target_atr in attractors:
+            target_attractor_nodes = [ n for n, v in g.nodes( data=True ) if
+                                       'e_' in n and v[ 'attractor' ] == target_atr ]
+            
+            # find predecessor inhibitory nodes from drain attractor
+            pred_inh = set()
+            for n in target_attractor_nodes:
+                pred_inh.update( [ i for i in list( g.predecessors( n ) ) if 'i_' in i ] )
+            
+            inh = list( succ_inh.intersection( pred_inh ) )
+            
+            w = get_weights( g, inh, target_attractor_nodes )
+            if not include_weights:
+                w[ w != 0 ] = 1
+            a = np.array( [ g.nodes( data=True )[ n ][ 'activity' ] for n in inh ] )
+            if not include_activity:
+                a[ a != 0 ] = 1
+            
+            if include_weights or include_activity:
+                attractor_inhibition_amount[ source_atr ][ target_atr ] = np.sum( w.T @ a ) if len( inh ) > 0 else 0
+            else:
+                attractor_inhibition_amount[ source_atr ][ target_atr ] = len( inh )
+    
+    if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
+        with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
+            f.write( """Generated via the graphing/attractor_mutual_inhibition function.
+			
+    Computes how much each attractor inhibits the others in the NetworkX graph.
+	
+	Results:
+
+	""" )
+            f.write( f'\t{comment}\n' )
+            pprint( attractor_inhibition_amount, stream=f )
+    
+    else:
+        with open( f'{os.getcwd()}/{output_filename}.txt', 'a' ) as f:
+            f.write( f'\t{comment}\n' )
+            pprint( attractor_inhibition_amount, stream=f )
+    
+    return attractor_inhibition_amount
 
 
 files = [
