@@ -438,7 +438,7 @@ def check_input( input ):
 
 
 def attractor_statistics( input, statistic,
-                          include_weights=False, include_activity=False, normalise=False,
+                          include_weights=False, include_activity=False, normalise=True,
                           comment='' ):
     """Compute the attracting components in the NetworkX graph and store the information in the nodes.
 
@@ -595,7 +595,7 @@ def attractor_connectivity( input, comment='' ):
 
 
 def attractor_mutual_inhibition( input,
-                                 include_weights=False, include_activity=False,
+                                 include_weights=False, include_activity=False, normalise=True,
                                  comment='' ):
     """Computes how much each attractor inhibits the others in the NetworkX graph.
     
@@ -651,6 +651,14 @@ def attractor_mutual_inhibition( input,
                 attractor_inhibition_amount[ source_atr ][ target_atr ] = np.sum( w.T @ a ) if len( inh ) > 0 else 0
             else:
                 attractor_inhibition_amount[ source_atr ][ target_atr ] = len( inh )
+    
+    if normalise:
+        norm = max( { k: max( v.values() ) for k, v in attractor_inhibition_amount.items() }.values() )
+        normalised_amount = defaultdict( dict )
+        for k, v in attractor_inhibition_amount.items():
+            for kk, vv in v.items():
+                normalised_amount[ k ][ kk ] = vv / norm
+        attractor_inhibition_amount = normalised_amount
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
