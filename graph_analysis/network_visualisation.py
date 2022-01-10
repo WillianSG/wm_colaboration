@@ -84,14 +84,14 @@ nx2pyvis( g_second, output_filename='second' )
 
 comment = '---- Second attractor learned'
 print( comment )
-print( 'Attractor inhibition',
-       attractor_inhibition( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
-print( 'Attractor excitation',
-       attractor_excitation( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
-print( 'Attractor connectivity',
-       attractor_connectivity( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+# print( 'Attractor inhibition',
+#        attractor_inhibition( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+# print( 'Attractor excitation',
+#        attractor_excitation( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+# print( 'Attractor connectivity',
+#        attractor_connectivity( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 # print( 'Attractor inhibition (full net)',attractor_inhibition( rcn,comment=comment+' (full net)' ) )
-# print( 'Attractor connectivity (full net)',attractor_connectivity( rcn ,comment=comment+' (full net)') ) # Likely
+print( 'Attractor connectivity (full net)', attractor_connectivity( rcn, comment=comment + ' (full net)' ) )  # Likely
 # to be slow, wait ~3 minutes on Apple M1
 
 # TODO save plots and graphs in same RCN directory

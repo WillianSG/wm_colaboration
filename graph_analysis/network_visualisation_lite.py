@@ -1,6 +1,6 @@
 from plotting_functions.graphing import *
 
-g = nx.read_graphml( 'interesting_graph_results/2022-01-07_17.05.18/second.graphml' )
+g = nx.read_graphml( 'interesting_graph_results/2022-01-07_17.05.18/second_complete.graphml' )
 nx2pyvis( g, output_filename='test', open_output=False )
 
 print( 'Nodes:', len( g.nodes ) )

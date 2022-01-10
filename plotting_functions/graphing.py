@@ -3,6 +3,22 @@ import numpy as np
 from collections import defaultdict
 
 
+def timefunc( func ):
+    import time
+    import functools
+    
+    @functools.wraps( func )
+    def time_closure( *args, **kwargs ):
+        """time_wrapper's doc string"""
+        start = time.perf_counter()
+        result = func( *args, **kwargs )
+        time_elapsed = time.perf_counter() - start
+        print( f"Function: {func.__name__}, Time: {time_elapsed}" )
+        return result
+    
+    return time_closure
+
+
 def rgb_to_hex( r, g, b ):
     return '#{:02X}{:02X}{:02X}'.format( r, g, b )
 
@@ -536,7 +552,8 @@ def attractor_statistics( input, statistic,
     return attractor_statistic_amount
 
 
-def attractor_connectivity( input, comment='' ):
+@timefunc
+def attractor_connectivity( input, approximate=True, comment='' ):
     """Computes the average node connectivity within each attractor in the NetworkX graph.
     This should be useful to quantify the amount of self-excitation each attractor has.
     The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
@@ -549,14 +566,15 @@ def attractor_connectivity( input, comment='' ):
     connectivity
     comment (str): the comment to append to the generated txt file in os.getcwd()
 
-    
     Returns:
     attractor_connectivity_amount (dict): dictionary of attractors with the average node connectivity as the value
     
 """
-    from networkx.algorithms.connectivity.connectivity import average_node_connectivity
     import os
     from pprint import pprint
+    from networkx.algorithms.connectivity.connectivity import average_node_connectivity, node_connectivity
+    from networkx.algorithms.flow import shortest_augmenting_path
+    from networkx.algorithms import approximation as approx
     
     output_filename = 'attractor_connectivity'
     
@@ -564,11 +582,16 @@ def attractor_connectivity( input, comment='' ):
     
     attractor_connectivity_amount = { }
     
-    for i in set( nx.get_node_attributes( g, 'attractor' ).values() ):
-        attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == i ]
+    for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
+        attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
         subgraph = g.subgraph( attractor_nodes )
         
-        attractor_connectivity_amount[ i ] = average_node_connectivity( subgraph )
+        # attractor_connectivity_amount[ atr ] = average_node_connectivity( subgraph )
+        
+        if approximate:
+            attractor_connectivity_amount[ atr ] = approx.node_connectivity( subgraph )
+        else:
+            attractor_connectivity_amount[ atr ] = node_connectivity( subgraph, flow_func=shortest_augmenting_path )
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
