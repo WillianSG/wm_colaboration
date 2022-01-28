@@ -483,7 +483,7 @@ def attractor_statistics( input, statistic,
     if statistic == 'inhibition':
         pred_nodes = lambda i, atr: 'i_' in i
         output_filename = 'attractor_inhibition'
-        file_header = """Generated via the graphing/attractor_inhibition function.
+        file_header = """Generated via the graphing/attractor_statistics function.
 			
 	Compute the inhibition of each attractor in the NetworkX graph as the sum of inhibitory neuron activity times
     the connection weight.
@@ -495,7 +495,7 @@ def attractor_statistics( input, statistic,
     elif statistic == 'excitation':
         pred_nodes = lambda i, atr: 'e_' in i
         output_filename = 'attractor_excitation'
-        file_header = """Generated via the graphing/attractor_inhibition function.
+        file_header = """Generated via the graphing/attractor_statistics function.
 			
     Compute the excitation of each attractor in the NetworkX graph as the sum of excitatory neuron activity times
     the connection weight.
@@ -507,7 +507,7 @@ def attractor_statistics( input, statistic,
     elif statistic == 'self-excitation':
         pred_nodes = lambda i, atr: 'e_' in i and atr == g.nodes( data=True )[ i ][ 'attractor' ]
         output_filename = 'attractor_self_excitation'
-        file_header = """Generated via the graphing/attractor_inhibition function.
+        file_header = """Generated via the graphing/attractor_statistics function.
 			
     Compute the self-excitation of each attractor in the NetworkX graph as the sum of activity of excitatory
     neurons within the attractor times the connection weight.
@@ -564,6 +564,7 @@ def attractor_connectivity( input, approximate=True, comment='' ):
     Parameters:
     input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
     connectivity
+    approximate (bool): whether to use the approximate version of the average node connectivity
     comment (str): the comment to append to the generated txt file in os.getcwd()
 
     Returns:
@@ -617,6 +618,68 @@ def attractor_connectivity( input, approximate=True, comment='' ):
     return attractor_connectivity_amount
 
 
+@timefunc
+def attractor_algebraic_connectivity( input, variant=1, comment='' ):
+    """Computes the directed algebraic connectivity for each attractor in graph G, based on the definitions in
+    [C. W. Wu, "Synchronization in Complex Networks of Nonlinear Dynamical Systems", World Scientific, 2007].
+    
+    Parameters:
+    input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
+    algebraic connectivity
+    variant (int): the variant of algebraic connectivity to use
+    comment (str): the comment to append to the generated txt file in os.getcwd()
+
+    Returns:
+    attractor_connectivity_amount (dict): dictionary of attractors with the average node connectivity as the value
+    
+"""
+    import os
+    from pprint import pprint
+    
+    from algebraic_connectivity_directed.algebraic_connectivity_directed import algebraic_connectivity_directed_variants
+    output_filename = 'attractor_algebraic_connectivity'
+    
+    g = check_input( input )
+    
+    attractor_connectivity_amount = { }
+    
+    for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
+        attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
+        subgraph = g.subgraph( attractor_nodes )
+        
+        if len( subgraph.edges() ) != 0:
+            attractor_connectivity_amount[ atr ] = algebraic_connectivity_directed_variants( subgraph, variant )
+        else:
+            attractor_connectivity_amount[ atr ] = 0
+    
+    if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
+        with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
+            f.write( """Computes the directed algebraic connectivity for each attractor in graph G, based on the
+            definitions in
+    [C. W. Wu, "Synchronization in Complex Networks of Nonlinear Dynamical Systems", World Scientific, 2007].
+    
+    Parameters:
+    input (networkx.Graph or RecurrentCompetitiveNet): the graph or the RCN for which to compute the attractors'
+    algebraic connectivity
+    variant (int): the variant of algebraic connectivity to use
+    comment (str): the comment to append to the generated txt file in os.getcwd()
+
+    Returns:
+    attractor_connectivity_amount (dict): dictionary of attractors with the algebraic connectivity as the value
+    
+""" )
+            f.write( f'\t{comment}\n' )
+            pprint( attractor_connectivity_amount, stream=f )
+    
+    else:
+        with open( f'{os.getcwd()}/{output_filename}.txt', 'a' ) as f:
+            f.write( f'\t{comment}\n' )
+            pprint( attractor_connectivity_amount, stream=f )
+    
+    return attractor_connectivity_amount
+
+
+@timefunc
 def attractor_mutual_inhibition( input,
                                  include_weights=False, include_activity=False, normalise=True,
                                  comment='' ):
