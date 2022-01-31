@@ -18,7 +18,7 @@ clean_folder()
 
 # 1 ------ initializing/running network ------
 
-show_graphs = False
+show_graphs = True
 plasticity_rule = 'LR3'
 parameter_set = '2.0'
 # plasticity_rule = 'LR4'
@@ -36,13 +36,13 @@ rcn.net_init()
 
 neurons_subsample = 0.05
 edges_subsample = 1
-
+# TODO plot without edges
 #  ------ Create subsampled graph for visualisation and complete for analysis
 g_initial = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                     edges_subsample=edges_subsample,
                     output_filename='initial' )
-rcn2nx( rcn, output_filename='initial_complete' )
-nx2pyvis( g_initial, output_filename='initial', open_output=show_plots )
+g_initial_complete = rcn2nx( rcn, output_filename='initial_complete' )
+nx2pyvis( g_initial, output_filename='initial', open_output=show_graphs )
 
 # -------- First attractor
 rcn.set_E_E_plastic( plastic=True )
@@ -53,24 +53,25 @@ rcn.run_net( period=2 )
 g_first = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                   edges_subsample=edges_subsample,
                   output_filename='first' )
-rcn2nx( rcn, output_filename='first_complete' )
-nx2pyvis( g_first, output_filename='first', open_output=show_plots )
+g_first_complete = rcn2nx( rcn, output_filename='first_complete' )
+nx2pyvis( g_first, output_filename='first', open_output=show_graphs )
 
 comment = '---- First attractor learned'
 print( comment )
 print( 'Attractor inhibition',
-       attractor_statistics( g_first, 'inhibition',
+       attractor_statistics( g_first_complete, 'inhibition',
                              comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor excitation',
-       attractor_statistics( g_first, 'excitation',
+       attractor_statistics( g_first_complete, 'excitation',
                              comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor self-excitation',
-       attractor_statistics( g_first, 'self-excitation',
+       attractor_statistics( g_first_complete, 'self-excitation',
                              comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor connectivity',
-       attractor_connectivity( g_first, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_connectivity( g_first_complete,
+                               comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor algebraic connectivity',
-       attractor_algebraic_connectivity( g_first,
+       attractor_algebraic_connectivity( g_first_complete,
                                          comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 
 # --------- Second attractor
@@ -82,27 +83,29 @@ rcn.run_net( period=2 )
 g_second = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                    edges_subsample=edges_subsample,
                    output_filename='second' )
-rcn2nx( rcn, output_filename='second_complete' )
-nx2pyvis( g_second, output_filename='second', open_output=show_plots )
+g_second_complete = rcn2nx( rcn, output_filename='second_complete' )
+nx2pyvis( g_second, output_filename='second', open_output=show_graphs )
 
 comment = '---- Second attractor learned'
 print( comment )
 print( 'Attractor inhibition',
-       attractor_statistics( g_second, 'inhibition',
+       attractor_statistics( g_second_complete, 'inhibition',
                              comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor excitation',
-       attractor_statistics( g_second, 'excitation',
+       attractor_statistics( g_second_complete, 'excitation',
                              comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor self-excitation',
-       attractor_statistics( g_second, 'self-excitation',
+       attractor_statistics( g_second_complete, 'self-excitation',
                              comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor connectivity',
-       attractor_connectivity( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_connectivity( g_second_complete,
+                               comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor algebraic connectivity',
-       attractor_algebraic_connectivity( g_second,
+       attractor_algebraic_connectivity( g_second_complete,
                                          comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 
 # TODO save plots and graphs in same RCN directory
+# TODo evaluate connectivity and algebraic connectivity for inhibitory
 plot_rcn_spiketrains_histograms(
         Einp_spks=rcn.get_Einp_spks()[ 0 ],
         Einp_ids=rcn.get_Einp_spks()[ 1 ],

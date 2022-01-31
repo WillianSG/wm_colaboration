@@ -552,6 +552,7 @@ def attractor_statistics( input, statistic,
     return attractor_statistic_amount
 
 
+# TODO attractor connectiviy returnintg 0 for some attractors
 @timefunc
 def attractor_connectivity( input, approximate=True, comment='' ):
     """Computes the average node connectivity within each attractor in the NetworkX graph.
@@ -647,10 +648,7 @@ def attractor_algebraic_connectivity( input, variant=1, comment='' ):
         attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
         subgraph = g.subgraph( attractor_nodes )
         
-        if len( subgraph.edges() ) != 0:
-            attractor_connectivity_amount[ atr ] = algebraic_connectivity_directed_variants( subgraph, variant )
-        else:
-            attractor_connectivity_amount[ atr ] = 0
+        attractor_connectivity_amount[ atr ] = algebraic_connectivity_directed_variants( subgraph, variant )
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
