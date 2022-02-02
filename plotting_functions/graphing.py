@@ -646,11 +646,8 @@ def attractor_algebraic_connectivity( input, variant=1, comment='' ):
     for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
         attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
         subgraph = g.subgraph( attractor_nodes )
-        
-        if len( subgraph.edges() ) != 0:
-            attractor_connectivity_amount[ atr ] = algebraic_connectivity_directed_variants( subgraph, variant )
-        else:
-            attractor_connectivity_amount[ atr ] = 0
+
+        attractor_connectivity_amount[ atr ] = algebraic_connectivity_directed_variants( subgraph, variant )
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
@@ -772,6 +769,7 @@ files = [
         'second.html', 'second.graphml', 'second_complete.graphml',
         'rcn_population_spiking.png',
         'attractor_inhibition.txt', 'attractor_connectivity.txt',
+    'E_spikes.txt'
         ]
 
 
@@ -817,7 +815,6 @@ def save_graph_results( folder='interesting_graph_results', additional_files=Non
         else:
             with open( f'{new_folder}/comments.txt', 'w' ) as f:
                 f.write( 'Nothing particular to remark.' )
-    
     else:
         os.rmdir( new_folder )
         print( 'No files to move' )
