@@ -20,8 +20,10 @@ def video_SPIKE_profile( rcn, filename=None, sim_time=6 ):
 
 
 def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
-    import matplotlib.pyplot as plt
     import os
+    import matplotlib.pyplot as plt
+    from scipy.ndimage.filters import uniform_filter1d
+    from scipy.signal import savgol_filter
     import pyspike as spk
     
     # -- write spikes to text file if it is not supplied or it does not exist
@@ -42,9 +44,10 @@ def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     spike_sync_profile_A2 = spk.spike_sync_profile( spike_trains, indices=A2 )
     
     # -- make figure
-    fig = plt.figure( figsize=(65, 45) )
+    fig = plt.figure( figsize=(30, 20) )
     gs = plt.GridSpec( 3, 2, width_ratios=[ 4, 1 ] )
-    plt.rcParams.update( { 'font.size': 44 } )
+    plt.rcParams.update( { 'font.size': 22 } )
+    mean_filter_size = 500
     
     # -- plot neuronal spikes with attractors in different colours
     ax_spikes = fig.add_subplot( gs[ 0, 0 ] )
@@ -54,8 +57,8 @@ def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     A2_spks = spks[ A2_indexes ]
     A1_ids = ids[ A1_indexes ]
     A2_ids = ids[ A2_indexes ]
-    ax_spikes.plot( A1_spks, A1_ids, '.', color='orange', label='A1' )
-    ax_spikes.plot( A2_spks, A2_ids, '.', color='green', label='A2' )
+    ax_spikes.plot( A1_spks, A1_ids, '.', markersize=0.5, alpha=0.5, color='orange', label='A1' )
+    ax_spikes.plot( A2_spks, A2_ids, '.', markersize=0.5, alpha=0.5, color='green', label='A2' )
     ax_spikes.set_xlim( 0, sim_time )
     ax_spikes.set_ylim( 0, rcn.N_input_e )
     ax_spikes.set_xlabel( 'Time (s)' )
@@ -65,8 +68,15 @@ def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     
     # -- plot spike distance profile
     ax_distance = fig.add_subplot( gs[ 1, 0 ] )
-    ax_distance.plot( *spike_distance_profile_A1.get_plottable_data(), '--', color='orange', label='A1' )
-    ax_distance.plot( *spike_distance_profile_A2.get_plottable_data(), '--', color='green', label='A2' )
+    x, y = spike_distance_profile_A1.get_plottable_data()
+    ax_distance.plot( x, y, '--', color='orange', label='A1' )
+    y_smooth = uniform_filter1d( y, size=mean_filter_size )
+    ax_distance.plot( x, y_smooth, '.', markersize=0.5, color='orange' )
+    x, y = spike_distance_profile_A2.get_plottable_data()
+    ax_distance.plot( x, y, '--', color='green', label='A2' )
+    y_smooth = uniform_filter1d( y, size=mean_filter_size )
+    ax_distance.plot( x, y_smooth, '.', markersize=0.5, color='green' )
+    
     ax_distance.set_xlim( 0, sim_time )
     ax_distance.set_ylim( 0, 1 )
     ax_distance.set_xlabel( 'Time (s)' )
@@ -83,8 +93,14 @@ def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     
     # -- plot spike sync profile
     ax_sync = fig.add_subplot( gs[ 2, 0 ] )
-    ax_sync.plot( *spike_sync_profile_A1.get_plottable_data(), '--', color='orange', label='A1' )
-    ax_sync.plot( *spike_sync_profile_A2.get_plottable_data(), '--', color='green', label='A2' )
+    x, y = spike_sync_profile_A1.get_plottable_data()
+    ax_sync.plot( x, y, '--', color='orange', alpha=0.5, label='A1' )
+    y_smooth = uniform_filter1d( y, size=mean_filter_size )
+    ax_sync.plot( x, y_smooth, '.', markersize=0.5, color='orange' )
+    x, y = spike_sync_profile_A2.get_plottable_data()
+    ax_sync.plot( x, y, '--', color='green', alpha=0.5, label='A2' )
+    y_smooth = uniform_filter1d( y, size=mean_filter_size )
+    ax_sync.plot( x, y_smooth, '.', markersize=0.5, color='green' )
     ax_sync.set_xlim( 0, sim_time )
     ax_sync.set_ylim( 0, 1 )
     ax_sync.set_xlabel( 'Time (s)' )
