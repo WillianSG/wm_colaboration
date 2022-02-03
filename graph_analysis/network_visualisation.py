@@ -122,7 +122,6 @@ plot_rcn_spiketrains_histograms(
         path_to_plot=os.getcwd(),
         show=show_plots )
 
-save_spikes_pyspike( rcn.get_E_spks( spike_trains=True ) )
 plot_SPIKE_profile( rcn )
 
 # save_graph_results()

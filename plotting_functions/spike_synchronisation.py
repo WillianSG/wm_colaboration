@@ -7,7 +7,7 @@ def save_spikes_pyspike( spikes ):
     filename = '../graph_analysis/E_spikes.txt'
     
     with open( filename, 'w' ) as file:
-        file.write( '# Spikes from excitatory population' )
+        file.write( '# Spikes from excitatory population\n\n' )
         for v in spikes.values():
             np.savetxt( file, np.array( v ), newline=' ' )
             file.write( '\n' )
@@ -15,12 +15,14 @@ def save_spikes_pyspike( spikes ):
     return filename
 
 
+def video_SPIKE_profile( rcn, filename=None, sim_time=6 ):
+    pass
+
+
 def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     import matplotlib.pyplot as plt
     import os
     import pyspike as spk
-    
-    plt.rcParams.update( { 'font.size': 22 } )
     
     # -- write spikes to text file if it is not supplied or it does not exist
     if not filename or not os.path.exists( filename ):
@@ -30,8 +32,8 @@ def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
                                                    ignore_empty_lines=False )
     
     # -- define attractor indices
-    A1 = (0, 64)
-    A2 = (100, 164)
+    A1 = list( range( 0, 64 ) )
+    A2 = list( range( 100, 164 ) )
     
     # -- compute distance and sync profiles for the two attractors
     spike_distance_profile_A1 = spk.spike_profile( spike_trains, indices=A1 )
@@ -40,12 +42,14 @@ def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     spike_sync_profile_A2 = spk.spike_sync_profile( spike_trains, indices=A2 )
     
     # -- make figure
-    fig = plt.figure( figsize=(30, 20) )
+    fig = plt.figure( figsize=(65, 45) )
+    gs = plt.GridSpec( 3, 2, width_ratios=[ 4, 1 ] )
+    plt.rcParams.update( { 'font.size': 44 } )
     
     # -- plot neuronal spikes with attractors in different colours
-    ax_spikes = fig.add_subplot( 3, 1, 1 )
-    A1_indexes = np.argwhere( np.logical_and( ids >= A1[ 0 ], ids < A1[ 1 ] ) )
-    A2_indexes = np.argwhere( np.logical_and( ids >= A2[ 0 ], ids < A2[ 1 ] ) )
+    ax_spikes = fig.add_subplot( gs[ 0, 0 ] )
+    A1_indexes = np.argwhere( np.logical_and( ids >= A1[ 0 ], ids <= A1[ -1 ] ) )
+    A2_indexes = np.argwhere( np.logical_and( ids >= A2[ 0 ], ids <= A2[ -1 ] ) )
     A1_spks = spks[ A1_indexes ]
     A2_spks = spks[ A2_indexes ]
     A1_ids = ids[ A1_indexes ]
@@ -60,35 +64,49 @@ def plot_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     ax_spikes.legend()
     
     # -- plot spike distance profile
-    ax_distance = fig.add_subplot( 3, 1, 2 )
+    ax_distance = fig.add_subplot( gs[ 1, 0 ] )
     ax_distance.plot( *spike_distance_profile_A1.get_plottable_data(), '--', color='orange', label='A1' )
     ax_distance.plot( *spike_distance_profile_A2.get_plottable_data(), '--', color='green', label='A2' )
     ax_distance.set_xlim( 0, sim_time )
     ax_distance.set_ylim( 0, 1 )
     ax_distance.set_xlabel( 'Time (s)' )
     ax_distance.set_ylabel( 'SPIKE-distance' )
-    ax_distance.set_title( 'Spike distance profile' )
+    ax_distance.set_title( 'SPIKE-distance profile' )
     ax_distance.legend()
     
+    ax_distance_matrix = fig.add_subplot( gs[ 1, 1 ] )
+    spike_distance = spk.spike_distance_matrix( spike_trains )
+    im1 = ax_distance_matrix.imshow( spike_distance, vmin=0, vmax=1, interpolation='none' )
+    # ax_distance_matrix.set_clim( 0, 1 )
+    fig.colorbar( im1, ax=ax_distance_matrix )
+    ax_distance_matrix.set_title( "SPIKE-distance matrix" )
+    
     # -- plot spike sync profile
-    ax_sync = fig.add_subplot( 3, 1, 3 )
+    ax_sync = fig.add_subplot( gs[ 2, 0 ] )
     ax_sync.plot( *spike_sync_profile_A1.get_plottable_data(), '--', color='orange', label='A1' )
     ax_sync.plot( *spike_sync_profile_A2.get_plottable_data(), '--', color='green', label='A2' )
     ax_sync.set_xlim( 0, sim_time )
     ax_sync.set_ylim( 0, 1 )
     ax_sync.set_xlabel( 'Time (s)' )
-    ax_sync.set_ylabel( 'SPIKE-syncronisation' )
-    ax_sync.set_title( 'Spike sync profile' )
+    ax_sync.set_ylabel( 'SPIKE-sync' )
+    ax_sync.set_title( 'SPIKE-sync profile' )
     ax_sync.legend()
+    
+    ax_distance_matrix = fig.add_subplot( gs[ 2, 1 ] )
+    spike_distance = spk.spike_sync_matrix( spike_trains )
+    im1 = ax_distance_matrix.imshow( spike_distance, vmin=0, vmax=1, interpolation='none' )
+    # ax_distance_matrix.set_clim( 0, 1 )
+    fig.colorbar( im1, ax=ax_distance_matrix )
+    ax_distance_matrix.set_title( "SPIKE-sync matrix" )
     
     # -- figure adjustments
     plt.tight_layout()
     
     fig.show()
-    fig.savefig( './attractor_synchronisation.png',
+    fig.savefig( './attractor_synchronisation.pdf',
                  bbox_inches='tight' )
     
-    print( "SPIKE distance A1:", spike_distance_profile_A1.avrg() )
-    print( "SPIKE distance A2:", spike_distance_profile_A2.avrg() )
-    print( "SPIKE synchronisation A1:", spike_sync_profile_A1.avrg() )
-    print( "SPIKE synchronisation A2:", spike_sync_profile_A2.avrg() )
+    print( "Average SPIKE-distance within A1:", spike_distance_profile_A1.avrg() )
+    print( "Average SPIKE-distance within A2:", spike_distance_profile_A2.avrg() )
+    print( "Average SPIKE-synchronisation within A1:", spike_sync_profile_A1.avrg() )
+    print( "Average SPIKE-synchronisation within A2:", spike_sync_profile_A2.avrg() )
