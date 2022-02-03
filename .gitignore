@@ -9,4 +9,3 @@ plots_results/
 *.png
 **/network_results
 **/__pycache__/
-.idea/
