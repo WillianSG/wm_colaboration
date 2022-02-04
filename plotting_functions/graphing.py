@@ -646,7 +646,7 @@ def attractor_algebraic_connectivity( input, variant=1, comment='' ):
     for atr in set( nx.get_node_attributes( g, 'attractor' ).values() ):
         attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
         subgraph = g.subgraph( attractor_nodes )
-
+        
         attractor_connectivity_amount[ atr ] = algebraic_connectivity_directed_variants( subgraph, variant )
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
@@ -769,7 +769,7 @@ files = [
         'second.html', 'second.graphml', 'second_complete.graphml',
         'rcn_population_spiking.png',
         'attractor_inhibition.txt', 'attractor_connectivity.txt',
-    'E_spikes.txt'
+        'E_spikes.txt', 'attractor_synchronisation.pdf'
         ]
 
 
