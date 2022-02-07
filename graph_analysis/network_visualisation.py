@@ -27,7 +27,6 @@ parameter_set = '2.0'
 rcn = RecurrentCompetitiveNet(
         plasticity_rule=plasticity_rule,
         parameter_set=parameter_set,
-        t_run=3 * second,
         save_path=os.getcwd() )
 
 rcn.stimulus_pulse = True
@@ -50,7 +49,10 @@ nx2pyvis( g_initial, output_filename='initial', open_output=show_graphs )
 rcn.set_E_E_plastic( plastic=True )
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
-rcn.run_net( period=2 )
+
+rcn.run_net( duration=1, pulse_ending=3 )
+rcn.run_net( duration=1 )
+rcn.run_net( duration=1 )
 
 g_first = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                   edges_subsample=edges_subsample,

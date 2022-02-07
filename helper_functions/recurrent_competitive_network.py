@@ -390,12 +390,21 @@ class RecurrentCompetitiveNet:
     """
     """
     
-    def run_net( self, duration=3 * second, report='stdout', period=2 ):
+    def run_net( self, duration=3 * second, pulse_ending=False, report='stdout', period=2 ):
         if not isinstance( duration, Quantity ):
             duration *= second
+        if not isinstance( pulse_ending, Quantity ):
+            pulse_ending *= second
         
         self.t_run = duration
-        self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
+        if self.stimulus_pulse_duration == 0 * second:
+            self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
+        if pulse_ending:
+            self.stimulus_pulse_duration = pulse_ending
+        print(
+            f'Running RCN in [{self.net.t}-{self.net.t + duration}] s, input ending at {self.stimulus_pulse_duration} '
+            f's' )
+        
         self.net.run(
                 duration=duration,
                 report=report,
