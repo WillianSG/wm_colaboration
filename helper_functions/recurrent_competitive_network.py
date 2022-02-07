@@ -39,7 +39,7 @@ from helper_functions.load_stimulus import *
 
 
 class RecurrentCompetitiveNet:
-    def __init__( self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, save_path=None ):
+    def __init__( self, plasticity_rule='LR2', parameter_set='2.4', save_path=None ):
         
         # ------ simulation parameters
         self.net_id = strftime( "%d%b%Y_%H-%M-%S", localtime() )
@@ -49,7 +49,6 @@ class RecurrentCompetitiveNet:
                 ) if not save_path else save_path
         self.net_sim_data_path = ''
         
-        self.t_run = t_run
         self.dt = 0.1 * ms
         
         self.int_meth_neur = 'linear'
@@ -57,7 +56,8 @@ class RecurrentCompetitiveNet:
         
         # ------ network parameters
         self.stimulus_pulse = False
-        self.stimulus_pulse_duration = self.t_run - 1 * second
+        self.t_run = 0 * second
+        self.stimulus_pulse_duration = 0 * second
         self.stimulus_pulse_clock_dt = 0.1 * ms
         
         self.stim_size_e = 64
@@ -390,13 +390,17 @@ class RecurrentCompetitiveNet:
     """
     """
     
-    def run_net( self, report='stdout', period=1 ):
+    def run_net( self, duration=3 * second, report='stdout', period=2 ):
+        if not isinstance( duration, Quantity ):
+            duration *= second
+        
+        self.t_run = duration
+        self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
         self.net.run(
-                self.t_run,
+                duration=duration,
                 report=report,
                 report_period=period * second,
                 namespace=self.set_net_namespace() )
-        
         self.net.stop()
     
     """
@@ -678,8 +682,8 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_E_spks( self ):
-        return [ self.E_mon.t[ : ], self.E_mon.i[ : ] ]
+    def get_E_spks( self, spike_trains=False ):
+        return [ self.E_mon.t[ : ], self.E_mon.i[ : ] ] if not spike_trains else self.E_mon.spike_trains()
     
     """
     Returns a 2D array containing recorded spikes from I population:
@@ -687,8 +691,8 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_I_spks( self ):
-        return [ self.I_mon.t[ : ], self.I_mon.i[ : ] ]
+    def get_I_spks( self, spike_trains=False ):
+        return [ self.I_mon.t[ : ], self.I_mon.i[ : ] ] if not spike_trains else self.I_mon.spike_trains()
     
     """
     Returns a 2D array containing recorded spikes from input to the E population:
@@ -696,8 +700,9 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_Einp_spks( self ):
-        return [ self.Input_to_E_mon.t[ : ], self.Input_to_E_mon.i[ : ] ]
+    def get_Einp_spks( self, spike_trains=False ):
+        return [ self.Input_to_E_mon.t[ : ],
+                 self.Input_to_E_mon.i[ : ] ] if not spike_trains else self.Input_to_E_mon.spike_trains()
     
     """
     Returns a 2D array containing recorded spikes from input to the I population:
@@ -705,8 +710,9 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_Iinp_spks( self ):
-        return [ self.Input_to_I_mon.t[ : ], self.Input_to_I_mon.i[ : ] ]
+    def get_Iinp_spks( self, spike_trains=False ):
+        return [ self.Input_to_I_mon.t[ : ],
+                 self.Input_to_I_mon.i[ : ] ] if not spike_trains else self.Input_to_I_mon.spike_trains()
     
     """
     """
