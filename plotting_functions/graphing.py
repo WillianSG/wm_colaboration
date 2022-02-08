@@ -622,6 +622,43 @@ def attractor_connectivity_statistics( input, statistic,
     return attractor_connectivity_amount
 
 
+def harcoded_attractor_algebraic_connectivity( input, variant=1 ):
+    import os
+    import csv
+    
+    from algebraic_connectivity_directed.algebraic_connectivity_directed import algebraic_connectivity_directed_variants
+    from brian2 import second
+    
+    g = check_input( input )
+    
+    current_time = input.net.t / second
+    
+    # -- define attractor indices
+    A1 = list( range( 0, 64 ) )
+    A2 = list( range( 100, 164 ) )
+    
+    attractor_nodes_A1 = [ n for n, v in g.nodes( data=True ) if 'e_' in n and int( n.split( '_' )[ 1 ] ) in A1 ]
+    subgraph_A1 = g.subgraph( attractor_nodes_A1 )
+    algebraic_connectivity_A1 = algebraic_connectivity_directed_variants( subgraph_A1, variant )
+    
+    attractor_nodes_A2 = [ n for n, v in g.nodes( data=True ) if 'e_' in n and int( n.split( '_' )[ 1 ] ) in A2 ]
+    subgraph_A2 = g.subgraph( attractor_nodes_A2 )
+    algebraic_connectivity_A2 = algebraic_connectivity_directed_variants( subgraph_A2, variant )
+    
+    filename = '../graph_analysis/a_conn.csv'
+    if not os.path.exists( filename ):
+        with open( filename, 'w' ) as f:
+            writer = csv.writer( f )
+            writer.writerow( [ 't', 'A1', 'A2' ] )
+            writer.writerow( [ current_time, algebraic_connectivity_A1, algebraic_connectivity_A2 ] )
+    else:
+        with open( filename, 'a' ) as f:
+            writer = csv.writer( f )
+            writer.writerow( [ current_time, algebraic_connectivity_A1, algebraic_connectivity_A2 ] )
+    
+    return current_time, algebraic_connectivity_A1, algebraic_connectivity_A2
+
+
 def attractor_algebraic_connectivity( input, variant=1, comment='' ):
     """Computes the directed algebraic connectivity for each attractor in graph G, based on the definitions in
     [C. W. Wu, "Synchronization in Complex Networks of Nonlinear Dynamical Systems", World Scientific, 2007].
