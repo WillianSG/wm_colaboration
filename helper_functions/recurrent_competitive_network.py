@@ -390,9 +390,13 @@ class RecurrentCompetitiveNet:
     """
     """
     
-    def run_net( self, duration=3 * second, pulse_ending=False, report='stdout', period=2 ):
+    def run_net( self, duration=3 * second, gather_every=0.1 * second, pulse_ending=False ):
+        from tqdm import tqdm
+        
         if not isinstance( duration, Quantity ):
             duration *= second
+        if not isinstance( gather_every, Quantity ):
+            gather_every *= second
         if not isinstance( pulse_ending, Quantity ):
             pulse_ending *= second
         
@@ -402,15 +406,26 @@ class RecurrentCompetitiveNet:
         if pulse_ending:
             self.stimulus_pulse_duration = pulse_ending
         print(
-            f'Running RCN in [{self.net.t}-{self.net.t + duration}] s, input ending at {self.stimulus_pulse_duration} '
-            f's' )
+                f'Running RCN in [{self.net.t:.1f}-{self.net.t + duration:.1f}] s, input ending at '
+                f'{self.stimulus_pulse_duration} '
+                f's', end='\r' )
         
-        self.net.run(
-                duration=duration,
-                report=report,
-                report_period=period * second,
-                namespace=self.set_net_namespace() )
-        self.net.stop()
+        num_runs = int( duration / gather_every )
+        t = tqdm( total=duration / second, desc='RCN', unit='s',
+                  bar_format='{l_bar} {bar}| {n:.1f}/{total:.1f} [{elapsed}<{remaining}, ' '{rate_fmt}{'
+                             'postfix}]',
+                  leave=False )
+        for i in range( num_runs ):
+            t.set_description(
+                    f'Running RCN in [{self.net.t:.1f}-{self.net.t + gather_every:.1f}] s, '
+                    f'input ending at {self.stimulus_pulse_duration:.1f} s' )
+            self.net.run(
+                    duration=gather_every,
+                    report=None,
+                    namespace=self.set_net_namespace() )
+            self.net.stop()
+            t.update( gather_every / second )
+        t.close()
     
     """
     """

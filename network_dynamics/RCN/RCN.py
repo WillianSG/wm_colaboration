@@ -65,7 +65,7 @@ rcn.set_E_E_plastic( plastic=True )
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( duration=3, period=2 )
+rcn.run_net( duration=3, pulse_ending=2 )
 
 # try and free up memory (not working)
 # for mon in itertools.chain(rcn.spike_monitors, rcn.state_monitors):
@@ -76,7 +76,7 @@ rcn.run_net( duration=3, period=2 )
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( duration=3, period=2 )
+rcn.run_net( duration=3, pulse_ending=2 )
 
 # 2 ------ plotting simulation data ------
 if make_plots:

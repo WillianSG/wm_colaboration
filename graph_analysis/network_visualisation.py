@@ -2,6 +2,7 @@
 import os
 
 import numpy as np
+from tqdm import tqdm
 
 from brian2 import second, prefs, NeuronGroup, Synapses
 
@@ -33,6 +34,8 @@ rcn.stimulus_pulse = True
 
 rcn.net_init()
 
+total_sim_time = 6
+gather_statistics_dt = 0.1
 neurons_subsample = 0.05
 edges_subsample = 1
 show_graphs = False
@@ -50,9 +53,7 @@ rcn.set_E_E_plastic( plastic=True )
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( duration=1, pulse_ending=3 )
-rcn.run_net( duration=1 )
-rcn.run_net( duration=1 )
+rcn.run_net( duration=3, pulse_ending=2 )
 
 g_first = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                   edges_subsample=edges_subsample,
@@ -81,7 +82,8 @@ print( 'Attractor algebraic connectivity',
 rcn.stimulus_pulse_duration = 5 * second
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
-rcn.run_net( period=2 )
+
+rcn.run_net( duration=3, pulse_ending=5 )
 
 g_second = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                    edges_subsample=edges_subsample,
