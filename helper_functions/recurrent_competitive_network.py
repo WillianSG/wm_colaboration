@@ -390,7 +390,7 @@ class RecurrentCompetitiveNet:
     """
     """
     
-    def run_net( self, duration=3 * second, gather_every=0.1 * second, pulse_ending=False ):
+    def run_net( self, duration=3 * second, gather_every=0.1 * second, pulse_ending=False, callback=None ):
         from tqdm import tqdm
         
         if not isinstance( duration, Quantity ):
@@ -400,15 +400,13 @@ class RecurrentCompetitiveNet:
         if not isinstance( pulse_ending, Quantity ):
             pulse_ending *= second
         
+        if not callback: callback = [ ]
+        
         self.t_run = duration
         if self.stimulus_pulse_duration == 0 * second:
             self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
         if pulse_ending:
             self.stimulus_pulse_duration = pulse_ending
-        print(
-                f'Running RCN in [{self.net.t:.1f}-{self.net.t + duration:.1f}] s, input ending at '
-                f'{self.stimulus_pulse_duration} '
-                f's', end='\r' )
         
         num_runs = int( duration / gather_every )
         t = tqdm( total=duration / second, desc='RCN', unit='s',
@@ -423,6 +421,10 @@ class RecurrentCompetitiveNet:
                     duration=gather_every,
                     report=None,
                     namespace=self.set_net_namespace() )
+            
+            for f in callback:
+                f( self )
+            
             self.net.stop()
             t.update( gather_every / second )
         t.close()

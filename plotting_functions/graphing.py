@@ -552,7 +552,6 @@ def attractor_statistics( input, statistic,
     return attractor_statistic_amount
 
 
-@timefunc
 def attractor_connectivity( input, approximate=True, comment='' ):
     """Computes the average node connectivity within each attractor in the NetworkX graph.
     This should be useful to quantify the amount of self-excitation each attractor has.
@@ -618,7 +617,6 @@ def attractor_connectivity( input, approximate=True, comment='' ):
     return attractor_connectivity_amount
 
 
-@timefunc
 def attractor_algebraic_connectivity( input, variant=1, comment='' ):
     """Computes the directed algebraic connectivity for each attractor in graph G, based on the definitions in
     [C. W. Wu, "Synchronization in Complex Networks of Nonlinear Dynamical Systems", World Scientific, 2007].
@@ -676,7 +674,6 @@ def attractor_algebraic_connectivity( input, variant=1, comment='' ):
     return attractor_connectivity_amount
 
 
-@timefunc
 def attractor_mutual_inhibition( input,
                                  include_weights=False, include_activity=False, normalise=True,
                                  comment='' ):
@@ -768,7 +765,7 @@ files = [
         'first.html', 'first.graphml', 'first_complete.graphml',
         'second.html', 'second.graphml', 'second_complete.graphml',
         'rcn_population_spiking.png',
-        'attractor_inhibition.txt', 'attractor_connectivity.txt',
+        'attractor_inhibition.txt', 'attractor_connectivity.txt', 'attractor_algebraic_connectivity.txt',
         'E_spikes.txt', 'attractor_synchronisation.pdf'
         ]
 

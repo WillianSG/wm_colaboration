@@ -53,7 +53,7 @@ rcn.set_E_E_plastic( plastic=True )
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( duration=3, pulse_ending=2 )
+rcn.run_net( duration=3, pulse_ending=2, callback=[ attractor_algebraic_connectivity ] )
 
 g_first = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                   edges_subsample=edges_subsample,
