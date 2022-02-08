@@ -808,7 +808,7 @@ files = [
         'second.html', 'second.graphml', 'second_complete.graphml',
         'rcn_population_spiking.png',
         'attractor_inhibition.txt', 'attractor_connectivity.txt', 'attractor_algebraic_connectivity.txt',
-        'E_spikes.txt', 'attractor_synchronisation.pdf'
+        'E_spikes.txt', 'attractor_synchronisation.pdf', 'a_conn.csv'
         ]
 
 

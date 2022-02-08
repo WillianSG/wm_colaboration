@@ -412,7 +412,7 @@ class RecurrentCompetitiveNet:
         t = tqdm( total=duration / second, desc='RCN', unit='s',
                   bar_format='{l_bar} {bar}| {n:.1f}/{total:.1f} [{elapsed}<{remaining}, ' '{rate_fmt}{'
                              'postfix}]',
-                  leave=False )
+                  leave=False, dynamic_ncols=True )
         for i in range( num_runs ):
             t.set_description(
                     f'Running RCN in [{self.net.t:.1f}-{self.net.t + gather_every:.1f}] s, '
