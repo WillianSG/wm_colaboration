@@ -64,16 +64,17 @@ nx2pyvis( g_first, output_filename='first', open_output=show_graphs )
 comment = '---- First attractor learned'
 print( comment )
 print( 'Attractor inhibition',
-       attractor_statistics( g_first, 'inhibition',
-                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_excitation_statistics( g_first, 'inhibition',
+                                        comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor excitation',
-       attractor_statistics( g_first, 'excitation',
-                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_excitation_statistics( g_first, 'excitation',
+                                        comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor self-excitation',
-       attractor_statistics( g_first, 'self-excitation',
-                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_excitation_statistics( g_first, 'self-excitation',
+                                        comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor connectivity',
-       attractor_connectivity( g_first, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_connectivity_statistics( g_first, 'connectivity',
+                                          comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor algebraic connectivity',
        attractor_algebraic_connectivity( g_first,
                                          comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
@@ -83,7 +84,7 @@ rcn.stimulus_pulse_duration = 5 * second
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( duration=3, pulse_ending=5 )
+rcn.run_net( duration=3, pulse_ending=5, callback=[ attractor_algebraic_connectivity ] )
 
 g_second = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                    edges_subsample=edges_subsample,
@@ -94,16 +95,17 @@ nx2pyvis( g_second, output_filename='second', open_output=show_graphs )
 comment = '---- Second attractor learned'
 print( comment )
 print( 'Attractor inhibition',
-       attractor_statistics( g_second, 'inhibition',
-                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_excitation_statistics( g_second, 'inhibition',
+                                        comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor excitation',
-       attractor_statistics( g_second, 'excitation',
-                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_excitation_statistics( g_second, 'excitation',
+                                        comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor self-excitation',
-       attractor_statistics( g_second, 'self-excitation',
-                             comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_excitation_statistics( g_second, 'self-excitation',
+                                        comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor connectivity',
-       attractor_connectivity( g_second, comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
+       attractor_connectivity_statistics( g_second, 'connectivity',
+                                          comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )
 print( 'Attractor algebraic connectivity',
        attractor_algebraic_connectivity( g_second,
                                          comment=comment + f' (subsample=({neurons_subsample},{edges_subsample}))' ) )

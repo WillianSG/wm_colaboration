@@ -3,13 +3,16 @@ import numpy as np
 from collections import defaultdict
 
 
+# TODO what's the degree distribution of the graph?  is it well-formed? (Gaussian, exponential, or power-law)
+# TODO The RCN model start from a random graph, but is it the most realistic setting? Maybe a geometric graph would
+#  be more realistic?
+
 def timefunc( func ):
     import time
     import functools
     
     @functools.wraps( func )
     def time_closure( *args, **kwargs ):
-        """time_wrapper's doc string"""
         start = time.perf_counter()
         result = func( *args, **kwargs )
         time_elapsed = time.perf_counter() - start
@@ -453,9 +456,10 @@ def check_input( input ):
         raise ValueError( 'input must be of type nx.Graph or RecurrentCompetitiveNet' )
 
 
-def attractor_statistics( input, statistic,
-                          include_weights=False, include_activity=False, normalise=True,
-                          comment='' ):
+@timefunc
+def attractor_excitation_statistics( input, statistic,
+                                     include_weights=False, include_activity=False, normalise=True,
+                                     comment='' ):
     """Compute the attracting components in the NetworkX graph and store the information in the nodes.
 
     An attracting component in a directed graph G is a strongly connected component with the property that a random
@@ -552,7 +556,8 @@ def attractor_statistics( input, statistic,
     return attractor_statistic_amount
 
 
-def attractor_connectivity( input, approximate=True, comment='' ):
+def attractor_connectivity_statistics( input, statistic,
+                                       comment='' ):
     """Computes the average node connectivity within each attractor in the NetworkX graph.
     This should be useful to quantify the amount of self-excitation each attractor has.
     The average connectivity of a graph G is the average of local node connectivity over all pairs of nodes of G.
@@ -586,12 +591,12 @@ def attractor_connectivity( input, approximate=True, comment='' ):
         attractor_nodes = [ n for n, v in g.nodes( data=True ) if 'e_' in n and v[ 'attractor' ] == atr ]
         subgraph = g.subgraph( attractor_nodes )
         
-        # attractor_connectivity_amount[ atr ] = average_node_connectivity( subgraph )
-        
-        if approximate:
+        if statistic == 'connectivity':
             attractor_connectivity_amount[ atr ] = approx.node_connectivity( subgraph )
-        else:
+        elif statistic == 'approximate connectivity':
             attractor_connectivity_amount[ atr ] = node_connectivity( subgraph, flow_func=shortest_augmenting_path )
+        elif statistic == 'cycles':
+            attractor_connectivity_amount[ atr ] = len( list( nx.simple_cycles( subgraph ) ) )
     
     if not os.path.exists( f'{os.getcwd()}/{output_filename}.txt' ):
         with open( f'{os.getcwd()}/{output_filename}.txt', 'w' ) as f:
@@ -628,7 +633,7 @@ def attractor_algebraic_connectivity( input, variant=1, comment='' ):
     comment (str): the comment to append to the generated txt file in os.getcwd()
 
     Returns:
-    attractor_connectivity_amount (dict): dictionary of attractors with the average node connectivity as the value
+    attractor_statistic_amount (dict): dictionary of attractors with the average node connectivity as the value
     
 """
     import os
