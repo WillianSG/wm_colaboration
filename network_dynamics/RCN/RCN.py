@@ -54,8 +54,7 @@ parameter_set = '3.1'
 # TODO plot synaptic weights and compare with LR3 w*(x_*u)
 rcn = RecurrentCompetitiveNet(
         plasticity_rule=plasticity_rule,
-        parameter_set=parameter_set,
-        t_run=3 * second )
+        parameter_set=parameter_set )
 
 rcn.stimulus_pulse = True
 
@@ -66,29 +65,18 @@ rcn.set_E_E_plastic( plastic=True )
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( period=2 )
+rcn.run_net( duration=3, pulse_ending=2 )
 
-# try and free up memory
+# try and free up memory (not working)
 # for mon in itertools.chain(rcn.spike_monitors, rcn.state_monitors):
 #     del mon
 # print(rcn.spike_monitors)
 # rcn.del_monitors()
 
-"""
-In line 550 on the net obj this variable is used to flag when the input stimulus has to terminate 
-(basically it stops a second before the end of the simulation - line 58). 
-Since the simulation is running for 6s (3s at each run), I`m updating it so that the 2nd stimulus input ends a second 
-before the end of the 2nd simulation [this should be automatized].
-"""
-# TODO automatise stimulus pulse duration setting
-rcn.stimulus_pulse_duration = 5 * second
-
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( period=2 )
-
-# TODO display connectivity somehow
+rcn.run_net( duration=3, pulse_ending=2 )
 
 # 2 ------ plotting simulation data ------
 if make_plots:

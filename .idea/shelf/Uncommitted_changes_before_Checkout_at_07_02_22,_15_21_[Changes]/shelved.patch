@@ -1,0 +1,285 @@
+Index: graph_analysis/network_visualisation.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># import\nimport os\n\nimport numpy as np\n\nfrom brian2 import second, prefs, NeuronGroup, Synapses\n\nfrom plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms\n\nprefs.codegen.target = 'numpy'\n\n# Helper modules\nfrom helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet\nfrom plotting_functions.plot import *\nfrom plotting_functions.graphing import *\n\nclean_folder()\n\n# 1 ------ initializing/running network ------\n\nmake_plots = True\nplasticity_rule = 'LR3'\nparameter_set = '2.0'\n# plasticity_rule = 'LR4'\n# parameter_set = '2.0'\n\nrcn = RecurrentCompetitiveNet(\n\t\tplasticity_rule=plasticity_rule,\n\t\tparameter_set=parameter_set,\n\t\tt_run=3 * second,\n\t\tsave_path=os.getcwd() )\n\nrcn.stimulus_pulse = True\n\nrcn.net_init()\n\nsubsample_e = 15\nsubsample_i = 5\n\n#  ------ Create subsampled graph for visualisation and complete for analysis\ng_initial = rcn2nx( rcn, neurons_subsample=(subsample_e, subsample_i), subsample_attractors=True,\n                    output_filename='initial' )\nrcn2nx( rcn, output_filename='initial_complete' )\nnx2pyvis( g_initial, output_filename='initial' )\n\n# -------- First attractor\nrcn.set_E_E_plastic( plastic=True )\nrcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )\nrcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )\nrcn.run_net( period=2 )\n\ng_first = rcn2nx( rcn, neurons_subsample=(subsample_e, subsample_i), subsample_attractors=True,\n                  output_filename='first' )\nrcn2nx( rcn, output_filename='first_complete' )\nnx2pyvis( g_first, output_filename='first' )\n\ncomment = '---- First attractor learned'\nprint( comment )\nprint( 'Attractor inhibition',\n       attractor_inhibition( g_first, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )\nprint( 'Attractor connectivity',\n       attractor_connectivity( g_first, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )\n\n# --------- Second attractor\nrcn.stimulus_pulse_duration = 5 * second\nrcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100 )\nrcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )\nrcn.run_net( period=2 )\n\ng_second = rcn2nx( rcn, neurons_subsample=(subsample_e, subsample_i), subsample_attractors=True,\n                   output_filename='second' )\nrcn2nx( rcn, output_filename='second_complete' )\nnx2pyvis( g_second, output_filename='second' )\n\ncomment = '---- Second attractor learned'\nprint( comment )\nprint( 'Attractor inhibition',\n       attractor_inhibition( g_second, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )\nprint( 'Attractor connectivity',\n       attractor_connectivity( g_second, comment=comment + f' (subsample=({subsample_e},{subsample_i}))' ) )\n# print( 'Attractor inhibition (full net)',attractor_inhibition( rcn,comment=comment+' (full net)' ) )\n# print( 'Attractor connectivity (full net)',attractor_connectivity( rcn ,comment=comment+' (full net)') ) # Likely\n# to be slow, wait ~3 minutes on Apple M1\n\n# TODO save plots and graphs in same RCN directory\nplot_rcn_spiketrains_histograms(\n\t\tEinp_spks=rcn.get_Einp_spks()[ 0 ],\n\t\tEinp_ids=rcn.get_Einp_spks()[ 1 ],\n\t\tstim_E_size=rcn.stim_size_e,\n\t\tE_pop_size=rcn.N_input_e,\n\t\tIinp_spks=rcn.get_Iinp_spks()[ 0 ],\n\t\tIinp_ids=rcn.get_Iinp_spks()[ 1 ],\n\t\tstim_I_size=rcn.stim_size_i,\n\t\tI_pop_size=rcn.N_input_i,\n\t\tE_spks=rcn.get_E_spks()[ 0 ],\n\t\tE_ids=rcn.get_E_spks()[ 1 ],\n\t\tI_spks=rcn.get_I_spks()[ 0 ],\n\t\tI_ids=rcn.get_I_spks()[ 1 ],\n\t\tt_run=6,\n\t\tpath_to_plot=os.getcwd(),\n\t\tshow=True )\n\n# save_graph_results()\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/graph_analysis/network_visualisation.py b/graph_analysis/network_visualisation.py
+--- a/graph_analysis/network_visualisation.py	(revision ac1a3a1fa94200ea8bc06eccce1c44ed3128b2f0)
++++ b/graph_analysis/network_visualisation.py	(date 1644243675151)
+@@ -27,7 +27,6 @@
+ rcn = RecurrentCompetitiveNet(
+ 		plasticity_rule=plasticity_rule,
+ 		parameter_set=parameter_set,
+-		t_run=3 * second,
+ 		save_path=os.getcwd() )
+ 
+ rcn.stimulus_pulse = True
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+new file mode 100644
+--- /dev/null	(date 1644243605412)
++++ b/.idea/workspace.xml	(date 1644243605412)
+@@ -0,0 +1,222 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="AutoImportSettings">
++    <option name="autoReloadType" value="SELECTIVE" />
++  </component>
++  <component name="ChangeListManager">
++    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="">
++      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/graph_analysis/network_visualisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/graph_analysis/network_visualisation.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
++      <change beforePath="$PROJECT_DIR$/plotting_functions/spike_synchronisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/spike_synchronisation.py" afterDir="false" />
++    </list>
++    <option name="SHOW_DIALOG" value="false" />
++    <option name="HIGHLIGHT_CONFLICTS" value="true" />
++    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
++    <option name="LAST_RESOLUTION" value="IGNORE" />
++  </component>
++  <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
++    <envs>
++      <env key="FLASK_APP" value="app" />
++    </envs>
++    <option name="myCustomStartScript" value="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))" />
++    <option name="myEnvs">
++      <map>
++        <entry key="FLASK_APP" value="app" />
++      </map>
++    </option>
++  </component>
++  <component name="Git.Settings">
++    <option name="RECENT_BRANCH_BY_REPOSITORY">
++      <map>
++        <entry key="$PROJECT_DIR$" value="main" />
++      </map>
++    </option>
++    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
++  </component>
++  <component name="GitSEFilterConfiguration">
++    <file-type-list>
++      <filtered-out-file-type name="LOCAL_BRANCH" />
++      <filtered-out-file-type name="REMOTE_BRANCH" />
++      <filtered-out-file-type name="TAG" />
++      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
++    </file-type-list>
++  </component>
++  <component name="MarkdownSettingsMigration">
++    <option name="stateVersion" value="1" />
++  </component>
++  <component name="ProjectId" id="24amsKRAnXElR0HFBR99goRswhz" />
++  <component name="ProjectViewState">
++    <option name="hideEmptyMiddlePackages" value="true" />
++    <option name="showLibraryContents" value="true" />
++  </component>
++  <component name="PropertiesComponent">
++    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
++    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
++    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
++    <property name="WebServerToolWindowFactoryState" value="false" />
++    <property name="node.js.detected.package.eslint" value="true" />
++    <property name="node.js.detected.package.tslint" value="true" />
++    <property name="node.js.selected.package.eslint" value="(autodetect)" />
++    <property name="node.js.selected.package.tslint" value="(autodetect)" />
++    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
++  </component>
++  <component name="RunManager" selected="Python.network_visualisation">
++    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
++      <module name="wm_colaboration" />
++      <option name="INTERPRETER_OPTIONS" value="" />
++      <option name="PARENT_ENVS" value="true" />
++      <envs>
++        <env name="PYTHONUNBUFFERED" value="1" />
++      </envs>
++      <option name="SDK_HOME" value="" />
++      <option name="WORKING_DIRECTORY" value="" />
++      <option name="IS_MODULE_SDK" value="false" />
++      <option name="ADD_CONTENT_ROOTS" value="true" />
++      <option name="ADD_SOURCE_ROOTS" value="true" />
++      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
++      <option name="SCRIPT_NAME" value="" />
++      <option name="PARAMETERS" value="" />
++      <option name="SHOW_COMMAND_LINE" value="true" />
++      <option name="EMULATE_TERMINAL" value="false" />
++      <option name="MODULE_MODE" value="false" />
++      <option name="REDIRECT_INPUT" value="false" />
++      <option name="INPUT_FILE" value="" />
++      <method v="2" />
++    </configuration>
++    <configuration name="network_visualisation" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
++      <module name="wm_colaboration" />
++      <option name="INTERPRETER_OPTIONS" value="" />
++      <option name="PARENT_ENVS" value="true" />
++      <option name="SDK_HOME" value="" />
++      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/graph_analysis" />
++      <option name="IS_MODULE_SDK" value="true" />
++      <option name="ADD_CONTENT_ROOTS" value="true" />
++      <option name="ADD_SOURCE_ROOTS" value="true" />
++      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
++      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/graph_analysis/network_visualisation.py" />
++      <option name="PARAMETERS" value="" />
++      <option name="SHOW_COMMAND_LINE" value="true" />
++      <option name="EMULATE_TERMINAL" value="false" />
++      <option name="MODULE_MODE" value="false" />
++      <option name="REDIRECT_INPUT" value="false" />
++      <option name="INPUT_FILE" value="" />
++      <method v="2" />
++    </configuration>
++    <configuration name="spike_synchronisation" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
++      <module name="wm_colaboration" />
++      <option name="INTERPRETER_OPTIONS" value="" />
++      <option name="PARENT_ENVS" value="true" />
++      <envs>
++        <env name="PYTHONUNBUFFERED" value="1" />
++      </envs>
++      <option name="SDK_HOME" value="" />
++      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/plotting_functions" />
++      <option name="IS_MODULE_SDK" value="true" />
++      <option name="ADD_CONTENT_ROOTS" value="true" />
++      <option name="ADD_SOURCE_ROOTS" value="true" />
++      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
++      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/plotting_functions/spike_synchronisation.py" />
++      <option name="PARAMETERS" value="" />
++      <option name="SHOW_COMMAND_LINE" value="true" />
++      <option name="EMULATE_TERMINAL" value="false" />
++      <option name="MODULE_MODE" value="false" />
++      <option name="REDIRECT_INPUT" value="false" />
++      <option name="INPUT_FILE" value="" />
++      <method v="2" />
++    </configuration>
++    <recent_temporary>
++      <list>
++        <item itemvalue="Python.network_visualisation" />
++        <item itemvalue="Python.spike_synchronisation" />
++      </list>
++    </recent_temporary>
++  </component>
++  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
++  <component name="TaskManager">
++    <task active="true" id="Default" summary="Default task">
++      <changelist id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="" />
++      <created>1643877278333</created>
++      <option name="number" value="Default" />
++      <option name="presentableId" value="Default" />
++      <updated>1643877278333</updated>
++      <workItem from="1643877279608" duration="17000" />
++      <workItem from="1643877300171" duration="489000" />
++      <workItem from="1643879950374" duration="24601000" />
++    </task>
++    <task id="LOCAL-00001" summary="- added plot_SPIKE_profile function to plot SPIKE-distance and SPIKE-synchronisation of attractors">
++      <created>1643888462476</created>
++      <option name="number" value="00001" />
++      <option name="presentableId" value="LOCAL-00001" />
++      <option name="project" value="LOCAL" />
++      <updated>1643888462476</updated>
++    </task>
++    <task id="LOCAL-00002" summary="- fixed bug in plot_SPIKE_profile where only two neurons were considered&#10;- updated plot layout">
++      <created>1643906876866</created>
++      <option name="number" value="00002" />
++      <option name="presentableId" value="LOCAL-00002" />
++      <option name="project" value="LOCAL" />
++      <updated>1643906876866</updated>
++    </task>
++    <task id="LOCAL-00003" summary="- added moving averages to plots">
++      <created>1643912109291</created>
++      <option name="number" value="00003" />
++      <option name="presentableId" value="LOCAL-00003" />
++      <option name="project" value="LOCAL" />
++      <updated>1643912109291</updated>
++    </task>
++    <option name="localTasksCounter" value="4" />
++    <servers />
++  </component>
++  <component name="TypeScriptGeneratedFilesManager">
++    <option name="version" value="3" />
++  </component>
++  <component name="Vcs.Log.Tabs.Properties">
++    <option name="TAB_STATES">
++      <map>
++        <entry key="MAIN">
++          <value>
++            <State>
++              <option name="FILTERS">
++                <map>
++                  <entry key="branch">
++                    <value>
++                      <list>
++                        <option value="spike_train_analysis" />
++                      </list>
++                    </value>
++                  </entry>
++                </map>
++              </option>
++            </State>
++          </value>
++        </entry>
++      </map>
++    </option>
++  </component>
++  <component name="VcsManagerConfiguration">
++    <MESSAGE value="- added plot_SPIKE_profile function to plot SPIKE-distance and SPIKE-synchronisation of attractors" />
++    <MESSAGE value="- fixed bug in plot_SPIKE_profile where only two neurons were considered&#10;- updated plot layout" />
++    <MESSAGE value="- added moving averages to plots" />
++    <option name="LAST_COMMIT_MESSAGE" value="- added moving averages to plots" />
++  </component>
++  <component name="XDebuggerManager">
++    <breakpoint-manager>
++      <breakpoints>
++        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
++          <url>file://$PROJECT_DIR$/plotting_functions/spike_synchronisation.py</url>
++          <line>31</line>
++          <option name="timeStamp" value="1" />
++        </line-breakpoint>
++        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
++          <url>file://$PROJECT_DIR$/plotting_functions/spike_synchronisation.py</url>
++          <line>110</line>
++          <option name="timeStamp" value="2" />
++        </line-breakpoint>
++      </breakpoints>
++    </breakpoint-manager>
++  </component>
++  <component name="com.intellij.coverage.CoverageDataManagerImpl">
++    <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation.coverage" NAME="network_visualisation Coverage Results" MODIFIED="1644243360229" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
++  </component>
++</project>
+\ No newline at end of file
+Index: helper_functions/recurrent_competitive_network.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+># -*- coding: utf-8 -*-\n\"\"\"\n@author: w.soares.girao@rug.nl\n@university: University of Groningen\n@group: Bio-Inspired Circuits and System\n\nFunction:\n- \n\nScript arguments:\n-\n\nScript output:\n-\n\nTO DO:\n- [X] save connection matrices method.\n- [X] snapshots of syn. matrix during simulation method.\n- [] load simulation parameters from file (?).\n- [X] make 'get_E_E_conn_matrix' general purpose.\n- [] method to save network configuration (param. set, pop. params., etc)\n\"\"\"\nimport setuptools\nfrom time import localtime, strftime\nimport os, pickle\n\nfrom brian2 import *\nimport numpy as np\n\n# import os, sys, pickle, shutil\n# import random\n# from time import localtime\n\nprefs.codegen.target = 'numpy'\n\nfrom helper_functions.load_rule_parameters import *\nfrom helper_functions.load_synapse_model import *\nfrom helper_functions.load_stimulus import *\n\n\nclass RecurrentCompetitiveNet:\n    def __init__( self, plasticity_rule='LR2', parameter_set='2.4', save_path=None ):\n        \n        # ------ simulation parameters\n        self.net_id = strftime( \"%d%b%Y_%H-%M-%S\", localtime() )\n        \n        self.net_sim_path = os.path.dirname(\n                os.path.abspath( os.path.join( __file__, '../' ) )\n                ) if not save_path else save_path\n        self.net_sim_data_path = ''\n        \n        self.dt = 0.1 * ms\n        \n        self.int_meth_neur = 'linear'\n        self.int_meth_syn = 'euler'\n        \n        # ------ network parameters\n        self.stimulus_pulse = False\n        self.t_run = 0 * second\n        self.stimulus_pulse_duration = 0 * second\n        self.stimulus_pulse_clock_dt = 0.1 * ms\n        \n        self.stim_size_e = 64\n        self.stim_size_i = 64\n        \n        # ------ neurons parameters\n        self.neuron_type = 'LIF'\n        \n        self.N_input_e = 256  # num. of input neurons for E\n        self.N_input_i = 64  # num. of input neurons for I\n        \n        # excitatory population\n        \n        self.stim_freq_e = 6600 * Hz\n        self.stim_freq_i = 3900 * Hz\n        \n        self.N_e = 256  # num. of neurons\n        self.Vr_e = -65 * mV  # resting potential\n        self.Vrst_e = -65 * mV  # reset potential\n        self.Vth_e_init = -52 * mV  # initial threshold voltage\n        self.Vth_e_incr = 5 * mV  # post-spike threshold voltage increase\n        self.tau_Vth_e = 20 * ms  # time constant of threshold decay\n        self.taum_e = 20 * ms  # membrane time constant\n        self.tref_e = 2 * ms  # refractory period\n        self.tau_epsp_e = 3.5 * ms  # time constant of EPSP\n        self.tau_ipsp_e = 5.5 * ms  # time constant of IPSP\n        \n        # inhibitory population\n        \n        self.N_i = 64  # num. of neurons\n        self.Vr_i = -60 * mV  # resting voltage\n        self.Vrst_i = -60 * mV  # reset potential\n        self.Vth_i = -40 * mV  # threshold voltage\n        self.taum_i = 10 * ms  # membrane time constant\n        self.tref_i = 1 * ms  # refractory period\n        self.tau_epsp_i = 3.5 * ms  # time constant of EPSP\n        self.tau_ipsp_i = 5.5 * ms  # time constant of IPSP\n        \n        # ------ synapse parameters\n        # plasticity rule\n        self.plasticity_rule = plasticity_rule\n        self.rule_parameters = parameter_set\n        self.bistability = True\n        self.stop_learning = False\n        self.resources = True\n        \n        # connection probabilities\n        self.p_e_i = 0.25  # excitatory to inhibitory (0.25)\n        self.p_i_e = 0.25  # inhibitory to excitatory (0.25)\n        self.p_e_e = 0.4  # excitatory to excitatory (0.4)\n        self.p_i_i = 0.0  # inhibitory to inhibitory (0.0)\n        \n        # delays\n        self.syn_delay_Vepsp_e_e = 0 * ms\n        self.syn_delay_w_update_e_e = 0 * ms\n        \n        # weights\n        self.w_e_e_max = 7.5 * mV\n        self.w_i_i_max = 7.5 * mV\n        \n        self.w_input_e = 1 * mV\n        self.w_input_i = 1 * mV\n        self.w_e_i = 1 * mV\n        self.w_i_e = 1 * mV\n        self.w_e_e = 0.5 * mV\n        self.w_i_i = 0.5 * mV\n        \n        # data save\n        self.M_ee = [ ]\n        \n        self.E_E_syn_matrix_snapshot = True\n        self.E_E_syn_matrix_snapshot_dt = 100 * ms\n        self.E_E_syn_matrix_path = ''\n        \n        # ------ data (monitors) parameters\n        self.rec_dt = 1 * ms\n        \n        self.Input_to_E_mon_record = True\n        self.Input_to_I_mon_record = True\n        self.E_mon_record = True\n        self.I_mon_record = True\n        self.Input_E_rec_record = True\n        self.Input_I_rec_record = True\n        self.E_rec_record = True\n        self.I_rec_record = True\n        self.E_E_rec_record = True\n        self.E_I_rec_record = True\n        self.I_E_rec_record = True\n        \n        self.Input_E_rec_attributes = ('w')\n        self.Input_I_rec_attributes = ('w')\n        self.E_rec_attributes = ('Vm', 'Vepsp', 'Vipsp')\n        self.I_rec_attributes = ('Vm', 'Vepsp', 'Vipsp')\n        self.E_E_rec_attributes = [ 'w' ]\n        self.E_I_rec_attributes = ('w')\n        self.I_E_rec_attributes = ('w')\n        \n        if self.plasticity_rule == 'LR4':\n            self.E_E_rec_attributes.append( 'x_' )\n            self.E_E_rec_attributes.append( 'u' )\n        \n        # ------ misc operation variables\n        self.stimulus_neurons_e_ids = [ ]\n        self.stimulus_neurons_i_ids = [ ]\n    \n    # 1 ------ setters\n    \n    # 1.1 ------ neurons\n    \n    \"\"\"\n    Sets the objects representing the excitatory (E), inhibitory (I) and input neuron populations used in the model.\n    - LIF model with adaptive threshold.\n    \"\"\"\n    \n    def set_neuron_pop( self ):\n        # equations (voltage based neuron model)\n        self.eqs_e = Equations( '''\n\t\t\tdVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)\n\t\t\tdVepsp/dt = -Vepsp / tau_epsp : volt\n\t\t\tdVipsp/dt = -Vipsp / tau_ipsp : volt\n\t\t\tdVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',\n                                Vr_e=self.Vr_e,\n                                taum_e=self.taum_e,\n                                tau_epsp=self.tau_epsp_e,\n                                tau_ipsp=self.tau_ipsp_e,\n                                Vth_e_init=self.Vth_e_init,\n                                tau_Vth_e=self.tau_Vth_e )\n        \n        self.eqs_i = Equations( '''\n\t\t\tdVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)\n\t\t\tdVepsp/dt = -Vepsp / tau_epsp : volt\n\t\t\tdVipsp/dt = -Vipsp / tau_ipsp : volt''',\n                                Vr_i=self.Vr_i,\n                                taum_i=self.taum_i,\n                                tau_epsp=self.tau_epsp_i,\n                                tau_ipsp=self.tau_ipsp_i )\n        \n        # populations\n        self.E = NeuronGroup( N=self.N_e, model=self.eqs_e,\n                              reset='''Vm = Vrst_e\n\t\t\t\t\tVth_e += Vth_e_incr''',\n                              threshold='Vm > Vth_e',\n                              refractory=self.tref_e,\n                              method=self.int_meth_neur,\n                              name='E' )\n        \n        self.I = NeuronGroup( N=self.N_i, model=self.eqs_i,\n                              reset='Vm = Vrst_i',\n                              threshold='Vm > Vth_i',\n                              refractory=self.tref_i,\n                              method=self.int_meth_neur,\n                              name='I' )\n        \n        self.Input_to_E = NeuronGroup( N=self.N_input_e,\n                                       model='rates : Hz',\n                                       threshold='rand()<rates*dt',\n                                       name='Input_to_E' )\n        \n        self.Input_to_I = NeuronGroup( N=self.N_input_i,\n                                       model='rates : Hz',\n                                       threshold='rand()<rates*dt',\n                                       name='Input_to_I' )\n        \n        # populations's attributes\n        self.E.Vth_e = self.Vth_e_init\n        \n        # rand init membrane voltages\n        self.E.Vm = (self.Vrst_e + rand( self.N_e ) * (self.Vth_e_init - self.Vr_e))\n        self.I.Vm = (self.Vrst_i + rand( self.N_i ) * (self.Vth_i - self.Vr_i))\n    \n    # 1.2 ------ synapses\n    \n    \"\"\"\n    Loads synaptic rule equations.\n    \"\"\"\n    \n    def set_learning_rule( self ):\n        # rule's equations\n        [ self.model_E_E,\n          self.pre_E_E,\n          self.post_E_E ] = load_synapse_model(\n                plasticity_rule=self.plasticity_rule,\n                neuron_type=self.neuron_type,\n                bistability=self.bistability,\n                stoplearning=self.stop_learning,\n                resources=self.resources )\n        \n        # rule's parameters\n        [ self.tau_xpre,\n          self.tau_xpost,\n          self.xpre_jump,\n          self.xpost_jump,\n          self.rho_neg,\n          self.rho_neg2,\n          self.rho_init,\n          self.tau_rho,\n          self.thr_post,\n          self.thr_pre,\n          self.thr_b_rho,\n          self.rho_min,\n          self.rho_max,\n          self.alpha,\n          self.beta,\n          self.xpre_factor,\n          self.w_max,\n          self.xpre_min,\n          self.xpost_min,\n          self.xpost_max,\n          self.xpre_max,\n          self.tau_xstop,\n          self.xstop_jump,\n          self.xstop_max,\n          self.xstop_min,\n          self.thr_stop_h,\n          self.thr_stop_l,\n          self.U,\n          self.tau_d,\n          self.tau_f ] = load_rule_parameters(\n                self.plasticity_rule,\n                self.rule_parameters )\n    \n    \"\"\"\n    Sets synapses objects and connections.\n    \"\"\"\n    \n    def set_synapses( self ):\n        # creating synapse instances\n        self.Input_E = Synapses(\n                source=self.Input_to_E,\n                target=self.E,\n                model='w : volt',\n                on_pre='Vepsp += w',\n                name='Input_E' )\n        \n        self.Input_I = Synapses(\n                source=self.Input_to_I,\n                target=self.I,\n                model='w : volt',\n                on_pre='Vepsp += w',\n                name='Input_I' )\n        \n        self.E_I = Synapses(\n                source=self.E,\n                target=self.I,\n                model='w : volt',\n                on_pre='Vepsp += w',\n                name='E_I' )\n        \n        self.I_E = Synapses(\n                source=self.I,\n                target=self.E,\n                model='w : volt',\n                on_pre='Vipsp += w',\n                name='I_E' )\n        \n        self.E_E = Synapses(  # E-E plastic synapses\n                source=self.E,\n                target=self.E,\n                model=self.model_E_E,\n                on_pre=self.pre_E_E,\n                on_post=self.post_E_E,\n                method=self.int_meth_syn,\n                name='E_E' )\n        \n        self.I_I = Synapses(  # I-I plastic synapses\n                source=self.I,\n                target=self.I,\n                model=self.model_E_E,\n                on_pre=self.pre_E_E,\n                on_post=self.post_E_E,\n                method=self.int_meth_syn,\n                name='I_I' )\n        \n        # connecting synapses\n        self.Input_E.connect( j='i' )\n        self.Input_I.connect( j='i' )\n        \n        self.E_I.connect( True, p=self.p_e_i )\n        self.I_E.connect( True, p=self.p_i_e )\n        self.E_E.connect( 'i!=j', p=self.p_e_e )\n        self.I_I.connect( 'i!=j', p=self.p_i_i )\n        \n        # init synaptic variables\n        self.Input_E.w = self.w_input_e\n        self.Input_I.w = self.w_input_i\n        self.E_I.w = self.w_e_i\n        self.I_E.w = self.w_i_e\n        self.E_E.w = self.w_e_e\n        self.I_I.w = self.w_i_i\n        \n        if self.plasticity_rule == 'LR4':\n            self.E_E.x_ = 1.0\n            self.E_E.u = self.U\n        \n        self.E_E.Vepsp_transmission.delay = self.syn_delay_Vepsp_e_e\n    \n    \"\"\"\n    Allows state variables change in synaptic model.\n    \"\"\"\n    \n    def set_E_E_plastic( self, plastic=False ):\n        self.E_E.plastic = plastic\n    \n    \"\"\"\n    Creates matrix spikemon_P from E to E connections.\n    \"\"\"\n    \n    def set_E_syn_matrix( self ):\n        self.M_ee = np.full( (len( self.E ), len( self.E )), np.nan )\n        self.M_ee[ self.E_E.i[ : ], self.E_E.j[ : ] ] = self.E_E.rho[ : ]\n    \n    \"\"\"\n    \"\"\"\n    \n    def set_random_E_E_syn_w( self, percent=0.5 ):\n        self.set_E_syn_matrix()\n        \n        for pre_id in range( 0, len( self.E ) ):\n            for post_id in range( 0, len( self.E ) ):\n                if isnan( self.M_ee[ pre_id ][ post_id ] ) == False:\n                    percent_ = uniform( 0, 1 )\n                    if percent_ < percent:\n                        s = uniform( 0, 1 )\n                        self.E_E.rho[ pre_id, post_id ] = round( s, 2 )\n                    else:\n                        self.E_E.rho[ pre_id, post_id ] = 0.0\n    \n    # 1.4 ------ network operation\n    \n    \"\"\"\n    \"\"\"\n    \n    def run_net( self, duration=3 * second, report='stdout', period=2 ):\n        if not isinstance( duration, Quantity ):\n            duration *= second\n        \n        self.t_run = duration\n        self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)\n        self.net.run(\n                duration=duration,\n                report=report,\n                report_period=period * second,\n                namespace=self.set_net_namespace() )\n        self.net.stop()\n    \n    \"\"\"\n    \"\"\"\n    \n    def set_stimulus_e( self, stimulus, frequency, offset=0, stimulus_size=0 ):\n        if stimulus_size == 0:\n            stimulus_size = self.stim_size_e\n        \n        if stimulus != '':\n            self.stimulus_neurons_e_ids = load_stimulus(\n                    stimulus_type=stimulus,\n                    stimulus_size=stimulus_size,\n                    offset=offset )\n            \n            self.Input_to_E.rates[ self.stimulus_neurons_e_ids ] = frequency\n        else:\n            self.Input_to_E.rates[ self.stimulus_neurons_e_ids ] = frequency\n    \n    \"\"\"\n    \"\"\"\n    \n    def set_stimulus_i( self, stimulus, frequency, offset=0 ):\n        if stimulus != '':\n            self.stimulus_neurons_i_ids = load_stimulus(\n                    stimulus_type=stimulus,\n                    stimulus_size=self.stim_size_i,\n                    offset=offset )\n            \n            self.Input_to_I.rates[ self.stimulus_neurons_i_ids ] = frequency\n        else:\n            self.Input_to_I.rates[ self.stimulus_neurons_i_ids ] = frequency\n    \n    # 1.3 ------ network initializers\n    \n    \"\"\"\n    Sets and configures the rcn network objects for simulation.\n    \"\"\"\n    \n    def net_init( self ):\n        self.set_results_folder()  # sim. results\n        self.set_learning_rule()  # rule eqs./params.\n        self.set_neuron_pop()  # neuron populations\n        self.set_synapses()  # syn. connections\n        self.set_spk_monitors()\n        self.set_state_monitors()\n        \n        self.set_net_obj()\n    \n    \"\"\"\n    Creates a folder for simulation results in the root directory.\n    \"\"\"\n    \n    def set_results_folder( self ):\n        network_sim_dir = os.path.join(\n                self.net_sim_path,\n                'network_results' )\n        \n        if not (os.path.isdir( network_sim_dir )):\n            os.mkdir( network_sim_dir )\n        \n        network_sim_dir = os.path.join(\n                network_sim_dir,\n                self.net_id + f'_RCN_{self.plasticity_rule}-{self.rule_parameters}' )\n        \n        if not (os.path.isdir( network_sim_dir )):\n            os.mkdir( network_sim_dir )\n        \n        self.net_sim_data_path = network_sim_dir\n        \n        if self.E_E_syn_matrix_snapshot:\n            E_E_syn_matrix_path = os.path.join(\n                    self.net_sim_data_path,\n                    'E_E_syn_matrix' )\n            \n            if not (os.path.isdir( E_E_syn_matrix_path )):\n                os.mkdir( E_E_syn_matrix_path )\n            \n            self.E_E_syn_matrix_path = E_E_syn_matrix_path\n    \n    \"\"\"\n    \"\"\"\n    \n    def set_spk_monitors( self ):\n        self.Input_to_E_mon = SpikeMonitor(\n                source=self.Input_to_E,\n                record=self.Input_to_E_mon_record,\n                name='Input_to_E_mon' )\n        \n        self.Input_to_I_mon = SpikeMonitor(\n                source=self.Input_to_I,\n                record=self.Input_to_I_mon_record,\n                name='Input_to_I_mon' )\n        \n        self.E_mon = SpikeMonitor(\n                source=self.E,\n                record=self.E_mon_record,\n                name='E_mon' )\n        \n        self.I_mon = SpikeMonitor(\n                source=self.I,\n                record=self.I_mon_record,\n                name='I_mon' )\n    \n    \"\"\"\n    \"\"\"\n    \n    def set_state_monitors( self ):\n        self.Input_E_rec = StateMonitor( source=self.Input_E,\n                                         variables=self.Input_E_rec_attributes,\n                                         record=self.Input_E_rec_record,\n                                         dt=self.rec_dt,\n                                         name='Input_E_rec' )\n        \n        self.Input_I_rec = StateMonitor( source=self.Input_I,\n                                         variables=self.Input_I_rec_attributes,\n                                         record=self.Input_I_rec_record,\n                                         dt=self.rec_dt,\n                                         name='Input_I_rec' )\n        \n        self.E_rec = StateMonitor( source=self.E,\n                                   variables=self.E_rec_attributes,\n                                   record=self.E_rec_record,\n                                   dt=self.rec_dt,\n                                   name='E_rec' )\n        \n        self.I_rec = StateMonitor( source=self.I,\n                                   variables=self.I_rec_attributes,\n                                   record=self.I_rec_record,\n                                   dt=self.rec_dt,\n                                   name='I_rec' )\n        \n        self.E_E_rec = StateMonitor( source=self.E_E,\n                                     variables=self.E_E_rec_attributes,\n                                     record=self.E_E_rec_record,\n                                     dt=self.rec_dt,\n                                     name='E_E_rec' )\n        \n        self.E_I_rec = StateMonitor( source=self.E_I,\n                                     variables=self.E_I_rec_attributes,\n                                     record=self.E_I_rec_record,\n                                     dt=self.rec_dt,\n                                     name='E_I_rec' )\n        \n        self.I_E_rec = StateMonitor( source=self.I_E,\n                                     variables=self.I_E_rec_attributes,\n                                     record=self.I_E_rec_record,\n                                     dt=self.rec_dt,\n                                     name='I_E_rec' )\n    \n    \"\"\"\n    Creates a brian2 network object with the neuron/synapse objects defined.\n    \"\"\"\n    \n    def set_net_obj( self ):\n        self.stimulus_pulse_clock = Clock(\n                self.stimulus_pulse_clock_dt,\n                name='stim_pulse_clk' )\n        \n        self.E_E_syn_matrix_clock = Clock(\n                self.E_E_syn_matrix_snapshot_dt,\n                name='E_E_syn_matrix_clk' )\n        \n        # deactivate stimulus\n        if self.stimulus_pulse:\n            @network_operation( clock=self.stimulus_pulse_clock )\n            def stimulus_pulse():\n                if defaultclock.t >= self.stimulus_pulse_duration:\n                    self.set_stimulus_e( stimulus='', frequency=0 * Hz )\n        else:\n            @network_operation( clock=self.stimulus_pulse_clock )\n            def stimulus_pulse():\n                pass\n        \n        if self.E_E_syn_matrix_snapshot:\n            @network_operation( clock=self.E_E_syn_matrix_clock )\n            def store_E_E_syn_matrix_snapshot():\n                synaptic_matrix = np.full( (len( self.E ), len( self.E )), -1.0 )\n                synaptic_matrix[ self.E_E.i, self.E_E.j ] = self.E_E.rho\n                \n                fn = os.path.join(\n                        self.E_E_syn_matrix_path,\n                        str( int( round( defaultclock.t / ms, 0 ) ) ) + '_ms_E_E_syn_matrix.pickle' )\n                \n                with open( fn, 'wb' ) as f:\n                    pickle.dump( (\n                            synaptic_matrix), f )\n        else:\n            @network_operation( clock=self.E_E_syn_matrix_clock )\n            def store_E_E_syn_matrix_snapshot():\n                pass\n        \n        defaultclock.dt = self.dt\n        \n        self.net = Network(\n                self.Input_to_E,\n                self.Input_to_I,\n                self.E,\n                self.I,\n                self.Input_E,\n                self.Input_I,\n                self.E_I,\n                self.I_E,\n                self.E_E,\n                self.I_I,\n                self.Input_to_E_mon,\n                self.Input_to_I_mon,\n                self.E_mon,\n                self.I_mon,\n                self.Input_E_rec,\n                self.Input_I_rec,\n                self.E_rec,\n                self.I_rec,\n                self.E_E_rec,\n                self.E_I_rec,\n                self.I_E_rec,\n                stimulus_pulse,\n                store_E_E_syn_matrix_snapshot,\n                name='rcn_net' )\n    \n    \"\"\"\n    \"\"\"\n    \n    def set_net_namespace( self ):\n        self.namespace = {\n                'Vrst_e'     : self.Vrst_e,\n                'Vth_e_init' : self.Vth_e_init,\n                'Vrst_i'     : self.Vrst_i,\n                'Vth_i'      : self.Vth_i,\n                'Vth_e_incr' : self.Vth_e_incr,\n                'tau_xpre'   : self.tau_xpre,\n                'tau_xpost'  : self.tau_xpost,\n                'xpre_jump'  : self.xpre_jump,\n                'xpost_jump' : self.xpost_jump,\n                'rho_neg'    : self.rho_neg,\n                'rho_neg2'   : self.rho_neg2,\n                'rho_init'   : self.rho_init,\n                'tau_rho'    : self.tau_rho,\n                'thr_post'   : self.thr_post,\n                'thr_pre'    : self.thr_pre,\n                'thr_b_rho'  : self.thr_b_rho,\n                'rho_min'    : self.rho_min,\n                'rho_max'    : self.rho_max,\n                'alpha'      : self.alpha,\n                'beta'       : self.beta,\n                'xpre_factor': self.xpre_factor,\n                'w_max'      : self.w_max,\n                'xpre_min'   : self.xpre_min,\n                'xpost_min'  : self.xpost_min,\n                'xpost_max'  : self.xpost_max,\n                'xpre_max'   : self.xpre_max,\n                'tau_xstop'  : self.tau_xstop,\n                'xstop_jump' : self.xstop_jump,\n                'xstop_max'  : self.xstop_max,\n                'xstop_min'  : self.xstop_min,\n                'thr_stop_h' : self.thr_stop_h,\n                'thr_stop_l' : self.thr_stop_l,\n                'U'          : self.U,\n                'tau_d'      : self.tau_d,\n                'tau_f'      : self.tau_f }\n        \n        return self.namespace\n    \n    # 2 ------ getters\n    \n    # 2.1 ------ network\n    \n    def get_sim_data_path( self ):\n        return self.net_sim_data_path\n    \n    # 2.2 ------ neurons\n    \n    def get_E_rates( self ):\n        return [ self.E_rec_rate.t[ : ], self.E_rec_rate.rate[ : ] ]\n    \n    \"\"\"\n    Returns a 2D array containing recorded spikes from E population:\n    - spike's neuron ids (return[0])\n    - spike's times (return[1])\n    \"\"\"\n    \n    def get_E_spks( self, spike_trains=False ):\n        return [ self.E_mon.t[ : ], self.E_mon.i[ : ] ] if not spike_trains else self.E_mon.spike_trains()\n    \n    \"\"\"\n    Returns a 2D array containing recorded spikes from I population:\n    - spike's neuron ids (return[0])\n    - spike's times (return[1])\n    \"\"\"\n    \n    def get_I_spks( self, spike_trains=False ):\n        return [ self.I_mon.t[ : ], self.I_mon.i[ : ] ] if not spike_trains else self.I_mon.spike_trains()\n    \n    \"\"\"\n    Returns a 2D array containing recorded spikes from input to the E population:\n    - spike's neuron ids (return[0])\n    - spike's times (return[1])\n    \"\"\"\n    \n    def get_Einp_spks( self, spike_trains=False ):\n        return [ self.Input_to_E_mon.t[ : ],\n                 self.Input_to_E_mon.i[ : ] ] if not spike_trains else self.Input_to_E_mon.spike_trains()\n    \n    \"\"\"\n    Returns a 2D array containing recorded spikes from input to the I population:\n    - spike's neuron ids (return[0])\n    - spike's times (return[1])\n    \"\"\"\n    \n    def get_Iinp_spks( self, spike_trains=False ):\n        return [ self.Input_to_I_mon.t[ : ],\n                 self.Input_to_I_mon.i[ : ] ] if not spike_trains else self.Input_to_I_mon.spike_trains()\n    \n    \"\"\"\n    \"\"\"\n    \n    def get_target_spks( self, targets_E=[ ], targets_I=[ ], all=False ):\n        if all == False:\n            targeted_E_list = [ ]\n            for n_id in targets_E:\n                targeted_E_list.append( { 'id': n_id, 'spk_t': [ ] } )\n            \n            for n_id in range( 0, len( self.E_mon.i ) ):\n                if (self.E_mon.i[ n_id ] in targets_E):\n                    for y in targeted_E_list:\n                        if y[ 'id' ] == self.E_mon.i[ n_id ]:\n                            y[ 'spk_t' ].append( self.E_mon.t[ n_id ] )\n            \n            targeted_I_list = [ ]\n            for n_id in targets_I:\n                targeted_I_list.append( { 'id': n_id, 'spk_t': [ ] } )\n            \n            for n_id in range( 0, len( self.I_mon.i ) ):\n                if (self.I_mon.i[ n_id ] in targets_I):\n                    for y in targeted_I_list:\n                        if y[ 'id' ] == self.I_mon.i[ n_id ]:\n                            y[ 'spk_t' ].append( self.I_mon.t[ n_id ] )\n            \n            fn = os.path.join(\n                    self.net_sim_data_path,\n                    'targeted_E_n_I_spks.pickle' )\n            \n            with open( fn, 'wb' ) as f:\n                pickle.dump( (\n                        targeted_E_list,\n                        targeted_I_list), f )\n        else:\n            targeted_E_list = [ ]\n            for n_id in range( 0, self.N_e ):\n                targeted_E_list.append( { 'id': n_id, 'spk_t': [ ] } )\n            \n            for n_id in range( 0, len( self.E_mon.i ) ):\n                for y in targeted_E_list:\n                    if y[ 'id' ] == self.E_mon.i[ n_id ]:\n                        y[ 'spk_t' ].append( self.E_mon.t[ n_id ] )\n            \n            targeted_I_list = [ ]\n            for n_id in range( 0, self.N_i ):\n                targeted_I_list.append( { 'id': n_id, 'spk_t': [ ] } )\n            \n            for n_id in range( 0, len( self.I_mon.i ) ):\n                for y in targeted_I_list:\n                    if y[ 'id' ] == self.I_mon.i[ n_id ]:\n                        y[ 'spk_t' ].append( self.I_mon.t[ n_id ] )\n            \n            fn = os.path.join(\n                    self.net_sim_data_path,\n                    'targeted_all_E_n_I_spks.pickle' )\n            \n            with open( fn, 'wb' ) as f:\n                pickle.dump( (\n                        targeted_E_list,\n                        targeted_I_list), f )\n    \n    # 2.3 ------ synapses\n    \n    \"\"\"\n    \"\"\"\n    \n    def get_E_E_weights( self ):\n        return self.E_E_rec.w\n    \n    \"\"\"\n    \"\"\"\n    \n    def get_E_E_rho( self ):\n        return self.E_E_rec.rho[ : ]\n    \n    \"\"\"\n    \"\"\"\n    \n    def get_E_E_xpre( self ):\n        return self.E_E_rec.xpre[ : ]\n    \n    \"\"\"\n    \"\"\"\n    \n    def get_E_E_xpost( self ):\n        return self.E_E_rec.xpost[ : ]\n    \n    \"\"\"\n    \"\"\"\n    \n    def get_E_E_x( self ):\n        return self.E_E_rec.x_[ : ]\n    \n    \"\"\"\n    \"\"\"\n    \n    def pickle_E_E_u_active_inp( self ):\n        us = [ ]\n        count = 0\n        avg = 0.0\n        \n        for aaa in self.E_E_rec.u:\n            if np.mean( aaa ) > 0.3 and np.mean( aaa ) != avg:\n                us.append( aaa )\n                avg = np.mean( aaa )\n                \n                count += 1\n            # if count > 5:\n            #     break\n        \n        fn = os.path.join( self.net_sim_data_path, 'stimulus_neur_u.pickle' )\n        \n        with open( fn, 'wb' ) as f:\n            pickle.dump( (\n                    us,\n                    self.E_E_rec.t / ms), f )\n    \n    \"\"\"\n    \"\"\"\n    \n    def pickle_E_E_x_active_inp( self ):\n        x_ = [ ]\n        count = 0\n        sum_ = 0.0\n        \n        for aaa in self.E_E_rec.x_:\n            if np.sum( aaa ) / len( aaa ) < 1.0 and np.sum( aaa ) / len( aaa ) != sum_:\n                x_.append( aaa )\n                sum_ = np.sum( aaa ) / len( aaa )\n            \n            #     count += 1\n            # if count > 5:\n            #     break\n        \n        fn = os.path.join( self.net_sim_data_path, 'stimulus_neur_x.pickle' )\n        \n        with open( fn, 'wb' ) as f:\n            pickle.dump( (\n                    x_,\n                    self.E_E_rec.t / ms), f )\n    \n    \"\"\"\n    \"\"\"\n    \n    def get_conn_matrix( self, pop='E_E' ):\n        if pop == 'E_E':\n            ee_conn_matrix = np.full( (len( self.E ), len( self.E )), -1.0 )\n            ee_conn_matrix[ self.E_E.i, self.E_E.j ] = 1.0\n        else:\n            ee_conn_matrix = np.full( (len( self.E ), len( self.E )), -1.0 )\n            ee_conn_matrix[ self.E_E.i, self.E_E.j ] = 1.0\n        \n        return ee_conn_matrix\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/helper_functions/recurrent_competitive_network.py b/helper_functions/recurrent_competitive_network.py
+--- a/helper_functions/recurrent_competitive_network.py	(revision ac1a3a1fa94200ea8bc06eccce1c44ed3128b2f0)
++++ b/helper_functions/recurrent_competitive_network.py	(date 1644243569108)
+@@ -390,12 +390,21 @@
+     """
+     """
+     
+-    def run_net( self, duration=3 * second, report='stdout', period=2 ):
++    def run_net( self, duration=3 * second, pulse_ending=False, report='stdout', period=2 ):
+         if not isinstance( duration, Quantity ):
+             duration *= second
++        if not isinstance( pulse_ending, Quantity ):
++            pulse_ending *= second
+         
+         self.t_run = duration
+-        self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
++        if self.stimulus_pulse_duration == 0 * second:
++            self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
++        if pulse_ending:
++            self.stimulus_pulse_duration = pulse_ending
++        print(
++            f'Running RCN in [{self.net.t}-{self.net.t + duration}] s, input ending at {self.stimulus_pulse_duration} '
++            f's' )
++        
+         self.net.run(
+                 duration=duration,
+                 report=report,
