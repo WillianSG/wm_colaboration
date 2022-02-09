@@ -27,6 +27,6 @@ def generate_video( folder, population ):
                                                "-vf 'pad=ceil(iw/2)*2:ceil(ih/2)*2' " \
                     + folder + "/syn_matrix_heatmaps.mp4"
     
-    print( f"Generating Video from Heatmaps using {ffmpeg_string} ..." )
+    print( f"Generating Video using {ffmpeg_string} ..." )
     os.system( ffmpeg_string )
     print( f"Generated video {folder + '/syn_matrix_heatmaps.mp4'}" )

@@ -53,7 +53,7 @@ rcn.set_E_E_plastic( plastic=True )
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=0 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( duration=3, pulse_ending=2, callback=[ harcoded_attractor_algebraic_connectivity ] )
+rcn.run_net( duration=3, pulse_ending=2, gather_every=0.1, callback=[ harcoded_attractor_algebraic_connectivity ] )
 
 g_first = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                   edges_subsample=edges_subsample,
@@ -84,7 +84,7 @@ rcn.stimulus_pulse_duration = 5 * second
 rcn.set_stimulus_e( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e, offset=100 )
 rcn.set_stimulus_i( stimulus='flat_to_I', frequency=rcn.stim_freq_i )
 
-rcn.run_net( duration=3, pulse_ending=5, callback=[ harcoded_attractor_algebraic_connectivity ] )
+rcn.run_net( duration=3, pulse_ending=5, gather_every=0.1, callback=[ harcoded_attractor_algebraic_connectivity ] )
 
 g_second = rcn2nx( rcn, neurons_subsample=neurons_subsample, subsample_attractors=True,
                    edges_subsample=edges_subsample,
@@ -128,7 +128,8 @@ plot_rcn_spiketrains_histograms(
         path_to_plot=os.getcwd(),
         show=show_plots )
 
+harcoded_attractor_algebraic_connectivity( rcn )
 plot_attractor_profile( rcn )
-print( harcoded_attractor_algebraic_connectivity( rcn ) )
+video_attractor_profile( rcn )
 
 # save_graph_results()

@@ -410,7 +410,7 @@ class RecurrentCompetitiveNet:
         
         num_runs = int( duration / gather_every ) - 1
         t = tqdm( total=duration / second, desc='RCN', unit='sim s',
-                  bar_format='{l_bar} {bar}| {n:.1f}/{total:.1f} [{elapsed}<{remaining}, ' '{rate_fmt}{'
+                  bar_format='{l_bar} {bar}| {n:.1f}/{total:.1f} s [{elapsed}<{remaining}, ' '{rate_fmt}{'
                              'postfix}]',
                   leave=False, dynamic_ncols=True )
         for i in range( num_runs ):
