@@ -390,18 +390,44 @@ class RecurrentCompetitiveNet:
     """
     """
     
-    def run_net( self, duration=3 * second, report='stdout', period=2 ):
+    def run_net( self, duration=3 * second, gather_every=0.1 * second, pulse_ending=False, callback=None ):
+        from tqdm import tqdm
+        
         if not isinstance( duration, Quantity ):
             duration *= second
+        if not isinstance( gather_every, Quantity ):
+            gather_every *= second
+        if not isinstance( pulse_ending, Quantity ):
+            pulse_ending *= second
+        
+        if not callback: callback = [ ]
         
         self.t_run = duration
-        self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
-        self.net.run(
-                duration=duration,
-                report=report,
-                report_period=period * second,
-                namespace=self.set_net_namespace() )
-        self.net.stop()
+        if self.stimulus_pulse_duration == 0 * second:
+            self.stimulus_pulse_duration = self.net.t + (duration - 1 * second)
+        if pulse_ending:
+            self.stimulus_pulse_duration = pulse_ending
+        
+        num_runs = int( duration / gather_every ) - 1
+        t = tqdm( total=duration / second, desc='RCN', unit='sim s',
+                  bar_format='{l_bar} {bar}| {n:.1f}/{total:.1f} [{elapsed}<{remaining}, ' '{rate_fmt}{'
+                             'postfix}]',
+                  leave=False, dynamic_ncols=True )
+        for i in range( num_runs ):
+            t.set_description(
+                    f'Running RCN in [{self.net.t:.1f}-{self.net.t + gather_every:.1f}] s, '
+                    f'input ending at {self.stimulus_pulse_duration:.1f} s' )
+            self.net.run(
+                    duration=gather_every,
+                    report=None,
+                    namespace=self.set_net_namespace() )
+            
+            for f in callback:
+                f( self )
+            
+            self.net.stop()
+            t.update( gather_every / second )
+        t.close()
     
     """
     """
