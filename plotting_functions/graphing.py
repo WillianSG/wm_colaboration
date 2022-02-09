@@ -142,7 +142,6 @@ def rcn2nx( rcn,
     
     g = nx.DiGraph()
     
-    # TODO compute more advanced statistics on nx
     # Add excitatory neurons
     e_nodes = [ f'e_{i}' for i in e_neurons ]
     e_neuron_spikes = np.array( rcn.E_mon.count )[ e_neurons ]
@@ -344,11 +343,6 @@ def nx2pyvis( input, notebook=False, output_filename='graph',
         import os
         
         webbrowser.open( f'file://{os.getcwd()}/{output_filename}.html' )
-
-
-# TODO how much inhibition is each attractor giving?
-# TODO how many inhibitory neurons are shared between attractors?
-# TODO measure net excitation between attractors
 
 
 def colour_by_attractor( g ):

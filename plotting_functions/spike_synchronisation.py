@@ -19,7 +19,6 @@ def video_SPIKE_profile( rcn, filename=None, sim_time=6 ):
     pass
 
 
-# TODO measure algebraic connectivity at regular intervals and add it to plots
 # TODO look at sync in inhibitory neurons
 # TODO count de-synchronised neurons in each attractor
 def plot_attractor_profile( rcn, filename=None, sim_time=6 ):
@@ -101,7 +100,7 @@ def plot_attractor_profile( rcn, filename=None, sim_time=6 ):
     trans = ax_distance.get_xaxis_transform()
     ax_distance.annotate( f'{spk.spike_distance( spike_trains, indices=A1, interval=(0, 2) ):.5f}',
                           xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-    ax_distance.plot( [ 0, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax_distance.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
     ax_distance.annotate( f'{spk.spike_distance( spike_trains, indices=A1, interval=(2, 3) ):.5f}',
                           xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
     ax_distance.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
@@ -140,7 +139,7 @@ def plot_attractor_profile( rcn, filename=None, sim_time=6 ):
     trans = ax_sync.get_xaxis_transform()
     ax_sync.annotate( f'{spk.spike_sync( spike_trains, indices=A1, interval=(0, 2) ):.5f}',
                       xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-    ax_sync.plot( [ 0, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax_sync.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
     ax_sync.annotate( f'{spk.spike_sync( spike_trains, indices=A1, interval=(2, 3) ):.5f}',
                       xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
     ax_sync.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
@@ -172,21 +171,36 @@ def plot_attractor_profile( rcn, filename=None, sim_time=6 ):
     ax_a_conn.set_title( 'Algebraic connectivity profile' )
     ax_a_conn.legend()
     
-    # TODO add markers for both attractors
-    # -- add average measure markers
+    # -- add average measure markers ...
     trans = ax_a_conn.get_xaxis_transform()
+    # -- ... for stimulus 1
+    ax_a_conn.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
     ax_a_conn.annotate( f'{df.loc[ :2 ][ "A1" ].mean():.5f}',
                         xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-    ax_a_conn.plot( [ 0, 2 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax_a_conn.plot( [ 0.1, 1.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
+    ax_a_conn.annotate( f'{df.loc[ :2 ][ "A2" ].mean():.5f}',
+                        xy=(1, -.22), xycoords=trans, ha="center", va="top", color='green' )
+    # -- delay 1
+    ax_a_conn.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
     ax_a_conn.annotate( f'{df.loc[ 2:3 ][ "A1" ].mean():.5f}',
                         xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-    ax_a_conn.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax_a_conn.plot( [ 2.1, 2.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
+    ax_a_conn.annotate( f'{df.loc[ 2:3 ][ "A2" ].mean():.5f}',
+                        xy=(2.5, -.22), xycoords=trans, ha="center", va="top", color='green' )
+    # -- stimulus 2
+    ax_a_conn.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax_a_conn.annotate( f'{df.loc[ 3:5 ][ "A1" ].mean():.5f}',
+                        xy=(4, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+    ax_a_conn.plot( [ 3.1, 4.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
     ax_a_conn.annotate( f'{df.loc[ 3:5 ][ "A2" ].mean():.5f}',
-                        xy=(4, -.1), xycoords=trans, ha="center", va="top", color='green' )
-    ax_a_conn.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
+                        xy=(4, -.22), xycoords=trans, ha="center", va="top", color='green' )
+    # -- delay 2
+    ax_a_conn.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax_a_conn.annotate( f'{df.loc[ 5: ][ "A1" ].mean():.5f}',
+                        xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+    ax_a_conn.plot( [ 5.1, 5.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
     ax_a_conn.annotate( f'{df.loc[ 5: ][ "A2" ].mean():.5f}',
-                        xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='green' )
-    ax_a_conn.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
+                        xy=(5.5, -.22), xycoords=trans, ha="center", va="top", color='green' )
     
     # -- figure adjustments
     plt.tight_layout()

@@ -128,7 +128,7 @@ plot_rcn_spiketrains_histograms(
         path_to_plot=os.getcwd(),
         show=show_plots )
 
-plot_SPIKE_profile( rcn )
+plot_attractor_profile( rcn )
 print( harcoded_attractor_algebraic_connectivity( rcn ) )
 
 # save_graph_results()
