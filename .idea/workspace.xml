@@ -4,12 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- fixed extra iteration in run_net">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- video generation&#10;- ton of fixes in plot">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/graph_analysis/network_visualisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/graph_analysis/network_visualisation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/graphing.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/graphing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/plot_video.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/plot_video.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/plotting_functions/spike_synchronisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/spike_synchronisation.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -235,7 +231,7 @@
       <workItem from="1644337624732" duration="5949000" />
       <workItem from="1644408426268" duration="13000" />
       <workItem from="1644408448061" duration="11419000" />
-      <workItem from="1644432071816" duration="192000" />
+      <workItem from="1644432071816" duration="9663000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -279,7 +275,14 @@
       <option name="project" value="LOCAL" />
       <updated>1644430915012</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="- video generation&#10;- ton of fixes in plot">
+      <created>1644432564989</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1644432564989</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -304,7 +307,8 @@
     <MESSAGE value="- finished rewriting run_net() with:&#10;* new progress bar&#10;* pulse presentation end setting&#10;* quantisation of running" />
     <MESSAGE value="- finished adding algebraic connectivity to plot" />
     <MESSAGE value="- fixed extra iteration in run_net" />
-    <option name="LAST_COMMIT_MESSAGE" value="- fixed extra iteration in run_net" />
+    <MESSAGE value="- video generation&#10;- ton of fixes in plot" />
+    <option name="LAST_COMMIT_MESSAGE" value="- video generation&#10;- ton of fixes in plot" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -319,21 +323,11 @@
           <line>48</line>
           <option name="timeStamp" value="41" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/plotting_functions/spike_synchronisation.py</url>
-          <line>41</line>
-          <option name="timeStamp" value="48" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/plotting_functions/spike_synchronisation.py</url>
-          <line>32</line>
-          <option name="timeStamp" value="49" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation.coverage" NAME="network_visualisation Coverage Results" MODIFIED="1644431056774" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation.coverage" NAME="network_visualisation Coverage Results" MODIFIED="1644490029113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
     <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation_lite.coverage" NAME="network_visualisation_lite Coverage Results" MODIFIED="1644336752261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
     <SUITE FILE_PATH="coverage/wm_colaboration$attractor_viz_lite.coverage" NAME="attractor_viz_lite Coverage Results" MODIFIED="1644337682622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN.coverage" NAME="RCN Coverage Results" MODIFIED="1644428424879" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />

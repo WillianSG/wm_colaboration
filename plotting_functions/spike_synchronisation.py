@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 
 from brian2 import second, Quantity
+import pyspike as spk
 
 
 def save_spikes_pyspike( spikes, filename ):
@@ -36,8 +37,8 @@ def video_attractor_profile( rcn, sim_time=6 * second, gather_every=0.1 * second
     for i, t in tqdm( enumerate( time_points ), desc='Creating video frames',
                       total=int( sim_time / gather_every ), unit='frame' ):
         temp_file = os.path.join( temp_dir.name, f'{i:0{pad}}' )
-        plot_attractor_profile( rcn, path=temp_file, show=False, curr_time=t,
-                                fig_width=20, y_lim=(min_a_conn, max_a_conn) )
+        plot_attractor_profile( rcn, filename=temp_file, show=False, curr_time=t,
+                                fig_width=30, y_lim=(min_a_conn, max_a_conn) )
     
     ffmpeg_string = "ffmpeg " + "-pattern_type glob -i '" \
                     + temp_dir.name + "/" + "*.png' " \
@@ -53,15 +54,124 @@ def video_attractor_profile( rcn, sim_time=6 * second, gather_every=0.1 * second
     temp_dir.cleanup()
 
 
+def _plot_matrix( fig, ax, spike_trains, measure, interval=None ):
+    interval = tuple( np.clip( interval, 0, np.Inf ) )
+    if interval[ 1 ] == 0:
+        interval = None
+    
+    if measure == 'distance':
+        spike_profile = spk.spike_distance_matrix( spike_trains, interval=interval )
+    elif measure == 'sync':
+        spike_profile = spk.spike_sync_matrix( spike_trains, interval=interval )
+    else:
+        raise ValueError( 'title must be distance or sync' )
+    
+    ax_matrix = fig.add_subplot( ax )
+    im = ax_matrix.imshow( spike_profile, vmin=0, vmax=1, interpolation='none' )
+    # ax_distance_matrix.set_clim( 0, 1 )
+    fig.colorbar( im, ax=ax_matrix )
+    if interval:
+        ax_matrix.set_title( f"SPIKE-{measure} matrix\n[{interval[ 0 ]:.1f}-{interval[ 1 ]:.1f}] s" )
+    else:
+        ax_matrix.set_title( f"SPIKE-{measure} matrix\n[0.0-0.0] s" )
+    
+    return ax_matrix
+
+
+def _subaxis_mean_annotations( fig, ax, input, indices, measure ):
+    import pandas as pd
+    
+    if measure == 'distance':
+        spike_profile = spk.spike_distance
+    elif measure == 'sync':
+        spike_profile = spk.spike_sync
+    elif measure == 'connectivity':
+        pass
+    else:
+        raise ValueError( 'title must be distance, sync, or connectivity' )
+    
+    A1 = indices[ 0 ]
+    A2 = indices[ 1 ]
+    
+    trans = ax.get_xaxis_transform()
+    
+    # -- line markers
+    ax.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    
+    # -- data
+    if isinstance( input, pd.DataFrame ) and measure == 'connectivity':
+        ax.plot( [ 0.1, 1.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
+        
+        ax.plot( [ 2.1, 2.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
+        
+        ax.plot( [ 3.1, 4.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
+        
+        ax.plot( [ 5.1, 5.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
+        
+        # -- ... for stimulus 1
+        ax.annotate( f'{input.loc[ :2 ][ "A1" ].mean():.5f}',
+                     xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+        ax.annotate( f'{input.loc[ :2 ][ "A2" ].mean():.5f}',
+                     xy=(1, -.22), xycoords=trans, ha="center", va="top", color='green' )
+        # -- delay 1
+        ax.annotate( f'{input.loc[ 2:3 ][ "A1" ].mean():.5f}',
+                     xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+        ax.annotate( f'{input.loc[ 2:3 ][ "A2" ].mean():.5f}',
+                     xy=(2.5, -.22), xycoords=trans, ha="center", va="top", color='green' )
+        # -- stimulus 2
+        ax.annotate( f'{input.loc[ 3:5 ][ "A1" ].mean():.5f}',
+                     xy=(4, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+        ax.annotate( f'{input.loc[ 3:5 ][ "A2" ].mean():.5f}',
+                     xy=(4, -.22), xycoords=trans, ha="center", va="top", color='green' )
+        # -- delay 2
+        ax.annotate( f'{input.loc[ 5: ][ "A1" ].mean():.5f}',
+                     xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+        ax.annotate( f'{input.loc[ 5: ][ "A2" ].mean():.5f}',
+                     xy=(5.5, -.22), xycoords=trans, ha="center", va="top", color='green' )
+    else:
+        ax.annotate( f'{spike_profile( input, indices=A1, interval=(0, 2) ):.5f}',
+                     xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+        ax.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+        ax.annotate( f'{spike_profile( input, indices=A1, interval=(2, 3) ):.5f}',
+                     xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+        ax.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+        ax.annotate( f'{spike_profile( input, indices=A2, interval=(3, 5) ):.5f}',
+                     xy=(4, -.1), xycoords=trans, ha="center", va="top", color='green' )
+        ax.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
+        ax.annotate( f'{spike_profile( input, indices=A2, interval=(5, 6) ):.5f}',
+                     xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='green' )
+        ax.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
+
+
+def _subaxis_annotations( fig, ax ):
+    trans = ax.get_xaxis_transform()
+    ax.annotate( 'Stimulus 1',
+                 xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+    ax.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax.annotate( 'Delay 1',
+                 xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
+    ax.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
+    ax.annotate( 'Stimulus 2',
+                 xy=(4, -.1), xycoords=trans, ha="center", va="top", color='green' )
+    ax.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
+    ax.annotate( 'Delay 2',
+                 xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='green' )
+    ax.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
+
+
 # TODO look at sync in inhibitory neurons
 # TODO count de-synchronised neurons in each attractor
-def plot_attractor_profile( rcn, path='', show=True, spikes_filename=None, sim_time=6, curr_time=None,
+# TODO check if video exists to generate multiple videos
+# TODO make it independent of RCN!!
+def plot_attractor_profile( rcn, filename='attractor_profile.png', show=True, spikes_filename=None,
+                            sim_time=6, curr_time=None,
                             fig_width=30, y_lim=None ):
     import matplotlib.pyplot as plt
     from scipy.ndimage.filters import uniform_filter1d
-    import pyspike as spk
     import pandas as pd
-    from brian2 import second
     
     if curr_time is None:
         curr_time = sim_time
@@ -96,7 +206,7 @@ def plot_attractor_profile( rcn, path='', show=True, spikes_filename=None, sim_t
     spike_sync_profile_A2 = spk.spike_sync_profile( spike_trains, indices=A2 )
     
     # -- make figure
-    fig_height = fig_width / 1.61803399
+    fig_height = fig_width / 1.4
     fig = plt.figure( figsize=(fig_width, fig_height), dpi=100 )
     gs = plt.GridSpec( 4, 2, width_ratios=[ 4, 1 ] )
     plt.rcParams.update( { 'font.size': fig_height } )
@@ -122,15 +232,7 @@ def plot_attractor_profile( rcn, path='', show=True, spikes_filename=None, sim_t
     
     # -- add stimulus presentation markers
     if curr_time == sim_time:
-        trans = ax_spikes.get_xaxis_transform()
-        ax_spikes.annotate( 'Stimulus 1', xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_spikes.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_spikes.annotate( 'Delay 1', xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_spikes.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_spikes.annotate( 'Stimulus 2', xy=(4, -.1), xycoords=trans, ha="center", va="top", color='green' )
-        ax_spikes.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
-        ax_spikes.annotate( 'Delay 2', xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='green' )
-        ax_spikes.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
+        _subaxis_annotations( fig, ax_spikes )
     
     # -- plot spike distance profile
     ax_distance = fig.add_subplot( gs[ 1, 0 ] )
@@ -151,26 +253,10 @@ def plot_attractor_profile( rcn, path='', show=True, spikes_filename=None, sim_t
     
     # -- add average measure markers
     if curr_time == sim_time:
-        trans = ax_distance.get_xaxis_transform()
-        ax_distance.annotate( f'{spk.spike_distance( spike_trains, indices=A1, interval=(0, 2) ):.5f}',
-                              xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_distance.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_distance.annotate( f'{spk.spike_distance( spike_trains, indices=A1, interval=(2, 3) ):.5f}',
-                              xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_distance.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_distance.annotate( f'{spk.spike_distance( spike_trains, indices=A2, interval=(3, 5) ):.5f}',
-                              xy=(4, -.1), xycoords=trans, ha="center", va="top", color='green' )
-        ax_distance.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
-        ax_distance.annotate( f'{spk.spike_distance( spike_trains, indices=A2, interval=(5, 6) ):.5f}',
-                              xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='green' )
-        ax_distance.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
-    
-    ax_distance_matrix = fig.add_subplot( gs[ 1, 1 ] )
-    spike_distance = spk.spike_distance_matrix( spike_trains )
-    im1 = ax_distance_matrix.imshow( spike_distance, vmin=0, vmax=1, interpolation='none' )
-    # ax_distance_matrix.set_clim( 0, 1 )
-    fig.colorbar( im1, ax=ax_distance_matrix )
-    ax_distance_matrix.set_title( "SPIKE-distance matrix" )
+        _subaxis_mean_annotations( fig, ax_distance, spike_trains, (A1, A2), measure='distance' )
+        _plot_matrix( fig, gs[ 1, 1 ], spike_trains, 'distance', interval=(0, curr_time) )
+    else:
+        _plot_matrix( fig, gs[ 1, 1 ], spike_trains, 'distance', interval=(curr_time - 0.1, curr_time) )
     
     # -- plot spike sync profile
     ax_sync = fig.add_subplot( gs[ 2, 0 ] )
@@ -191,26 +277,10 @@ def plot_attractor_profile( rcn, path='', show=True, spikes_filename=None, sim_t
     
     # -- add average measure markers
     if curr_time == sim_time:
-        trans = ax_sync.get_xaxis_transform()
-        ax_sync.annotate( f'{spk.spike_sync( spike_trains, indices=A1, interval=(0, 2) ):.5f}',
-                          xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_sync.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_sync.annotate( f'{spk.spike_sync( spike_trains, indices=A1, interval=(2, 3) ):.5f}',
-                          xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_sync.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_sync.annotate( f'{spk.spike_sync( spike_trains, indices=A2, interval=(3, 5) ):.5f}',
-                          xy=(4, -.1), xycoords=trans, ha="center", va="top", color='green' )
-        ax_sync.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
-        ax_sync.annotate( f'{spk.spike_sync( spike_trains, indices=A2, interval=(5, 6) ):.5f}',
-                          xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='green' )
-        ax_sync.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="green", transform=trans, clip_on=False )
-    
-    ax_sync_matrix = fig.add_subplot( gs[ 2, 1 ] )
-    spike_sync = spk.spike_sync_matrix( spike_trains )
-    im1 = ax_sync_matrix.imshow( spike_sync, vmin=0, vmax=1, interpolation='none' )
-    # ax_sync_matrix.set_clim( 0, 1 )
-    fig.colorbar( im1, ax=ax_sync_matrix )
-    ax_sync_matrix.set_title( "SPIKE-sync matrix" )
+        _subaxis_mean_annotations( fig, ax_sync, spike_trains, (A1, A2), measure='sync' )
+        _plot_matrix( fig, gs[ 2, 1 ], spike_trains, 'sync', interval=(0, curr_time) )
+    else:
+        _plot_matrix( fig, gs[ 2, 1 ], spike_trains, 'sync', interval=(curr_time - 0.1, curr_time) )
     
     # -- plot algebraic connectivity
     df = pd.read_csv( './a_conn.csv', dtype=np.float64 )
@@ -228,35 +298,7 @@ def plot_attractor_profile( rcn, path='', show=True, spikes_filename=None, sim_t
     
     # -- add average measure markers ...
     if curr_time == sim_time:
-        trans = ax_a_conn.get_xaxis_transform()
-        # -- ... for stimulus 1
-        ax_a_conn.plot( [ 0.1, 1.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ :2 ][ "A1" ].mean():.5f}',
-                            xy=(1, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_a_conn.plot( [ 0.1, 1.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ :2 ][ "A2" ].mean():.5f}',
-                            xy=(1, -.22), xycoords=trans, ha="center", va="top", color='green' )
-        # -- delay 1
-        ax_a_conn.plot( [ 2.1, 2.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ 2:3 ][ "A1" ].mean():.5f}',
-                            xy=(2.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_a_conn.plot( [ 2.1, 2.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ 2:3 ][ "A2" ].mean():.5f}',
-                            xy=(2.5, -.22), xycoords=trans, ha="center", va="top", color='green' )
-        # -- stimulus 2
-        ax_a_conn.plot( [ 3.1, 4.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ 3:5 ][ "A1" ].mean():.5f}',
-                            xy=(4, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_a_conn.plot( [ 3.1, 4.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ 3:5 ][ "A2" ].mean():.5f}',
-                            xy=(4, -.22), xycoords=trans, ha="center", va="top", color='green' )
-        # -- delay 2
-        ax_a_conn.plot( [ 5.1, 5.9 ], [ -.08, -.08 ], linewidth=5, color="orange", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ 5: ][ "A1" ].mean():.5f}',
-                            xy=(5.5, -.1), xycoords=trans, ha="center", va="top", color='orange' )
-        ax_a_conn.plot( [ 5.1, 5.9 ], [ -.2, -.2 ], linewidth=5, color="green", transform=trans, clip_on=False )
-        ax_a_conn.annotate( f'{df.loc[ 5: ][ "A2" ].mean():.5f}',
-                            xy=(5.5, -.22), xycoords=trans, ha="center", va="top", color='green' )
+        _subaxis_mean_annotations( fig, ax_a_conn, df, (A1, A2), measure='connectivity' )
     
     # -- add vertical lines to mark where we've set curr_time
     if curr_time != sim_time:
@@ -270,10 +312,10 @@ def plot_attractor_profile( rcn, path='', show=True, spikes_filename=None, sim_t
         fig.show()
     
     # -- check that filename ends with .png
-    if path:
-        filename = pathlib.Path( path )
-        if not filename.suffix == '.png':
-            path = filename.with_suffix( '.png' )
-            fig.savefig( f'{path}.png', bbox_inches='tight' )
+    if filename:
+        filename_stripped = pathlib.Path( filename )
+        if not filename_stripped.suffix == '.png':
+            filename = filename_stripped.with_suffix( '.png' )
+            fig.savefig( f'{filename}.png', bbox_inches='tight' )
     
     plt.close( fig )
