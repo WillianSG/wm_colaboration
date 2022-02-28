@@ -20,7 +20,7 @@ from matplotlib import gridspec
 import numpy as np
 
 
-def plot_syn_matrix_heatmap(path_to_data):
+def plot_syn_matrix_heatmap(path_to_data, show=True):
     from natsort import natsorted
 
     pickled_list = os.listdir(path_to_data)
@@ -49,5 +49,8 @@ def plot_syn_matrix_heatmap(path_to_data):
         plt.savefig(
             f'{path_to_data}/{i:0{pad}}_{pickled.replace(".pickle", ".png")}',
             bbox_inches='tight')
+
+        if show:
+            plt.show()
 
         plt.close()
