@@ -1,6 +1,7 @@
 import brian2.monitors
 import numpy as np
 import matplotlib.pyplot as plt
+import os, datetime
 
 """
 @author: t.f.tiotto@rug.nl
@@ -64,3 +65,17 @@ def visualise_connectivity( S ):
     plt.xlabel( 'Source neuron index' )
     plt.ylabel( 'Target neuron index' )
     plt.show()
+
+
+def make_folders( path ):
+    if not os.path.exists( path ):
+        os.makedirs( path )
+
+
+def make_timestamped_folder( path ):
+    if not os.path.exists( path ):
+        os.makedirs( path )
+    timestamp = datetime.datetime.now().strftime( "%Y-%m-%d_%H-%M-%S" )
+    os.makedirs( os.path.join( path, timestamp ) )
+    
+    return os.path.join( path, timestamp )
