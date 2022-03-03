@@ -164,6 +164,7 @@ def confidence_interval( data, cl=0.95 ):
     return confidenceInterval
 
 
+# TODO we are only interested in the synapses WITHIN the attractor, not the ones going out
 def plot_membrane_potentials( window, data_monitor, neuron_monitor, show_plot=True, save_path='' ):
     plot = Plot( window, data_monitor, neuron_monitor, sample_size=10, num_bottom_plots=1 )
     plot.set_suptitle( 'Membrane potentials' )
