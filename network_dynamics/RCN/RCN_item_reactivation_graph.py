@@ -69,10 +69,11 @@ rcn.spont_rate = 10 * Hz
 rcn.net_init()
 rcn.net_sim_data_path = save_dir
 
-rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
-rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
+stim1_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
+rcn.set_potentiated_synapses( stim1_ids )
+stim2_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
+rcn.set_potentiated_synapses( stim2_ids )
 # rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
-rcn.set_potentiated_synapses()
 
 # -- generic stimulus
 # rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=15 )
@@ -103,7 +104,7 @@ rcn.get_spks_from_pattern_neurons()
 fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin',
                                  show=show_plots )
 
-# plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
+plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
 
 fig2 = plot_rcn_spiketrains_histograms(
         Einp_spks=rcn.get_Einp_spks()[ 0 ],

@@ -71,10 +71,12 @@ for ba in np.arange( 0, 105, 5 ):
     rcn.net_init()
     rcn.net_sim_data_path = save_dir
     
-    rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
-    # rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
-    # rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
-    rcn.set_potentiated_synapses()
+    stim1_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
+    rcn.set_potentiated_synapses( stim1_ids )
+    stim2_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
+    rcn.set_potentiated_synapses( stim2_ids )
+    # stim3_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
+    # rcn.set_potentiated_synapses(stim3_ids )
     
     # rcn.stimulate_attractors( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e,
     # stim_perc=percentage_stim_ids,

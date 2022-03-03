@@ -4,14 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- post-merge fixes">
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_07_02_22,_13_18_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_07_02_22,_13_22_[Changes]1/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_07_02_22,_15_21_[Changes]/shelved.patch" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_07_02_22__13_18__Changes_.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_07_02_22__13_22__Changes_1.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Checkout_at_07_02_22__15_21__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_ba.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_ba.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_graph.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_graph.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/plot_x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/plot_x_u_spks_from_basin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/spike_synchronisation.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/spike_synchronisation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plotting_functions/plot_syn_matrix_heatmap.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/plot_syn_matrix_heatmap.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -60,6 +65,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="ShowUsagesActions.previewPropertyKey" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
@@ -78,29 +84,7 @@
       <recent name="$PROJECT_DIR$/graph_analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RCN_item_reactivation_gs">
-    <configuration name="RCN" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="wm_colaboration" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+  <component name="RunManager" selected="Python.RCN_item_reactivation_ba">
     <configuration name="RCN_item_reactivation_ba" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -112,6 +96,25 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_ba.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="RCN_item_reactivation_graph" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="wm_colaboration" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_graph.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -207,18 +210,18 @@
     </configuration>
     <list>
       <item itemvalue="Python.network_visualisation" />
-      <item itemvalue="Python.RCN" />
       <item itemvalue="Python.spike_synchronisation" />
       <item itemvalue="Python.RCN_item_reactivation_ba" />
       <item itemvalue="Python.RCN_item_reactivation_gs" />
+      <item itemvalue="Python.RCN_item_reactivation_graph" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.RCN_item_reactivation_gs" />
         <item itemvalue="Python.RCN_item_reactivation_ba" />
+        <item itemvalue="Python.RCN_item_reactivation_graph" />
+        <item itemvalue="Python.RCN_item_reactivation_gs" />
         <item itemvalue="Python.network_visualisation" />
         <item itemvalue="Python.spike_synchronisation" />
-        <item itemvalue="Python.RCN" />
       </list>
     </recent_temporary>
   </component>
@@ -287,7 +290,14 @@
       <option name="project" value="LOCAL" />
       <updated>1644432564989</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="- post-merge fixes">
+      <created>1646317021823</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1646317021823</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -313,7 +323,8 @@
     <MESSAGE value="- finished adding algebraic connectivity to plot" />
     <MESSAGE value="- fixed extra iteration in run_net" />
     <MESSAGE value="- video generation&#10;- ton of fixes in plot" />
-    <option name="LAST_COMMIT_MESSAGE" value="- video generation&#10;- ton of fixes in plot" />
+    <MESSAGE value="- post-merge fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="- post-merge fixes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -324,9 +335,9 @@
           <option name="timeStamp" value="26" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/plotting_functions/plot_syn_matrix_heatmap.py</url>
-          <line>48</line>
-          <option name="timeStamp" value="41" />
+          <url>file://$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py</url>
+          <line>432</line>
+          <option name="timeStamp" value="49" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -340,6 +351,6 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs.coverage" NAME="RCN_item_reactivation_gs Coverage Results" MODIFIED="1646243957580" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$recurrent_competitive_network.coverage" NAME="recurrent_competitive_network Coverage Results" MODIFIED="1646148885484" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/helper_functions" />
     <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation.coverage" NAME="network_visualisation Coverage Results" MODIFIED="1644490029113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_graph.coverage" NAME="RCN_item_reactivation_graph Coverage Results" MODIFIED="1646298767843" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_graph.coverage" NAME="RCN_item_reactivation_graph Coverage Results" MODIFIED="1646329396479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
   </component>
 </project>

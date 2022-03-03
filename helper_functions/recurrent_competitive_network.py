@@ -240,12 +240,15 @@ class RecurrentCompetitiveNet:
     """
     
     def set_active_E_ids( self, stimulus, offset=0 ):
-        self.stimulus_neurons_e_ids = np.append( self.stimulus_neurons_e_ids, load_stimulus(
+        stim_ids = load_stimulus(
                 stimulus_type=stimulus,
                 stimulus_size=self.stim_size_e,
-                offset=offset ) ).astype( np.int )
-    
-    # 1.2 ------ synapses
+                offset=offset )
+        self.stimulus_neurons_e_ids = np.append( self.stimulus_neurons_e_ids, stim_ids ).astype( np.int )
+        
+        return stim_ids
+        
+        # 1.2 ------ synapses
     
     """
     Loads synaptic rule equations.
@@ -425,9 +428,9 @@ class RecurrentCompetitiveNet:
     provided to the network isn't set yet.
     """
     
-    def set_potentiated_synapses( self ):
+    def set_potentiated_synapses( self, stim_ids ):
         for x in range( 0, len( self.E_E ) ):
-            if self.E_E.i[ x ] in self.stimulus_neurons_e_ids and self.E_E.j[ x ] in self.stimulus_neurons_e_ids:
+            if self.E_E.i[ x ] in stim_ids and self.E_E.j[ x ] in stim_ids:
                 self.E_E.rho[ self.E_E.i[ x ], self.E_E.j[ x ] ] = 1.0
     
     # 1.4 ------ network operation
