@@ -22,7 +22,7 @@ TO DO:
 """
 import setuptools
 from time import localtime, strftime
-import os, pickle
+import os, pickle, random
 
 from brian2 import *
 import numpy as np
@@ -33,22 +33,22 @@ import numpy as np
 
 prefs.codegen.target = 'numpy'
 
-from helper_functions.load_rule_parameters import *
-from helper_functions.load_synapse_model import *
-from helper_functions.load_stimulus import *
+from load_rule_parameters import *
+from load_synapse_model import *
+from load_stimulus import *
 
 
 class RecurrentCompetitiveNet:
-    def __init__( self, plasticity_rule='LR2', parameter_set='2.4', save_path=None ):
+    def __init__( self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second ):
         
         # ------ simulation parameters
         self.net_id = strftime( "%d%b%Y_%H-%M-%S", localtime() )
         
-        self.net_sim_path = os.path.dirname(
-                os.path.abspath( os.path.join( __file__, '../' ) )
-                ) if not save_path else save_path
+        self.net_sim_path = os.path.dirname( os.path.abspath( os.path.join( __file__, '../' ) ) )
+        
         self.net_sim_data_path = ''
         
+        self.t_run = t_run
         self.dt = 0.1 * ms
         
         self.int_meth_neur = 'linear'
@@ -72,6 +72,7 @@ class RecurrentCompetitiveNet:
         
         self.stim_freq_e = 6600 * Hz
         self.stim_freq_i = 3900 * Hz
+        self.spont_rate = 10 * Hz
         
         self.N_e = 256  # num. of neurons
         self.Vr_e = -65 * mV  # resting potential
@@ -110,14 +111,16 @@ class RecurrentCompetitiveNet:
         self.p_i_i = 0.0  # inhibitory to inhibitory (0.0)
         
         # delays
-        self.syn_delay_Vepsp_e_e = 0 * ms
+        self.syn_delay_Vepsp_e_e = 3 * ms
         self.syn_delay_w_update_e_e = 0 * ms
+        self.E_I_delay = 0 * ms
         
         # weights
         self.w_e_e_max = 7.5 * mV
         self.w_i_i_max = 7.5 * mV
         
         self.w_input_e = 1 * mV
+        self.w_input_e_spont = 70 * mV
         self.w_input_i = 1 * mV
         self.w_e_i = 1 * mV
         self.w_i_e = 1 * mV
@@ -174,10 +177,10 @@ class RecurrentCompetitiveNet:
     def set_neuron_pop( self ):
         # equations (voltage based neuron model)
         self.eqs_e = Equations( '''
-			dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
-			dVepsp/dt = -Vepsp / tau_epsp : volt
-			dVipsp/dt = -Vipsp / tau_ipsp : volt
-			dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',
+            dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
+            dVepsp/dt = -Vepsp / tau_epsp : volt
+            dVipsp/dt = -Vipsp / tau_ipsp : volt
+            dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',
                                 Vr_e=self.Vr_e,
                                 taum_e=self.taum_e,
                                 tau_epsp=self.tau_epsp_e,
@@ -186,9 +189,9 @@ class RecurrentCompetitiveNet:
                                 tau_Vth_e=self.tau_Vth_e )
         
         self.eqs_i = Equations( '''
-			dVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)
-			dVepsp/dt = -Vepsp / tau_epsp : volt
-			dVipsp/dt = -Vipsp / tau_ipsp : volt''',
+            dVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)
+            dVepsp/dt = -Vepsp / tau_epsp : volt
+            dVipsp/dt = -Vipsp / tau_ipsp : volt''',
                                 Vr_i=self.Vr_i,
                                 taum_i=self.taum_i,
                                 tau_epsp=self.tau_epsp_i,
@@ -197,7 +200,7 @@ class RecurrentCompetitiveNet:
         # populations
         self.E = NeuronGroup( N=self.N_e, model=self.eqs_e,
                               reset='''Vm = Vrst_e
-					Vth_e += Vth_e_incr''',
+                    Vth_e += Vth_e_incr''',
                               threshold='Vm > Vth_e',
                               refractory=self.tref_e,
                               method=self.int_meth_neur,
@@ -220,12 +223,27 @@ class RecurrentCompetitiveNet:
                                        threshold='rand()<rates*dt',
                                        name='Input_to_I' )
         
+        self.Input_to_E_spont = NeuronGroup( N=self.N_input_e,
+                                             model='rates : Hz',
+                                             threshold='rand()<rates*dt',
+                                             name='Input_to_E_spont' )
+        
         # populations's attributes
         self.E.Vth_e = self.Vth_e_init
         
         # rand init membrane voltages
         self.E.Vm = (self.Vrst_e + rand( self.N_e ) * (self.Vth_e_init - self.Vr_e))
         self.I.Vm = (self.Vrst_i + rand( self.N_i ) * (self.Vth_i - self.Vr_i))
+    
+    """
+    Sets the ids of the active neurons on the input before actually loading the stimulus.
+    """
+    
+    def set_active_E_ids( self, stimulus, offset=0 ):
+        self.stimulus_neurons_e_ids = np.append( self.stimulus_neurons_e_ids, load_stimulus(
+                stimulus_type=stimulus,
+                stimulus_size=self.stim_size_e,
+                offset=offset ) ).astype( np.int )
     
     # 1.2 ------ synapses
     
@@ -291,6 +309,13 @@ class RecurrentCompetitiveNet:
                 on_pre='Vepsp += w',
                 name='Input_E' )
         
+        self.Input_E_spont = Synapses(
+                source=self.Input_to_E_spont,
+                target=self.E,
+                model='w : volt',
+                on_pre='Vepsp += w',
+                name='Input_E_spont' )
+        
         self.Input_I = Synapses(
                 source=self.Input_to_I,
                 target=self.I,
@@ -303,6 +328,7 @@ class RecurrentCompetitiveNet:
                 target=self.I,
                 model='w : volt',
                 on_pre='Vepsp += w',
+                delay=self.E_I_delay,
                 name='E_I' )
         
         self.I_E = Synapses(
@@ -332,6 +358,7 @@ class RecurrentCompetitiveNet:
         
         # connecting synapses
         self.Input_E.connect( j='i' )
+        self.Input_E_spont.connect( j='i' )
         self.Input_I.connect( j='i' )
         
         self.E_I.connect( True, p=self.p_e_i )
@@ -341,10 +368,11 @@ class RecurrentCompetitiveNet:
         
         # init synaptic variables
         self.Input_E.w = self.w_input_e
+        self.Input_E_spont.w = self.w_input_e_spont
         self.Input_I.w = self.w_input_i
         self.E_I.w = self.w_e_i
         self.I_E.w = self.w_i_e
-        self.E_E.w = self.w_e_e
+        # self.E_E.w = self.w_e_e
         self.I_I.w = self.w_i_i
         
         if self.plasticity_rule == 'LR4':
@@ -354,11 +382,18 @@ class RecurrentCompetitiveNet:
         self.E_E.Vepsp_transmission.delay = self.syn_delay_Vepsp_e_e
     
     """
-    Allows state variables change in synaptic model.
+    Allows weight state variables change in synaptic model.
     """
     
     def set_E_E_plastic( self, plastic=False ):
         self.E_E.plastic = plastic
+    
+    """
+    Allows resources (x) and utilization (u) state variables change in synaptic model.
+    """
+    
+    def set_E_E_ux_vars_plastic( self, plastic=False ):
+        self.E_E.plastic_2 = plastic
     
     """
     Creates matrix spikemon_P from E to E connections.
@@ -383,6 +418,17 @@ class RecurrentCompetitiveNet:
                         self.E_E.rho[ pre_id, post_id ] = round( s, 2 )
                     else:
                         self.E_E.rho[ pre_id, post_id ] = 0.0
+    
+    """
+    Set synapses between neurons receiving input potentiated.
+    Warning: method 'set_active_E_ids()' has to be called before the call of this function in case the stimulus to be
+    provided to the network isn't set yet.
+    """
+    
+    def set_potentiated_synapses( self ):
+        for x in range( 0, len( self.E_E ) ):
+            if self.E_E.i[ x ] in self.stimulus_neurons_e_ids and self.E_E.j[ x ] in self.stimulus_neurons_e_ids:
+                self.E_E.rho[ self.E_E.i[ x ], self.E_E.j[ x ] ] = 1.0
     
     # 1.4 ------ network operation
     
@@ -463,8 +509,8 @@ class RecurrentCompetitiveNet:
     """
     """
     
-    def set_stimulus_pulse_duration( self, duration=1 * second ):
-        self.stimulus_pulse_duration = duration
+    # def set_stimulus_pulse_duration( self, duration=1 * second ):
+    #     self.stimulus_pulse_duration = duration
     
     """
     Stimulates 15% of excitatory neurons as in Mongillo.
@@ -516,6 +562,8 @@ class RecurrentCompetitiveNet:
         self.set_state_monitors()
         
         self.set_net_obj()
+        
+        self.Input_to_E_spont.rates[ [ x for x in range( 0, self.N_e ) ] ] = self.spont_rate
     
     """
     Creates a folder for simulation results in the root directory.
@@ -632,16 +680,16 @@ class RecurrentCompetitiveNet:
                 name='E_E_syn_matrix_clk' )
         
         # deactivate stimulus
-        if self.stimulus_pulse:
-            @network_operation( clock=self.stimulus_pulse_clock )
-            def stimulus_pulse():
-                if defaultclock.t >= self.stimulus_pulse_duration:
-                    self.set_stimulus_e( stimulus='', frequency=0 * Hz )
-        else:
-            @network_operation( clock=self.stimulus_pulse_clock )
-            def stimulus_pulse():
-                pass
-        
+        # if self.stimulus_pulse:
+        # @network_operation( clock=self.stimulus_pulse_clock )
+        # def stimulus_pulse():
+        # if defaultclock.t >= self.stimulus_pulse_duration:
+        #     self.set_stimulus_e( stimulus='', frequency=0 * Hz )
+        # else:
+        #     @network_operation( clock=self.stimulus_pulse_clock )
+        #     def stimulus_pulse():
+        #         pass
+        #
         if self.E_E_syn_matrix_snapshot:
             @network_operation( clock=self.E_E_syn_matrix_clock )
             def store_E_E_syn_matrix_snapshot():
@@ -664,10 +712,12 @@ class RecurrentCompetitiveNet:
         
         self.net = Network(
                 self.Input_to_E,
+                self.Input_to_E_spont,
                 self.Input_to_I,
                 self.E,
                 self.I,
                 self.Input_E,
+                self.Input_E_spont,
                 self.Input_I,
                 self.E_I,
                 self.I_E,
@@ -684,7 +734,7 @@ class RecurrentCompetitiveNet:
                 self.E_E_rec,
                 self.E_I_rec,
                 self.I_E_rec,
-                stimulus_pulse,
+                # stimulus_pulse,
                 store_E_E_syn_matrix_snapshot,
                 name='rcn_net' )
     
@@ -749,8 +799,8 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_E_spks( self, spike_trains=False ):
-        return [ self.E_mon.t[ : ], self.E_mon.i[ : ] ] if not spike_trains else self.E_mon.spike_trains()
+    def get_E_spks( self ):
+        return [ self.E_mon.t[ : ], self.E_mon.i[ : ] ]
     
     """
     Returns a 2D array containing recorded spikes from I population:
@@ -758,8 +808,8 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_I_spks( self, spike_trains=False ):
-        return [ self.I_mon.t[ : ], self.I_mon.i[ : ] ] if not spike_trains else self.I_mon.spike_trains()
+    def get_I_spks( self ):
+        return [ self.I_mon.t[ : ], self.I_mon.i[ : ] ]
     
     """
     Returns a 2D array containing recorded spikes from input to the E population:
@@ -767,9 +817,8 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_Einp_spks( self, spike_trains=False ):
-        return [ self.Input_to_E_mon.t[ : ],
-                 self.Input_to_E_mon.i[ : ] ] if not spike_trains else self.Input_to_E_mon.spike_trains()
+    def get_Einp_spks( self ):
+        return [ self.Input_to_E_mon.t[ : ], self.Input_to_E_mon.i[ : ] ]
     
     """
     Returns a 2D array containing recorded spikes from input to the I population:
@@ -777,9 +826,8 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_Iinp_spks( self, spike_trains=False ):
-        return [ self.Input_to_I_mon.t[ : ],
-                 self.Input_to_I_mon.i[ : ] ] if not spike_trains else self.Input_to_I_mon.spike_trains()
+    def get_Iinp_spks( self ):
+        return [ self.Input_to_I_mon.t[ : ], self.Input_to_I_mon.i[ : ] ]
     
     """
     """
@@ -841,6 +889,31 @@ class RecurrentCompetitiveNet:
                 pickle.dump( (
                         targeted_E_list,
                         targeted_I_list), f )
+    
+    """
+    Retrieves the spikes recorded during simulation only from neurons receiving input simuli.
+    len(self.E_E.i) -> pre neurons
+    len(self.E_E.j) -> post neurons
+    """
+    
+    def get_spks_from_pattern_neurons( self ):
+        spk_mon_ids = [ ]
+        spk_mon_ts = [ ]
+        
+        for x in range( 0, len( self.E_mon.i[ : ] ) ):
+            if self.E_mon.i[ x ] in self.stimulus_neurons_e_ids:
+                spk_mon_ids.append( self.E_mon.i[ x ] )
+                spk_mon_ts.append( self.E_mon.t[ x ] / second )
+        
+        fn = os.path.join(
+                self.net_sim_data_path,
+                'spks_neurs_with_input.pickle' )
+        
+        with open( fn, 'wb' ) as f:
+            pickle.dump( (
+                    spk_mon_ids,
+                    spk_mon_ts,
+                    self.t_run), f )
     
     # 2.3 ------ synapses
     

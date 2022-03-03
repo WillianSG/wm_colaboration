@@ -25,7 +25,7 @@ parent_dir = os.path.dirname( os.path.abspath( os.path.join( __file__, '../' ) )
 sys.path.append( os.path.join( parent_dir, 'helper_functions' ) )
 
 
-def plot_x_u_spks_from_basin( path, filename=None, title_addition='', show=True ):
+def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_addition='', show=True ):
     plot_path = os.path.join( path, 'x_u_spks_from_basin' )
     make_folders( plot_path )
     
@@ -61,7 +61,8 @@ def plot_x_u_spks_from_basin( path, filename=None, title_addition='', show=True 
                 sim_t_array,
                 U,
                 tau_f,
-                stim_pulse_duration) = pickle.load( f )
+                # stim_pulse_duration
+                ) = pickle.load( f )
     
     xs_pickled_data = os.path.join(
             path,
@@ -72,7 +73,8 @@ def plot_x_u_spks_from_basin( path, filename=None, title_addition='', show=True 
                 xs_neurs_with_input,
                 sim_t_array,
                 tau_d,
-                stim_pulse_duration) = pickle.load( f )
+                # stim_pulse_duration
+                ) = pickle.load( f )
     
     spks_pickled_data = os.path.join(
             path,
@@ -182,14 +184,21 @@ def plot_x_u_spks_from_basin( path, filename=None, title_addition='', show=True 
     plt.ylim( 0.0, 1.0 )
     plt.xlim( 0.0, sim_t_array[ -1 ] )
     
-    plt.axvspan(
-            0.0,
-            (stim_pulse_duration / ms) / 1000,
-            facecolor='grey',
-            alpha=alpha2,
-            label='PS (' + str( stim_pulse_duration ) + ')' )
+    # plt.axvspan(
+    #         0.0,
+    #         (stim_pulse_duration / ms) / 1000,
+    #         facecolor='grey',
+    #         alpha=alpha2,
+    #         label='PS (' + str( stim_pulse_duration ) + ')' )
+    if generic_stimulus:
+        plt.axvspan(
+                generic_stimulus[ 1 ][ 0 ],
+                generic_stimulus[ 1 ][ 1 ],
+                facecolor='grey',
+                alpha=alpha2,
+                )
     
-    plt.legend( loc='upper right', fontsize=font_size2 )
+    # plt.legend( loc='upper right', fontsize=font_size2 )
     
     ax = plt.gca()
     ax.axes.xaxis.set_ticklabels( [ ] )
@@ -205,11 +214,13 @@ def plot_x_u_spks_from_basin( path, filename=None, title_addition='', show=True 
     f1_ax1.plot( spk_mon_ts, spk_mon_ids, '|', color='k', zorder=0 )
     plt.xlim( 0.0, sim_t_array[ -1 ] )
     
-    f1_ax1.axvspan(
-            0.0,
-            (stim_pulse_duration / ms) / 1000,
-            facecolor='grey',
-            alpha=alpha2 )
+    if generic_stimulus:
+        f1_ax1.axvspan(
+                generic_stimulus[ 1 ][ 0 ],
+                generic_stimulus[ 1 ][ 1 ],
+                facecolor='grey',
+                alpha=alpha2,
+                )
     
     plt.xticks( np.arange(
             0.0,

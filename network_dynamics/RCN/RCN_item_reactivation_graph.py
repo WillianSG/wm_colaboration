@@ -60,7 +60,6 @@ rcn = RecurrentCompetitiveNet(
 
 plastic_syn = False
 plastic_ux = True
-rcn.stimulus_pulse = False
 rcn.E_E_syn_matrix_snapshot = False
 rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
 rcn.w_max = 10 * mV  # for param. 2.1: 10*mV

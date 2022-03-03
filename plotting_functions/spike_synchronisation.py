@@ -26,7 +26,7 @@ def video_attractor_profile( rcn, sim_time=6 * second, gather_every=0.1 * second
     if not isinstance( gather_every, Quantity ):
         gather_every *= second
     
-    # -- red min and max algebraic connectivity to fix it in the video from the start
+    # -- read min and max algebraic connectivity to fix it in the video from the start
     df = pd.read_csv( './a_conn.csv', dtype=np.float64 )
     min_a_conn = df[ [ 'A1', 'A2' ] ].min().min()
     max_a_conn = df[ [ 'A1', 'A2' ] ].max().max()

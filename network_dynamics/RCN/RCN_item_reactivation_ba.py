@@ -48,8 +48,6 @@ from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
 show_plots = False
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
-# stim_pulse_duration = 20 * ms
-percentage_stim_ids = 35  # percentage
 
 # TODO why does having 2+ attractors give better reactivation?
 # TODO Mongillo mentions spike synchrony as important
@@ -64,19 +62,18 @@ for ba in np.arange( 0, 105, 5 ):
     
     plastic_syn = False
     plastic_ux = True
-    rcn.stimulus_pulse = False
     rcn.E_E_syn_matrix_snapshot = False
     rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
     rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
     # -- background activity
-    rcn.spont_rate = 10 * Hz
+    rcn.spont_rate = ba * Hz
     
     rcn.net_init()
     rcn.net_sim_data_path = save_dir
     
     rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
-    rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
-    rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
+    # rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
+    # rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
     rcn.set_potentiated_synapses()
     
     # rcn.stimulate_attractors( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e,
@@ -89,13 +86,7 @@ for ba in np.arange( 0, 105, 5 ):
     rcn.set_E_E_plastic( plastic=plastic_syn )
     rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
     
-    # rcn.set_stimulus_pulse_duration( duration=stim_pulse_duration )
-    
-    rcn.run_net( duration=1 )
-    act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=generic_stimulus[ 0 ] )
-    rcn.run_net( duration=0.2 )
-    rcn.generic_stimulus_off( act_ids )
-    rcn.run_net( duration=1 )
+    rcn.run_net( duration=2.2 )
     
     # 2 ------ exporting simulation data ------
     
@@ -106,7 +97,7 @@ for ba in np.arange( 0, 105, 5 ):
     
     # 3 ------ plotting simulation data ------
     
-    fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin',
+    fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_ba_{ba}',
                                      title_addition=f'background activity {ba} %',
                                      show=show_plots )
     
@@ -127,6 +118,6 @@ for ba in np.arange( 0, 105, 5 ):
             I_ids=rcn.get_I_spks()[ 1 ],
             t_run=rcn.net.t,
             path=save_dir,
-            filename=f'rcn_population_spiking',
+            filename=f'rcn_population_spiking_ba_{ba}',
             title_addition=f'background activity {ba} %',
             show=show_plots )

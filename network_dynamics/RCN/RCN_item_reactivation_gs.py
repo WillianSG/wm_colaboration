@@ -45,7 +45,7 @@ from plotting_functions.plot import *
 from plotting_functions.plot_video import generate_video
 from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
 
-show_plots = False
+show_plots = True
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
 # stim_pulse_duration = 20 * ms
@@ -65,19 +65,18 @@ for gs in np.arange( 0, 105, 5 ):
     
     plastic_syn = False
     plastic_ux = True
-    rcn.stimulus_pulse = False
     rcn.E_E_syn_matrix_snapshot = False
     rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
     rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
     # -- background activity
-    rcn.spont_rate = 10 * Hz
+    rcn.spont_rate = 0 * Hz
     
     rcn.net_init()
     rcn.net_sim_data_path = save_dir
     
     rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
-    rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
-    rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
+    # rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
+    # rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
     rcn.set_potentiated_synapses()
     
     # rcn.stimulate_attractors( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e,
@@ -107,7 +106,7 @@ for gs in np.arange( 0, 105, 5 ):
     
     # 3 ------ plotting simulation data ------
     
-    fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin',
+    fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_gs_{gs}',
                                      title_addition=f'generic stimulus {gs} %',
                                      generic_stimulus=generic_stimulus,
                                      show=show_plots )
@@ -129,6 +128,6 @@ for gs in np.arange( 0, 105, 5 ):
             I_ids=rcn.get_I_spks()[ 1 ],
             t_run=rcn.net.t,
             path=save_dir,
-            filename=f'rcn_population_spiking',
+            filename=f'rcn_population_spiking_gs_{gs}',
             title_addition=f'generic stimulus {gs} %',
             show=show_plots )
