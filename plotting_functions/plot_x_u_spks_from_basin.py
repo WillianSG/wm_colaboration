@@ -203,10 +203,10 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_
     ax = plt.gca()
     ax.axes.xaxis.set_ticklabels( [ ] )
     
-    plt.xticks( np.arange(
-            0.0,
-            sim_t_array[ -1 ] + 0.5,
-            step=0.5 ) )
+    # plt.xticks( np.arange(
+    #         0.0,
+    #         sim_t_array[ -1 ] + 0.5,
+    #         step=0.5 ) )
     
     # spks
     f1_ax1 = fig.add_subplot( spec2[ 1, 0 ] )
@@ -222,10 +222,10 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_
                 alpha=alpha2,
                 )
     
-    plt.xticks( np.arange(
-            0.0,
-            sim_t_array[ -1 ] + 0.5,
-            step=0.5 ) )
+    # plt.xticks( np.arange(
+    #         0.0,
+    #         sim_t_array[ -1 ] + 0.5,
+    #         step=0.5 ) )
     
     f1_ax1.set_ylabel(
             'Neuron ID',

@@ -45,7 +45,7 @@ from plotting_functions.plot import *
 from plotting_functions.plot_video import generate_video
 from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
 
-show_plots = False
+show_plots = True
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
 
@@ -75,8 +75,8 @@ for ba in np.arange( 0, 105, 5 ):
     rcn.set_potentiated_synapses( stim1_ids )
     stim2_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
     rcn.set_potentiated_synapses( stim2_ids )
-    # stim3_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
-    # rcn.set_potentiated_synapses(stim3_ids )
+    stim3_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
+    rcn.set_potentiated_synapses( stim3_ids )
     
     # rcn.stimulate_attractors( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e,
     # stim_perc=percentage_stim_ids,

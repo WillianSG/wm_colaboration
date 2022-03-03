@@ -1103,7 +1103,7 @@ class RecurrentCompetitiveNet:
     """
     Retrieves the utilization traces (u) recorded during simulation only from synapses connecting (both) neurons part
     receiving input simuli.
-    len(self.E_E.i) -> pre neurons
+    len(self.E_E.i) -> pre neuronsn
     len(self.E_E.j) -> post neurons
     self.E_E_rec[self.E_E[0]] -> 1st synapse
     """
