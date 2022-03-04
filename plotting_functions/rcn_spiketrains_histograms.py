@@ -43,9 +43,6 @@ def plot_rcn_spiketrains_histograms(
         bin_width_desired=50 * ms,
         title_addition='',
         show=True ):
-    plot_path = os.path.join( path, 'rcn_population_spiking' )
-    make_folders( plot_path )
-    
     # General plotting settings
     lwdth = 3
     s1 = 20
@@ -220,7 +217,7 @@ def plot_rcn_spiketrains_histograms(
         filename = filename + '.png'
     
     fig.savefig(
-            os.path.join( plot_path, filename ),
+            os.path.join( path, filename ),
             bbox_inches='tight' )
     
     if show:

@@ -64,7 +64,7 @@ for ba in np.arange( 0, 105, 5 ):
     plastic_ux = True
     rcn.E_E_syn_matrix_snapshot = False
     rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
-    rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
+    rcn.w_max = 10 * mV  # for param. 2.1/2.2: 10*mV
     # -- background activity
     rcn.spont_rate = ba * Hz
     
@@ -73,10 +73,10 @@ for ba in np.arange( 0, 105, 5 ):
     
     stim1_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
     rcn.set_potentiated_synapses( stim1_ids )
-    stim2_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
-    rcn.set_potentiated_synapses( stim2_ids )
-    stim3_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
-    rcn.set_potentiated_synapses( stim3_ids )
+    # stim2_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
+    # rcn.set_potentiated_synapses( stim2_ids )
+    # stim3_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
+    # rcn.set_potentiated_synapses( stim3_ids )
     
     # rcn.stimulate_attractors( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e,
     # stim_perc=percentage_stim_ids,
@@ -88,7 +88,7 @@ for ba in np.arange( 0, 105, 5 ):
     rcn.set_E_E_plastic( plastic=plastic_syn )
     rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
     
-    rcn.run_net( duration=2.2 )
+    rcn.run_net( duration=6 )
     
     # 2 ------ exporting simulation data ------
     
@@ -100,7 +100,7 @@ for ba in np.arange( 0, 105, 5 ):
     # 3 ------ plotting simulation data ------
     
     fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_ba_{ba}',
-                                     title_addition=f'background activity {ba} %',
+                                     title_addition=f'background activity {ba} Hz',
                                      show=show_plots )
     
     # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
@@ -121,5 +121,5 @@ for ba in np.arange( 0, 105, 5 ):
             t_run=rcn.net.t,
             path=save_dir,
             filename=f'rcn_population_spiking_ba_{ba}',
-            title_addition=f'background activity {ba} %',
+            title_addition=f'background activity {ba} Hz',
             show=show_plots )

@@ -26,9 +26,6 @@ sys.path.append( os.path.join( parent_dir, 'helper_functions' ) )
 
 
 def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_addition='', show=True ):
-    plot_path = os.path.join( path, 'x_u_spks_from_basin' )
-    make_folders( plot_path )
-    
     plt.close( 'all' )
     
     axis_label_size = 8
@@ -266,7 +263,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_
         filename = filename + '.png'
     
     fig.savefig(
-            os.path.join( plot_path, filename ),
+            os.path.join( path, filename ),
             bbox_inches='tight' )
     
     if show:
