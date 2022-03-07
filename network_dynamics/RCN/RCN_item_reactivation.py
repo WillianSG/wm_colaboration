@@ -43,7 +43,7 @@ from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
 from plotting_functions.plot_conn_matrix import plot_conn_matrix
 from plotting_functions.plot import *
 from plotting_functions.plot_video import generate_video
-from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
+from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
 
 make_plots = True
 plasticity_rule = 'LR4'

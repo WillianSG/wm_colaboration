@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-@author: w.soares.girao@rug.nl
+@author: w.soares.girao@rug.nl / t.f.tiotto@rug.nl
 @university: University of Groningen
-@group: Bio-Inspired Circuits and System
+@group: Bio-Inspired Circuits and System / Artificial Intelligence
 
 Function:
 -
@@ -15,37 +15,51 @@ Script output:
 """
 import itertools
 import os, sys, pickle, shutil
-from brian2 import prefs, ms, Hz
 import os.path as path
 import numpy as np
-from helper_functions.other import *
-
+import argparse
 import multiprocessing as mp
+
+from brian2 import prefs, ms, Hz, mV
+from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+from helper_functions.other import *
+from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
+from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+from plotting_functions.spike_synchronisation import *
+
+from plotting_functions import *
 
 prefs.codegen.target = 'numpy'
 
-helper_dir = 'helper_functions'
-plotting_funcs_dir = 'plotting_functions'
+# helper_dir = 'helper_functions'
+# plotting_funcs_dir = 'plotting_functions'
 
 # Parent directory
-parent_dir = os.path.dirname( path.abspath( path.join( __file__, '../..' ) ) )
+# parent_dir = os.path.dirname( path.abspath( path.join( __file__, '../..' ) ) )
+#
+# # Adding parent dir to list of dirs that the interpreter will search in
+# sys.path.append( os.path.join( parent_dir, 'helper_functions' ) )
+# sys.path.append( os.path.join( parent_dir, 'plotting_functions' ) )
+#
+# # Helper modules
+# from helper_functions.other import *
+# from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+# from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+# from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
+# from plotting_functions.plot_conn_matrix import plot_conn_matrix
+# from plotting_functions.plot import *
+# from plotting_functions.plot_video import generate_video
+# from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
 
-# Adding parent dir to list of dirs that the interpreter will search in
-sys.path.append( os.path.join( parent_dir, helper_dir ) )
-sys.path.append( os.path.join( parent_dir, plotting_funcs_dir ) )
+parser = argparse.ArgumentParser( description='RCN_item_reactivation_gs_attractors' )
+parser.add_argument( '--ba', type=int, default=10, help='Background activity Hz' )
+parser.add_argument( '--gs', type=int, default=20, help='Generic stimulus %' )
+parser.add_argument( '--step', type=int, default=5, help='Step size for backgroun activity and generic stimulus' )
+parser.add_argument( '--show', type=str, default='False', help='Show output plots' )
 
-# Helper modules
-from helper_functions.other import *
-from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
-from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
-from plotting_functions.plot_syn_matrix_heatmap import plot_syn_matrix_heatmap
-from plotting_functions.plot_conn_matrix import plot_conn_matrix
-from plotting_functions.plot import *
-from plotting_functions.plot_video import generate_video
-from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
+args = parser.parse_args()
 
 timestamp_folder = make_timestamped_folder( '../../results/RCN_attractor_reactivation/' )
-show_plots = False
 
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
@@ -53,17 +67,22 @@ parameter_set = '2.2'
 # TODO why does having 2+ attractors give better reactivation?
 # TODO Mongillo mentions spike synchrony as important
 
-# TODO when ba>0 a gs might not reactivate because a PS just happened.  Maybe fix x and u to a reasonable amount?
+# TODO when ba>0 a gs might not reactivate because a PS just happened.
+#  Maybe fix x and u to a reasonable amount?
 #  Or maybe run experiments multiple times and average?
+#  Or maybe shorter experiments?
 
 # TODO make this into one script for all different experiments?
 
 # -- sweep over all combinations of parameters
-background_activity = np.arange( 0, 105, 5 )
+print( f'Sweeping over all combinations of parameters: '
+       f'background activity 0 % → {args.ba} %, generic stimulus 0 Hz → {args.gs} Hz, in steps of {args.step},' )
+
+background_activity = np.arange( 0, args.ba + args.step, args.step )
 # 1 ------ initializing/running network ------
 i = 0
 for ba in background_activity:
-    generic_stimulus = np.arange( 0, 105, 5 )
+    generic_stimulus = np.arange( 0, args.gs + args.step, args.step )
     for gs in generic_stimulus:
         i += 1
         
@@ -132,7 +151,7 @@ for ba in background_activity:
         fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_ba_{ba}_gs_{gs}',
                                          title_addition=f'bacground activity {ba} Hz, generic stimulus {gs} %',
                                          generic_stimulus=stim,
-                                         show=show_plots )
+                                         show=args.show )
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
@@ -153,4 +172,4 @@ for ba in background_activity:
                 path=save_dir,
                 filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
                 title_addition=f'bacground activity {ba} Hz, generic stimulus {gs} %',
-                show=show_plots )
+                show=args.show )

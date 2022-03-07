@@ -21,9 +21,6 @@ from brian2 import second, ms, units
 import numpy as np
 from helper_functions.other import make_folders
 
-parent_dir = os.path.dirname( os.path.abspath( os.path.join( __file__, '../' ) ) )
-sys.path.append( os.path.join( parent_dir, 'helper_functions' ) )
-
 
 def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_addition='', show=True ):
     plt.close( 'all' )

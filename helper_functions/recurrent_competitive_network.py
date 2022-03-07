@@ -33,9 +33,9 @@ import numpy as np
 
 prefs.codegen.target = 'numpy'
 
-from load_rule_parameters import *
-from load_synapse_model import *
-from load_stimulus import *
+from helper_functions.load_rule_parameters import *
+from helper_functions.load_synapse_model import *
+from helper_functions.load_stimulus import *
 
 
 class RecurrentCompetitiveNet:
@@ -805,8 +805,11 @@ class RecurrentCompetitiveNet:
     - spike's times (return[1])
     """
     
-    def get_E_spks( self ):
-        return [ self.E_mon.t[ : ], self.E_mon.i[ : ] ]
+    def get_E_spks( self, spike_trains=False ):
+        if not spike_trains:
+            return [ self.E_mon.t[ : ], self.E_mon.i[ : ] ]
+        else:
+            return self.E_mon.spike_trains()
     
     """
     Returns a 2D array containing recorded spikes from I population:
@@ -1000,6 +1003,22 @@ class RecurrentCompetitiveNet:
             pickle.dump( (
                     x_,
                     self.E_E_rec.t / ms), f )
+    
+    def get_spikes_pyspike( self, curr_time ):
+        """
+        Retrieves the spikes recorded during simulation and returns them in the format expected by PySpike.
+        :param self:
+        :param curr_time:
+        :return:
+        """
+        
+        import pyspike as spk
+        
+        spike_trains = [ ]
+        for v in self.get_E_spks( spike_trains=True ).values():
+            # -- filter spikes happening after curr_time
+            spikes = v[ v < curr_time * second ]
+            spike_trains.append( spk.SpikeTrain( spikes, [ 0, curr_time ] ) )
     
     """
     """
