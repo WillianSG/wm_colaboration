@@ -1004,7 +1004,7 @@ class RecurrentCompetitiveNet:
                     x_,
                     self.E_E_rec.t / ms), f )
     
-    def get_spikes_pyspike( self, curr_time ):
+    def get_spikes_pyspike( self ):
         """
         Retrieves the spikes recorded during simulation and returns them in the format expected by PySpike.
         :param self:
@@ -1014,11 +1014,13 @@ class RecurrentCompetitiveNet:
         
         import pyspike as spk
         
-        spike_trains = [ ]
-        for v in self.get_E_spks( spike_trains=True ).values():
-            # -- filter spikes happening after curr_time
-            spikes = v[ v < curr_time * second ]
-            spike_trains.append( spk.SpikeTrain( spikes, [ 0, curr_time ] ) )
+        fn = os.path.join( self.net_sim_data_path, 'spikes_pyspike.txt' )
+        
+        with open( fn, 'w' ) as file:
+            file.write( '# Spikes from excitatory population\n\n' )
+            for v in self.get_E_spks( spike_trains=True ).values():
+                np.savetxt( file, np.array( v ), newline=' ' )
+                file.write( '\n' )
     
     """
     """

@@ -55,6 +55,7 @@ parser = argparse.ArgumentParser( description='RCN_item_reactivation_gs_attracto
 parser.add_argument( '--ba', type=int, default=10, help='Background activity Hz' )
 parser.add_argument( '--gs', type=int, default=20, help='Generic stimulus %' )
 parser.add_argument( '--step', type=int, default=5, help='Step size for backgroun activity and generic stimulus' )
+parser.add_argument( '--attractors', type=int, default=1, help='Number of attractors' )
 parser.add_argument( '--show', type=str, default='False', help='Show output plots' )
 
 args = parser.parse_args()
@@ -76,13 +77,14 @@ parameter_set = '2.2'
 
 # -- sweep over all combinations of parameters
 print( f'Sweeping over all combinations of parameters: '
-       f'background activity 0 % → {args.ba} %, generic stimulus 0 Hz → {args.gs} Hz, in steps of {args.step},' )
+       f'background activity 0 Hz → {args.ba} Hz, generic stimulus 0 % → {args.gs} %, in steps of {args.step},' )
 
 background_activity = np.arange( 0, args.ba + args.step, args.step )
 # 1 ------ initializing/running network ------
 i = 0
 for ba in background_activity:
-    generic_stimulus = np.arange( 0, args.gs + args.step, args.step )
+    # generic_stimulus = np.arange( 0, args.gs + args.step, args.step )
+    generic_stimulus = [ 20 ]
     for gs in generic_stimulus:
         i += 1
         
@@ -108,31 +110,32 @@ for ba in background_activity:
         rcn.E_E_syn_matrix_snapshot = False
         rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
         rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
-        # -- background activity --
         rcn.spont_rate = ba * Hz
         
         rcn.net_init()
         rcn.net_sim_data_path = save_dir
         
-        stim1_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
-        rcn.set_potentiated_synapses( stim1_ids )
-        # stim2_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
-        # rcn.set_potentiated_synapses( stim2_ids )
-        # stim3_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
-        # rcn.set_potentiated_synapses( stim3_ids )
-        
-        # rcn.stimulate_attractors( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e,
-        # stim_perc=percentage_stim_ids,
-        #                           offset=0 )
-        # rcn.stimulate_attractors( stimulus='flat_to_E_fixed_size', frequency=rcn.stim_freq_e,
-        # stim_perc=percentage_stim_ids,
-        #                           offset=100 )
+        attractors = [ ]
+        if args.attractors >= 1:
+            stim1_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=0 )
+            rcn.set_potentiated_synapses( stim1_ids )
+            A1 = list( range( 0, 64 ) )
+            attractors.append( ('A1', A1) )
+        if args.attractors >= 2:
+            stim2_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=100 )
+            rcn.set_potentiated_synapses( stim2_ids )
+            A2 = list( range( 100, 164 ) )
+            attractors.append( ('A2', A2) )
+        if args.attractors >= 3:
+            stim3_ids = rcn.set_active_E_ids( stimulus='flat_to_E_fixed_size', offset=180 )
+            rcn.set_potentiated_synapses( stim3_ids )
+            A3 = list( range( 180, 244 ) )
+            attractors.append( ('A3', A3) )
         
         rcn.set_E_E_plastic( plastic=plastic_syn )
         rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
         
-        # rcn.set_stimulus_pulse_duration( duration=stim_pulse_duration )
-        
+        # run network, give generic pulse, run network again
         rcn.run_net( duration=stim[ 1 ][ 0 ] )
         act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=stim[ 0 ], subset=stim1_ids )
         rcn.run_net( duration=stim[ 1 ][ 0 ] + (stim[ 1 ][ 1 ] - stim[ 1 ][ 0 ]) )
@@ -145,11 +148,12 @@ for ba in background_activity:
         rcn.get_x_traces_from_pattern_neurons()
         rcn.get_u_traces_from_pattern_neurons()
         rcn.get_spks_from_pattern_neurons()
+        rcn.get_spikes_pyspike()
         
         # 3 ------ plotting simulation data ------
         
         fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_ba_{ba}_gs_{gs}',
-                                         title_addition=f'bacground activity {ba} Hz, generic stimulus {gs} %',
+                                         title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
                                          generic_stimulus=stim,
                                          show=args.show )
         
@@ -171,5 +175,36 @@ for ba in background_activity:
                 t_run=rcn.net.t,
                 path=save_dir,
                 filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
-                title_addition=f'bacground activity {ba} Hz, generic stimulus {gs} %',
+                title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
                 show=args.show )
+        
+        # -- plot spike sync profile
+        from scipy.ndimage.filters import uniform_filter1d
+        
+        spike_trains = spk.load_spike_trains_from_txt( os.path.join( save_dir, 'spikes_pyspike.txt' ),
+                                                       edges=(0, rcn.net.t),
+                                                       ignore_empty_lines=False )
+        
+        fig, ax = plt.subplots()
+        for atr in attractors:
+            color = next( ax._get_lines.prop_cycler )[ 'color' ]
+            spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=atr[ 1 ] )
+            x, y = spike_sync_profile.get_plottable_data()
+            mean_filter_size = round( len( x ) / 10 )
+            ax.plot( x, y, color=color, alpha=0.5, label=atr[ 0 ] )
+            try:
+                y_smooth = uniform_filter1d( y, size=mean_filter_size )
+                ax.plot( x, y_smooth, '.', markersize=0.5, color=color )
+                if np.max( y_smooth ) > 0.8:
+                    print( f'Found PS in {atr[ 0 ]} '
+                           f'at {x[ np.argmax( y_smooth ) ]} s, '
+                           f'given by SPIKE-sync of {np.max( y_smooth )}' )
+            except:
+                pass
+        ax.set_xlim( 0, rcn.net.t )
+        ax.set_ylim( 0, 1 )
+        ax.set_xlabel( 'Time (s)', labelpad=10 )
+        ax.set_ylabel( 'SPIKE-sync' )
+        ax.set_title( 'SPIKE-sync profile' )
+        ax.legend( loc='upper right' )
+        plt.show()
