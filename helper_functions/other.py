@@ -106,3 +106,26 @@ def contiguous_regions( condition ):
     idx.shape = (-1, 2)
     
     return idx
+
+
+def find_ps( path, sim_time, indices ):
+    import pyspike as spk
+    from scipy.ndimage.filters import uniform_filter1d
+    
+    spike_trains = spk.load_spike_trains_from_txt( os.path.join( path, 'spikes_pyspike.txt' ),
+                                                   edges=(0, sim_time),
+                                                   ignore_empty_lines=False )
+    
+    spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=indices )
+    
+    x, y = spike_sync_profile.get_plottable_data()
+    mean_filter_size = round( len( x ) / 10 )
+    
+    try:
+        y_smooth = uniform_filter1d( y, size=mean_filter_size )
+    except:
+        y_smooth = np.zeros( len( x ) )
+    
+    pss = contiguous_regions( y_smooth > 0.7 )
+    
+    return x, y, y_smooth, pss

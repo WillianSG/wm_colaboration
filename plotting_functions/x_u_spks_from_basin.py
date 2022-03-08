@@ -140,8 +140,8 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     
     f0_ax1.tick_params( axis='y', labelcolor=x_color )
     
-    plt.ylim( 0.0, 1.0 )
-    plt.xlim( 0.0, sim_t_array[ -1 ] )
+    f0_ax1.set_ylim( 0, 1 )
+    f0_ax1.set_xlim( 0, sim_t_array[ -1 ] )
     
     # 2nd y axis: u's
     f0_ax2 = f0_ax1.twinx()
@@ -176,8 +176,8 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     
     f0_ax2.tick_params( axis='y', labelcolor=u_color )
     
-    plt.ylim( 0.0, 1.0 )
-    plt.xlim( 0.0, sim_t_array[ -1 ] )
+    f0_ax2.set_ylim( 0, 1 )
+    f0_ax2.set_xlim( 0, sim_t_array[ -1 ] )
     
     # plt.axvspan(
     #         0.0,
@@ -185,13 +185,6 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     #         facecolor='grey',
     #         alpha=alpha2,
     #         label='PS (' + str( stim_pulse_duration ) + ')' )
-    if generic_stimulus:
-        plt.axvspan(
-                generic_stimulus[ 1 ][ 0 ],
-                generic_stimulus[ 1 ][ 1 ],
-                facecolor='grey',
-                alpha=alpha2,
-                )
     
     # plt.legend( loc='upper right', fontsize=font_size2 )
     
@@ -206,16 +199,26 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     # spks
     f1_ax1 = fig.add_subplot( spec2[ 1, 0 ] )
     
-    f1_ax1.plot( spk_mon_ts, spk_mon_ids, '|', color='k', zorder=0 )
-    plt.xlim( 0.0, sim_t_array[ -1 ] )
+    # -- plot neuronal spikes with attractors in different colours
+    if attractors:
+        for atr in attractors:
+            spk_mon_ts = np.array( spk_mon_ts )
+            spk_mon_ids = np.array( spk_mon_ids )
+            
+            color = next( f1_ax1._get_lines.prop_cycler )[ 'color' ]
+            
+            atr_indexes = np.argwhere(
+                    np.logical_and( np.array( spk_mon_ids ) >= atr[ 1 ][ 0 ],
+                                    np.array( spk_mon_ids ) <= atr[ 1 ][ -1 ] ) )
+            atr_spks = spk_mon_ts[ atr_indexes ]
+            atr_ids = spk_mon_ids[ atr_indexes ]
+            
+            f1_ax1.plot( atr_spks, atr_ids, '|', color=color, zorder=0 )
+    else:
+        f1_ax1.plot( spk_mon_ts, spk_mon_ids, '|', color='black', zorder=0 )
     
-    if generic_stimulus:
-        f1_ax1.axvspan(
-                generic_stimulus[ 1 ][ 0 ],
-                generic_stimulus[ 1 ][ 1 ],
-                facecolor='grey',
-                alpha=alpha2,
-                )
+    # f0_ax1.set_ylim( 0, n_neurons )
+    f1_ax1.set_xlim( 0, sim_t_array[ -1 ] )
     
     # plt.xticks( np.arange(
     #         0.0,
@@ -253,46 +256,59 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     
     # -- plot spike sync profile
     if attractors:
-        import pyspike as spk
-        from scipy.ndimage.filters import uniform_filter1d
-        
-        spike_trains = spk.load_spike_trains_from_txt( os.path.join( path, 'spikes_pyspike.txt' ),
-                                                       edges=(0, sim_t_array[ -1 ]),
-                                                       ignore_empty_lines=False )
-        
         for atr in attractors:
+            x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr[ 1 ] )
+            
             color = next( f2_ax1._get_lines.prop_cycler )[ 'color' ]
-            spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=atr[ 1 ] )
-            x, y = spike_sync_profile.get_plottable_data()
-            mean_filter_size = round( len( x ) / 10 )
+            
             f2_ax1.plot( x, y, color=color, alpha=0.5, label=atr[ 0 ] )
-            try:
-                y_smooth = uniform_filter1d( y, size=mean_filter_size )
-                f2_ax1.plot( x, y_smooth, '.', markersize=0.5, color=color )
-                
-                pss = contiguous_regions( y_smooth > 0.7 )
-                for ps in pss:
-                    print( f'Found PS in {atr[ 0 ]} '
-                           f'between {x[ ps[ 0 ] ]} s and {x[ ps[ 1 ] ]} s '
-                           f'centered at {x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ]} s '
-                           f'given by average SPIKE-sync of {np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )} '
-                           f'(std={np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}, '
-                           f'max={np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}) ' )
-                    f2_ax1.annotate( 'PS',
-                                     xycoords='data',
-                                     xy=(x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ], np.max( y_smooth )),
-                                     xytext=(-25, -15), textcoords='offset points',
-                                     arrowprops=dict( facecolor=color, shrink=0.05 ),
-                                     horizontalalignment='right', verticalalignment='bottom',
-                                     color=color )
-            except:
-                pass
+            f2_ax1.plot( x, y_smooth, '.', markersize=0.5, color=color )
+            
+            for ps in pss:
+                print( f'Found PS in {atr[ 0 ]} '
+                       f'between {x[ ps[ 0 ] ]} s and {x[ ps[ 1 ] ]} s '
+                       f'centered at {x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ]} s '
+                       f'given by average SPIKE-sync of {np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )} '
+                       f'(std={np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}, '
+                       f'max={np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}) ' )
         
         f2_ax1.set_xlim( 0, sim_t_array[ -1 ] )
         f2_ax1.set_ylim( 0, 1 )
         f2_ax1.set_xlabel( 'Time (s)', size=axis_label_size, )
         f2_ax1.set_ylabel( 'SPIKE-sync', size=axis_label_size, )
-        f2_ax1.legend( loc='upper right' )
+        # f2_ax1.legend( loc='upper right' )
+    
+    # TODO export PSs to txt file
+    # TODO make one subplot of x and u for each attractor
+    axes_to_annotate = [ f0_ax1, f1_ax1, f2_ax1 ]
+    for ax in axes_to_annotate:
+        ax.set_prop_cycle( None )
+        # -- add generic stimulus shading
+        # TODO multiple generic stimuli
+        if generic_stimulus:
+            ax.axvspan(
+                    generic_stimulus[ 1 ][ 0 ],
+                    generic_stimulus[ 1 ][ 1 ],
+                    facecolor='grey',
+                    alpha=alpha2,
+                    )
+            ax.annotate( 'GS',
+                         xycoords='data',
+                         xy=((generic_stimulus[ 1 ][ 0 ] + generic_stimulus[ 1 ][ 1 ]) / 2, 0),
+                         xytext=(0, -15), textcoords='offset points',
+                         horizontalalignment='right', verticalalignment='bottom',
+                         color='grey' )
+            if attractors:
+                for atr in attractors:
+                    x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr[ 1 ] )
+                    
+                    color = next( ax._get_lines.prop_cycler )[ 'color' ]
+                    for ps in pss:
+                        ax.annotate( 'PS',
+                                     xycoords='data',
+                                     xy=(x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ], ax.get_ylim()[ 1 ]),
+                                     horizontalalignment='right', verticalalignment='bottom',
+                                     color=color )
     
     # finishing
     
