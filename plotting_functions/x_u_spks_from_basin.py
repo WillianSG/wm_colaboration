@@ -19,10 +19,11 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from brian2 import second, ms, units
 import numpy as np
-from helper_functions.other import make_folders
+from helper_functions.other import *
 
 
-def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_addition='', show=True ):
+def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
+                              filename=None, title_addition='', show=True ):
     plt.close( 'all' )
     
     axis_label_size = 8
@@ -97,7 +98,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_
     fig = plt.figure( constrained_layout=True, figsize=(10, 4) )
     
     widths = [ 10 ]
-    heights = [ 2, 2 ]
+    heights = [ 2, 2, 2 ]
     
     spec2 = gridspec.GridSpec(
             ncols=len( widths ),
@@ -247,6 +248,51 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, filename=None, title_
             step=1.0 ) )
     
     f1_ax2.tick_params( axis='y', labelcolor=ux_color )
+    
+    f2_ax1 = fig.add_subplot( spec2[ 2, 0 ] )
+    
+    # -- plot spike sync profile
+    if attractors:
+        import pyspike as spk
+        from scipy.ndimage.filters import uniform_filter1d
+        
+        spike_trains = spk.load_spike_trains_from_txt( os.path.join( path, 'spikes_pyspike.txt' ),
+                                                       edges=(0, sim_t_array[ -1 ]),
+                                                       ignore_empty_lines=False )
+        
+        for atr in attractors:
+            color = next( f2_ax1._get_lines.prop_cycler )[ 'color' ]
+            spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=atr[ 1 ] )
+            x, y = spike_sync_profile.get_plottable_data()
+            mean_filter_size = round( len( x ) / 10 )
+            f2_ax1.plot( x, y, color=color, alpha=0.5, label=atr[ 0 ] )
+            try:
+                y_smooth = uniform_filter1d( y, size=mean_filter_size )
+                f2_ax1.plot( x, y_smooth, '.', markersize=0.5, color=color )
+                
+                pss = contiguous_regions( y_smooth > 0.7 )
+                for ps in pss:
+                    print( f'Found PS in {atr[ 0 ]} '
+                           f'between {x[ ps[ 0 ] ]} s and {x[ ps[ 1 ] ]} s '
+                           f'centered at {x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ]} s '
+                           f'given by average SPIKE-sync of {np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )} '
+                           f'(std={np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}, '
+                           f'max={np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}) ' )
+                    f2_ax1.annotate( 'PS',
+                                     xycoords='data',
+                                     xy=(x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ], np.max( y_smooth )),
+                                     xytext=(-25, -15), textcoords='offset points',
+                                     arrowprops=dict( facecolor=color, shrink=0.05 ),
+                                     horizontalalignment='right', verticalalignment='bottom',
+                                     color=color )
+            except:
+                pass
+        
+        f2_ax1.set_xlim( 0, sim_t_array[ -1 ] )
+        f2_ax1.set_ylim( 0, 1 )
+        f2_ax1.set_xlabel( 'Time (s)', size=axis_label_size, )
+        f2_ax1.set_ylabel( 'SPIKE-sync', size=axis_label_size, )
+        f2_ax1.legend( loc='upper right' )
     
     # finishing
     

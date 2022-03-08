@@ -79,12 +79,13 @@ parameter_set = '2.2'
 print( f'Sweeping over all combinations of parameters: '
        f'background activity 0 Hz → {args.ba} Hz, generic stimulus 0 % → {args.gs} %, in steps of {args.step},' )
 
-background_activity = np.arange( 0, args.ba + args.step, args.step )
+# background_activity = np.arange( 10, args.ba + args.step, args.step )
+background_activity = [ 10 ]
 # 1 ------ initializing/running network ------
 i = 0
 for ba in background_activity:
-    # generic_stimulus = np.arange( 0, args.gs + args.step, args.step )
-    generic_stimulus = [ 20 ]
+    # generic_stimulus = np.arange( 10, args.gs + args.step, args.step )
+    generic_stimulus = [ 0 ]
     for gs in generic_stimulus:
         i += 1
         
@@ -140,7 +141,7 @@ for ba in background_activity:
         act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=stim[ 0 ], subset=stim1_ids )
         rcn.run_net( duration=stim[ 1 ][ 0 ] + (stim[ 1 ][ 1 ] - stim[ 1 ][ 0 ]) )
         rcn.generic_stimulus_off( act_ids )
-        rcn.run_net( duration=0.1 )
+        rcn.run_net( duration=2 )
         
         # 2 ------ exporting simulation data ------
         
@@ -155,56 +156,26 @@ for ba in background_activity:
         fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_ba_{ba}_gs_{gs}',
                                          title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
                                          generic_stimulus=stim,
+                                         attractors=attractors,
                                          show=args.show )
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
-        fig2 = plot_rcn_spiketrains_histograms(
-                Einp_spks=rcn.get_Einp_spks()[ 0 ],
-                Einp_ids=rcn.get_Einp_spks()[ 1 ],
-                stim_E_size=rcn.stim_size_e,
-                E_pop_size=rcn.N_input_e,
-                Iinp_spks=rcn.get_Iinp_spks()[ 0 ],
-                Iinp_ids=rcn.get_Iinp_spks()[ 1 ],
-                stim_I_size=rcn.stim_size_i,
-                I_pop_size=rcn.N_input_i,
-                E_spks=rcn.get_E_spks()[ 0 ],
-                E_ids=rcn.get_E_spks()[ 1 ],
-                I_spks=rcn.get_I_spks()[ 0 ],
-                I_ids=rcn.get_I_spks()[ 1 ],
-                t_run=rcn.net.t,
-                path=save_dir,
-                filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
-                title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
-                show=args.show )
-        
-        # -- plot spike sync profile
-        from scipy.ndimage.filters import uniform_filter1d
-        
-        spike_trains = spk.load_spike_trains_from_txt( os.path.join( save_dir, 'spikes_pyspike.txt' ),
-                                                       edges=(0, rcn.net.t),
-                                                       ignore_empty_lines=False )
-        
-        fig, ax = plt.subplots()
-        for atr in attractors:
-            color = next( ax._get_lines.prop_cycler )[ 'color' ]
-            spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=atr[ 1 ] )
-            x, y = spike_sync_profile.get_plottable_data()
-            mean_filter_size = round( len( x ) / 10 )
-            ax.plot( x, y, color=color, alpha=0.5, label=atr[ 0 ] )
-            try:
-                y_smooth = uniform_filter1d( y, size=mean_filter_size )
-                ax.plot( x, y_smooth, '.', markersize=0.5, color=color )
-                if np.max( y_smooth ) > 0.8:
-                    print( f'Found PS in {atr[ 0 ]} '
-                           f'at {x[ np.argmax( y_smooth ) ]} s, '
-                           f'given by SPIKE-sync of {np.max( y_smooth )}' )
-            except:
-                pass
-        ax.set_xlim( 0, rcn.net.t )
-        ax.set_ylim( 0, 1 )
-        ax.set_xlabel( 'Time (s)', labelpad=10 )
-        ax.set_ylabel( 'SPIKE-sync' )
-        ax.set_title( 'SPIKE-sync profile' )
-        ax.legend( loc='upper right' )
-        plt.show()
+        # fig2 = plot_rcn_spiketrains_histograms(
+        #         Einp_spks=rcn.get_Einp_spks()[ 0 ],
+        #         Einp_ids=rcn.get_Einp_spks()[ 1 ],
+        #         stim_E_size=rcn.stim_size_e,
+        #         E_pop_size=rcn.N_input_e,
+        #         Iinp_spks=rcn.get_Iinp_spks()[ 0 ],
+        #         Iinp_ids=rcn.get_Iinp_spks()[ 1 ],
+        #         stim_I_size=rcn.stim_size_i,
+        #         I_pop_size=rcn.N_input_i,
+        #         E_spks=rcn.get_E_spks()[ 0 ],
+        #         E_ids=rcn.get_E_spks()[ 1 ],
+        #         I_spks=rcn.get_I_spks()[ 0 ],
+        #         I_ids=rcn.get_I_spks()[ 1 ],
+        #         t_run=rcn.net.t,
+        #         path=save_dir,
+        #         filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
+        #         title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
+        #         show=args.show )
