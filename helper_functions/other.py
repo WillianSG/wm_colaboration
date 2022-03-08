@@ -119,13 +119,14 @@ def find_ps( path, sim_time, indices ):
     spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=indices )
     
     x, y = spike_sync_profile.get_plottable_data()
-    mean_filter_size = round( len( x ) / 10 )
+    # mean_filter_size = round( len( x ) / 10 )
+    mean_filter_size = 20
     
     try:
         y_smooth = uniform_filter1d( y, size=mean_filter_size )
     except:
         y_smooth = np.zeros( len( x ) )
     
-    pss = contiguous_regions( y_smooth > 0.7 )
+    pss = contiguous_regions( y_smooth > 0.8 )
     
     return x, y, y_smooth, pss

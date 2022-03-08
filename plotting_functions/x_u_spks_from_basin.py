@@ -280,6 +280,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     
     # TODO export PSs to txt file
     # TODO make one subplot of x and u for each attractor
+    # TODo finding pss is not super-realiable
     axes_to_annotate = [ f0_ax1, f1_ax1, f2_ax1 ]
     for ax in axes_to_annotate:
         ax.set_prop_cycle( None )

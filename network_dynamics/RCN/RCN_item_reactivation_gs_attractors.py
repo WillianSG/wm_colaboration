@@ -141,7 +141,7 @@ for ba in background_activity:
         act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=stim[ 0 ], subset=stim1_ids )
         rcn.run_net( duration=stim[ 1 ][ 0 ] + (stim[ 1 ][ 1 ] - stim[ 1 ][ 0 ]) )
         rcn.generic_stimulus_off( act_ids )
-        rcn.run_net( duration=2 )
+        rcn.run_net( duration=10 )
         
         # 2 ------ exporting simulation data ------
         
