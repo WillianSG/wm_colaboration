@@ -1006,14 +1006,8 @@ class RecurrentCompetitiveNet:
     
     def get_spikes_pyspike( self ):
         """
-        Retrieves the spikes recorded during simulation and returns them in the format expected by PySpike.
-        :param self:
-        :param curr_time:
-        :return:
+        Retrieves the spikes recorded during simulation and saves them in the format expected by PySpike.
         """
-        
-        import pyspike as spk
-        
         fn = os.path.join( self.net_sim_data_path, 'spikes_pyspike.txt' )
         
         with open( fn, 'w' ) as file:

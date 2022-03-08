@@ -141,7 +141,7 @@ for ba in background_activity:
         act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=stim[ 0 ], subset=stim1_ids )
         rcn.run_net( duration=stim[ 1 ][ 0 ] + (stim[ 1 ][ 1 ] - stim[ 1 ][ 0 ]) )
         rcn.generic_stimulus_off( act_ids )
-        rcn.run_net( duration=10 )
+        rcn.run_net( duration=1 )
         
         # 2 ------ exporting simulation data ------
         
@@ -150,6 +150,8 @@ for ba in background_activity:
         rcn.get_u_traces_from_pattern_neurons()
         rcn.get_spks_from_pattern_neurons()
         rcn.get_spikes_pyspike()
+        for atr in attractors:
+            find_ps( save_dir, rcn.net.t, atr, write_to_file=True )
         
         # 3 ------ plotting simulation data ------
         
@@ -158,6 +160,8 @@ for ba in background_activity:
                                          generic_stimulus=stim,
                                          attractors=attractors,
                                          show=args.show )
+        
+        read_ps( save_dir )
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         

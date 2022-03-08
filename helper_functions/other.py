@@ -108,15 +108,16 @@ def contiguous_regions( condition ):
     return idx
 
 
-def find_ps( path, sim_time, indices ):
+def find_ps( path, sim_time, attractor, write_to_file=False ):
     import pyspike as spk
     from scipy.ndimage.filters import uniform_filter1d
+    import csv
     
     spike_trains = spk.load_spike_trains_from_txt( os.path.join( path, 'spikes_pyspike.txt' ),
                                                    edges=(0, sim_time),
                                                    ignore_empty_lines=False )
     
-    spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=indices )
+    spike_sync_profile = spk.spike_sync_profile( spike_trains, indices=attractor[ 1 ] )
     
     x, y = spike_sync_profile.get_plottable_data()
     # mean_filter_size = round( len( x ) / 10 )
@@ -129,4 +130,59 @@ def find_ps( path, sim_time, indices ):
     
     pss = contiguous_regions( y_smooth > 0.8 )
     
+    if write_to_file:
+        if not os.path.exists( os.path.join( path, 'pss.csv' ) ):
+            with open( os.path.join( path, 'pss.csv' ), 'w' ) as f:
+                writer = csv.writer( f )
+                writer.writerow( [ 'Attractor', 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
+        
+        with open( os.path.join( path, 'pss.csv' ), 'a', newline='' ) as f:
+            writer = csv.writer( f )
+            
+            for ps in pss:
+                writer.writerow( [
+                        attractor[ 0 ],
+                        x[ ps[ 0 ] ],
+                        x[ ps[ 1 ] ],
+                        x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
+                        np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                        np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                        np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                        ] )
+    
     return x, y, y_smooth, pss
+
+
+def read_ps( path, verbose=False ):
+    import csv
+    
+    fn = os.path.join( path, 'pss.csv' )
+    with open( fn, 'r' ) as f:
+        reader = csv.reader( f )
+        
+        next( reader, None )
+        for line in reader:
+            attractor = line[ 0 ]
+            start_s = float( line[ 1 ] )
+            end_s = float( line[ 2 ] )
+            center = float( line[ 3 ] )
+            max_ = float( line[ 4 ] )
+            mean = float( line[ 5 ] )
+            std = float( line[ 6 ] )
+            
+            if verbose:
+                print( f'Found PS in {attractor} '
+                       f'between {start_s} s and {end_s} s '
+                       f'centered at {center} s '
+                       f'with max value {max_} '
+                       f'(mean={mean}, '
+                       f'std={std})'
+                       )
+    
+    with open( fn ) as f:
+        num_rows = sum( 1 for line in f )
+    num_rows -= 1
+    
+    print( 'Found ', num_rows, 'PSs' )
+    
+    return num_rows

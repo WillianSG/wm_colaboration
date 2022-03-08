@@ -257,20 +257,12 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     # -- plot spike sync profile
     if attractors:
         for atr in attractors:
-            x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr[ 1 ] )
+            x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr )
             
             color = next( f2_ax1._get_lines.prop_cycler )[ 'color' ]
             
             f2_ax1.plot( x, y, color=color, alpha=0.5, label=atr[ 0 ] )
             f2_ax1.plot( x, y_smooth, '.', markersize=0.5, color=color )
-            
-            for ps in pss:
-                print( f'Found PS in {atr[ 0 ]} '
-                       f'between {x[ ps[ 0 ] ]} s and {x[ ps[ 1 ] ]} s '
-                       f'centered at {x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ]} s '
-                       f'given by average SPIKE-sync of {np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )} '
-                       f'(std={np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}, '
-                       f'max={np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}) ' )
         
         f2_ax1.set_xlim( 0, sim_t_array[ -1 ] )
         f2_ax1.set_ylim( 0, 1 )
@@ -301,7 +293,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
                          color='grey' )
             if attractors:
                 for atr in attractors:
-                    x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr[ 1 ] )
+                    x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr )
                     
                     color = next( ax._get_lines.prop_cycler )[ 'color' ]
                     for ps in pss:
