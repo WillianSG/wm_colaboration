@@ -206,22 +206,8 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     # spks
     f1_ax1 = fig.add_subplot( spec2[ 1, 0 ] )
     
-    # -- plot neuronal spikes with attractors in different colours
-    for atr in attractors:
-        spk_mon_ts = np.array( spk_mon_ts )
-        spk_mon_ids = np.array( spk_mon_ids )
-        
-        color = next( f1_ax1._get_lines.prop_cycler )[ 'color' ]
-        
-        atr_indexes = np.argwhere(
-                np.logical_and( np.array( spk_mon_ids ) >= atr[ 1 ][ 0 ],
-                                np.array( spk_mon_ids ) <= atr[ 1 ][ -1 ] ) )
-        atr_spks = spk_mon_ts[ atr_indexes ]
-        atr_ids = spk_mon_ids[ atr_indexes ]
-        
-        f1_ax1.plot( atr_spks, atr_ids, '|', color=color, zorder=0, label=atr[ 0 ] )
+    f1_ax1.plot( spk_mon_ts, spk_mon_ids, '|', color='k', zorder=0 )
     plt.xlim( 0.0, sim_t_array[ -1 ] )
-    # plt.legend()
     
     if generic_stimulus:
         f1_ax1.axvspan(
@@ -306,7 +292,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
         f2_ax1.set_ylim( 0, 1 )
         f2_ax1.set_xlabel( 'Time (s)', size=axis_label_size, )
         f2_ax1.set_ylabel( 'SPIKE-sync', size=axis_label_size, )
-        # f2_ax1.legend( loc='upper right' )
+        f2_ax1.legend( loc='upper right' )
     
     # finishing
     
