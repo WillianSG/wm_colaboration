@@ -86,7 +86,7 @@ def contiguous_regions( condition ):
     a 2D array where the first column is the start index of the region and the
     second column is the end index."""
     
-    # Find the indicies of changes in "condition"
+    # Find the indices of changes in "condition"
     d = np.diff( condition )
     idx, = d.nonzero()
     
@@ -100,7 +100,7 @@ def contiguous_regions( condition ):
     
     if condition[ -1 ]:
         # If the end of condition is True, append the length of the array
-        idx = np.r_[ idx, condition.size ]  # Edit
+        idx = np.r_[ idx, condition.size - 1 ]  # Edit
     
     # Reshape the result into two columns
     idx.shape = (-1, 2)

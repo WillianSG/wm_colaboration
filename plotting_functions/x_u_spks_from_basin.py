@@ -98,7 +98,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
             figure=fig )
     
     # TODO put each PS annotation on correct subplot
-    for i, atr in enumerate( attractors ):
+    for i, atr in enumerate( reversed( attractors ) ):
         f_ax1 = fig.add_subplot( spec2[ i, 0 ] )
         globals()[ f'f{i}_ax1' ] = f_ax1
         
