@@ -159,6 +159,7 @@ for ba in background_activity:
                                          title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
                                          generic_stimulus=stim,
                                          attractors=attractors,
+                                         num_neurons=len( rcn.E ),
                                          show=args.show )
         
         read_ps( save_dir )

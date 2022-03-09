@@ -23,7 +23,7 @@ from helper_functions.other import *
 
 
 def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
-                              filename=None, title_addition='', show=True ):
+                              filename=None, num_neurons=None, title_addition='', show=True ):
     # Load data
     us_pickled_data = os.path.join(
             path,
@@ -98,7 +98,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
             figure=fig )
     
     # TODO put each PS annotation on correct subplot
-    for i, atr in enumerate( reversed( attractors ) ):
+    for i, atr in enumerate( attractors ):
         f_ax1 = fig.add_subplot( spec2[ i, 0 ] )
         globals()[ f'f{i}_ax1' ] = f_ax1
         
@@ -196,6 +196,8 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
         f2_ax1.plot( spk_mon_ts, spk_mon_ids, '|', color='black', zorder=0 )
     
     # f0_ax1.set_ylim( 0, n_neurons )
+    if num_neurons:
+        f2_ax1.set_ylim( 0, num_neurons )
     f2_ax1.set_xlim( 0, sim_t_array[ -1 ] )
     
     f2_ax1.set_ylabel(
@@ -203,10 +205,10 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
             size=axis_label_size,
             color='k' )
     
-    f2_ax2 = f2_ax1.twinx()
+    # f2_ax2 = f2_ax1.twinx()
     
     # TODO also make this specific for each attractor
-    # x_times_u = (np.mean( xs, axis=0 ) * np.mean( us, axis=0 )) / U
+    # x_times_u = (x_mean * u_mean) / U
     
     # f1_ax2.plot(
     #         sim_t_array,
@@ -216,19 +218,19 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     #         color=ux_color,
     #         alpha=alpha3 )
     
-    f2_ax2.set_ylabel(
-            'x*u*1/U \n (a.u.)',
-            size=axis_label_size,
-            color=ux_color )
+    # f2_ax2.set_ylabel(
+    #         'x*u*1/U \n (a.u.)',
+    #         size=axis_label_size,
+    #         color=ux_color )
+    #
+    # plt.yticks( np.arange(
+    #         0.0,
+    #         6.0,
+    #         step=1.0 ) )
     
-    plt.yticks( np.arange(
-            0.0,
-            6.0,
-            step=1.0 ) )
+    # f2_ax2.tick_params( axis='y', labelcolor=ux_color )
     
-    f2_ax2.tick_params( axis='y', labelcolor=ux_color )
-    
-    f2_ax1.set_title( f'Neural spikes', size=title_fontsize, color=color )
+    f2_ax1.set_title( f'Neural spikes', size=title_fontsize )
     
     f3_ax1 = fig.add_subplot( spec2[ 3, 0 ] )
     
@@ -246,11 +248,10 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     f3_ax1.set_xlabel( 'Time (s)', size=axis_label_size, )
     f3_ax1.set_ylabel( 'SPIKE-sync', size=axis_label_size, )
     
-    f3_ax1.set_title( f'SPIKE-sync profile', size=title_fontsize, color=color )
+    f3_ax1.set_title( f'SPIKE-sync profile', size=title_fontsize )
     
     # f2_ax1.legend( loc='upper right' )
     
-    # TODO make one subplot of x and u for each attractor
     # noinspection PyUnresolvedReferences
     axes_to_annotate = [ f0_ax1, f1_ax1, f2_ax1, f3_ax1 ]  # variable names dynamically created for each attractor
     for ax in axes_to_annotate:
@@ -270,6 +271,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
                          xytext=(0, -15), textcoords='offset points',
                          horizontalalignment='right', verticalalignment='bottom',
                          color='grey' )
+            
             for i, atr in enumerate( attractors ):
                 x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr )
                 
