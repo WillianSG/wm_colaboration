@@ -102,7 +102,6 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     # TODO put each PS annotation on correct subplot
     for i, atr in enumerate( attractors ):
         f_ax1 = fig.add_subplot( spec2[ i, 0 ] )
-        globals()[ f'f{i}_ax1' ] = f_ax1
         
         color = colour_cycle[ i ]
         
@@ -176,7 +175,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
         f_ax1.set_title( f'Attractor {atr[ 0 ]}', size=title_fontsize, color=color )
     
     # -- Plot spikes
-    f2_ax1 = fig.add_subplot( spec2[ 2, 0 ] )
+    f2_ax1 = fig.add_subplot( spec2[ len( attractors ), 0 ] )
     
     # -- plot neuronal spikes with attractors in different colours
     if len( attractors ) > 1:
@@ -234,7 +233,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     
     f2_ax1.set_title( f'Neural spikes', size=title_fontsize )
     
-    f3_ax1 = fig.add_subplot( spec2[ 3, 0 ] )
+    f3_ax1 = fig.add_subplot( spec2[ len( attractors ) + 1, 0 ] )
     
     # -- plot spike sync profile
     for i, atr in enumerate( attractors ):
@@ -254,9 +253,7 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     
     # f2_ax1.legend( loc='upper right' )
     
-    # noinspection PyUnresolvedReferences
-    axes_to_annotate = [ f0_ax1, f1_ax1, f2_ax1, f3_ax1 ]  # variable names dynamically created for each attractor
-    for ax in axes_to_annotate:
+    for ax in fig.get_axes():
         ax.set_prop_cycle( None )
         # -- add generic stimulus shading
         # TODO multiple generic stimuli
