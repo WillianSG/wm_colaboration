@@ -560,7 +560,7 @@ class RecurrentCompetitiveNet:
         """
     
     def net_init( self ):
-        self.set_results_folder()  # sim. results
+        # self.set_results_folder()  # sim. results
         self.set_learning_rule()  # rule eqs./params.
         self.set_neuron_pop()  # neuron populations
         self.set_synapses()  # syn. connections

@@ -59,6 +59,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/results/RCN_attractor_reactivation/2022-03-10_11-44-18/ba_10_gs_0/pss.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

@@ -84,6 +84,8 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     ux_color = 'purple'
     colour_cycle = plt.rcParams[ 'axes.prop_cycle' ].by_key()[ 'color' ]
     
+    plt.rcParams[ 'axes.titlepad' ] = 20
+    
     # Plotting
     fig = plt.figure( constrained_layout=True, figsize=(15, 10) )
     

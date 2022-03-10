@@ -141,7 +141,7 @@ for ba in background_activity:
         act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=stim[ 0 ], subset=stim1_ids )
         rcn.run_net( duration=stim[ 1 ][ 0 ] + (stim[ 1 ][ 1 ] - stim[ 1 ][ 0 ]) )
         rcn.generic_stimulus_off( act_ids )
-        rcn.run_net( duration=1 )
+        rcn.run_net( duration=0.1 )
         
         # 2 ------ exporting simulation data ------
         
@@ -162,7 +162,9 @@ for ba in background_activity:
                                          num_neurons=len( rcn.E ),
                                          show=args.show )
         
-        read_ps( save_dir )
+        num_pss = read_ps( save_dir )
+        
+        export_to_xlsx( timestamp_folder, ba, gs, num_pss )
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         

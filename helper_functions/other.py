@@ -186,3 +186,26 @@ def read_ps( path, verbose=False ):
     print( 'Found ', num_rows, 'PSs' )
     
     return num_rows
+
+
+def append_df_to_excel( df, excel_path ):
+    import pandas as pd
+    
+    df_excel = pd.read_excel( excel_path )
+    result = pd.concat( [ df_excel, df ], ignore_index=True )
+    result.to_excel( excel_path, index=False )
+
+
+def export_to_xlsx( path, ba, gs, num_pss ):
+    import pandas as pd
+    
+    df = pd.DataFrame( [ [ ba, gs, num_pss ] ], columns=[ 'ba', 'gs', 'num_pss' ] )
+    
+    fn = os.path.join( path, "num_pss.xlsx" )
+    if not os.path.isfile( fn ):
+        with pd.ExcelWriter( fn ) as writer:
+            df.to_excel( writer, index=False )
+    else:
+        append_df_to_excel( df, fn )
+    
+    return fn
