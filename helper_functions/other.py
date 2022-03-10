@@ -108,7 +108,7 @@ def contiguous_regions( condition ):
     return idx
 
 
-def find_ps( path, sim_time, attractor, write_to_file=False, verbose=False ):
+def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, verbose=False ):
     import pyspike as spk
     from scipy.ndimage.filters import uniform_filter1d
     import pandas as pd
@@ -131,17 +131,22 @@ def find_ps( path, sim_time, attractor, write_to_file=False, verbose=False ):
     pss = contiguous_regions( y_smooth > 0.8 )
     
     if write_to_file:
-        df = pd.DataFrame( columns=[ 'Attractor', 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
-        # df = pd.DataFrame( [ [ atr, ba, gs, num_pss ] ], columns=[ 'atr', 'ba', 'gs', 'num_pss' ] )
+        assert ba is not None
+        assert gs is not None
+        
+        df = pd.DataFrame( columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
+        
         for ps in pss:
             df = df.append( pd.DataFrame( [ [ attractor[ 0 ],
+                                              ba,
+                                              gs[ 0 ][ 0 ],
                                               x[ ps[ 0 ] ],
                                               x[ ps[ 1 ] ],
                                               x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
                                               np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
                                               np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
                                               np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ] ],
-                                          columns=[ 'Attractor', 'start_s', 'end_s', 'center', 'max', 'mean',
+                                          columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center', 'max', 'mean',
                                                     'std' ] ) )
         
         fn = os.path.join( path, "pss.xlsx" )
@@ -163,13 +168,28 @@ def find_ps( path, sim_time, attractor, write_to_file=False, verbose=False ):
     return x, y, y_smooth, pss
 
 
-# TODo was there a PS during GS?
-def export_pss_to_xlsx( experiment_path, iteration_path, generic_stimulus=False ):
+# TODo save these somewhere sensible
+def count_pss_in_gss( path, gss ):
     import pandas as pd
     
-    fn = os.path.join( experiment_path, 'pss.xlsx' )
+    df = pd.read_excel( os.path.join( path, 'pss.xlsx' ) )
+    
+    num_ps_in_gs = 0
+    for _, row in df.iterrows():
+        for gs in gss:
+            if row[ 'start_s' ] >= gs[ 1 ][ 0 ] and row[ 'end_s' ] <= gs[ 1 ][ 1 ]:
+                num_ps_in_gs += 1
+    
+    total_num_ps = len( df )
+    print( f'Found {num_ps_in_gs} PS in GS out of {total_num_ps} total PS' )
+
+
+def append_pss_to_xlsx( experiment_path, iteration_path ):
+    import pandas as pd
+    
     df_iteration = pd.read_excel( os.path.join( iteration_path, 'pss.xlsx' ) )
     
+    fn = os.path.join( experiment_path, 'pss.xlsx' )
     if os.path.isfile( fn ):
         df_experiment = pd.read_excel( fn )
         append_df_to_excel( df_iteration, fn )
@@ -186,5 +206,21 @@ def append_df_to_excel( df, excel_path ):
     result.to_excel( excel_path, index=False )
 
 
-def compute_pss_statistics( timestamp_folder ):
-    pass
+def compute_pss_statistics( timestamp_folder, generic_stimuli=False ):
+    import pandas as pd
+    
+    fn = os.path.join( timestamp_folder, 'pss.xlsx' )
+    df = pd.read_excel( fn )
+    
+    return df
+
+
+def generate_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime ):
+    free_time = gs_runtime - gs_freq * gs_length
+    free_time /= (gs_freq - 1)
+    
+    gss_times = [ ]
+    for t in np.arange( pre_runtime, pre_runtime + gs_runtime, free_time + gs_length ):
+        gss_times.append( (gs_percentage, (t, t + gs_length)) )
+    
+    return gss_times, free_time

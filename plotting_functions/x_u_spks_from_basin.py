@@ -22,7 +22,7 @@ import numpy as np
 from helper_functions.other import *
 
 
-def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
+def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
                               filename=None, num_neurons=None, title_addition='', show=True ):
     # Load data
     us_pickled_data = os.path.join(
@@ -178,23 +178,20 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     f2_ax1 = fig.add_subplot( spec2[ len( attractors ), 0 ] )
     
     # -- plot neuronal spikes with attractors in different colours
-    if len( attractors ) > 1:
-        for i, atr in enumerate( attractors ):
-            spk_mon_ts = np.array( spk_mon_ts )
-            spk_mon_ids = np.array( spk_mon_ids )
-            
-            # color = next( f3_ax1._get_lines.prop_cycler )[ 'color' ]
-            color = colour_cycle[ i ]
-            
-            atr_indexes = np.argwhere(
-                    np.logical_and( np.array( spk_mon_ids ) >= atr[ 1 ][ 0 ],
-                                    np.array( spk_mon_ids ) <= atr[ 1 ][ -1 ] ) )
-            atr_spks = spk_mon_ts[ atr_indexes ]
-            atr_ids = spk_mon_ids[ atr_indexes ]
-            
-            f2_ax1.plot( atr_spks, atr_ids, '|', color=color, zorder=0 )
-    else:
-        f2_ax1.plot( spk_mon_ts, spk_mon_ids, '|', color='black', zorder=0 )
+    for i, atr in enumerate( attractors ):
+        spk_mon_ts = np.array( spk_mon_ts )
+        spk_mon_ids = np.array( spk_mon_ids )
+        
+        # color = next( f3_ax1._get_lines.prop_cycler )[ 'color' ]
+        color = colour_cycle[ i ]
+        
+        atr_indexes = np.argwhere(
+                np.logical_and( np.array( spk_mon_ids ) >= atr[ 1 ][ 0 ],
+                                np.array( spk_mon_ids ) <= atr[ 1 ][ -1 ] ) )
+        atr_spks = spk_mon_ts[ atr_indexes ]
+        atr_ids = spk_mon_ids[ atr_indexes ]
+        
+        f2_ax1.plot( atr_spks, atr_ids, '|', color=color, zorder=0 )
     
     # f0_ax1.set_ylim( 0, n_neurons )
     if num_neurons:
@@ -255,34 +252,34 @@ def plot_x_u_spks_from_basin( path, generic_stimulus=None, attractors=None,
     
     for ax in fig.get_axes():
         ax.set_prop_cycle( None )
-        # -- add generic stimulus shading
-        # TODO multiple generic stimuli
-        if generic_stimulus:
-            ax.axvspan(
-                    generic_stimulus[ 1 ][ 0 ],
-                    generic_stimulus[ 1 ][ 1 ],
-                    facecolor='grey',
-                    alpha=alpha2,
-                    )
-            ax.annotate( 'GS',
-                         xycoords='data',
-                         xy=((generic_stimulus[ 1 ][ 0 ] + generic_stimulus[ 1 ][ 1 ]) / 2, 0),
-                         xytext=(0, -15), textcoords='offset points',
-                         horizontalalignment='right', verticalalignment='bottom',
-                         color='grey' )
+        # -- add generic stimuli shading
+        if generic_stimuli:
+            for gs in generic_stimuli:
+                ax.axvspan(
+                        gs[ 1 ][ 0 ],
+                        gs[ 1 ][ 1 ],
+                        facecolor='grey',
+                        alpha=alpha2,
+                        )
+                ax.annotate( 'GS',
+                             xycoords='data',
+                             xy=((gs[ 1 ][ 0 ] + gs[ 1 ][ 1 ]) / 2, 0),
+                             xytext=(0, -15), textcoords='offset points',
+                             horizontalalignment='right', verticalalignment='bottom',
+                             color='grey' )
+        
+        for i, atr in enumerate( attractors ):
+            x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr )
             
-            for i, atr in enumerate( attractors ):
-                x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr )
-                
-                # color = next( ax._get_lines.prop_cycler )[ 'color' ]
-                color = colour_cycle[ i ]
-                
-                for ps in pss:
-                    ax.annotate( 'PS',
-                                 xycoords='data',
-                                 xy=(x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ], ax.get_ylim()[ 1 ]),
-                                 horizontalalignment='right', verticalalignment='bottom',
-                                 color=color )
+            # color = next( ax._get_lines.prop_cycler )[ 'color' ]
+            color = colour_cycle[ i ]
+            
+            for ps in pss:
+                ax.annotate( 'PS',
+                             xycoords='data',
+                             xy=(x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ], ax.get_ylim()[ 1 ]),
+                             horizontalalignment='right', verticalalignment='bottom',
+                             color=color )
     
     # finishing
     

@@ -52,20 +52,23 @@ prefs.codegen.target = 'numpy'
 # from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
 
 parser = argparse.ArgumentParser( description='RCN_item_reactivation_gs_attractors' )
-parser.add_argument( '--ba_init', type=int, default=0, help='Lower bound for background activity Hz' )
-parser.add_argument( '--gs_init', type=int, default=0, help='Lower bound for generic stimulus %' )
-parser.add_argument( '--ba', type=int, default=10, help='Upper bound for background activity Hz' )
-parser.add_argument( '--gs', type=int, default=20, help='Upper bound for generic stimulus %' )
+parser.add_argument( '--ba_amount', type=int, default=[ 0, 40 ], nargs=2, help='Bounds for background activity in Hz' )
+parser.add_argument( '--gs_amount', type=int, default=[ 0, 40 ], nargs=2,
+                     help='Bounds for generic stimulus in % of stimulated neurons' )
+parser.add_argument( '--gs_freq', type=int, default=4, help='Frequency of generic stimulus Hz' )
+parser.add_argument( '--gs_length', type=float, default=0.1, help='Length of generic stimulus in seconds' )
 parser.add_argument( '--step', type=int, default=5, help='Step size for background activity and generic stimulus' )
 parser.add_argument( '--pre_runtime', type=float, default='0.1', help='Runtime before showing generic stimulus' )
-parser.add_argument( '--post_runtime', type=float, default='15', help='Runtime after showing generic stimulus' )
+parser.add_argument( '--gs_runtime', type=float, default='0.1', help='Runtime for showing generic stimulus' )
+parser.add_argument( '--post_runtime', type=float, default='0.1', help='Runtime after showing generic stimulus' )
 parser.add_argument( '--attractors', type=int, default=1, choices=[ 1, 2, 3 ], help='Number of attractors' )
 parser.add_argument( '--show', type=str, default='False', help='Show output plots' )
 
 args = parser.parse_args()
 
-assert args.ba_init <= args.ba, 'Lower bound for background activity Hz must be smaller than upper bound'
-assert args.gs_init <= args.gs, 'Lower bound for generic stimulus % must be smaller than upper bound'
+assert args.ba_amount[ 0 ] <= args.ba_amount[
+    1 ], 'Lower bound for background activity Hz must be smaller than upper bound'
+assert args.gs_amount[ 0 ] <= args.gs_amount[ 1 ], 'Lower bound for generic stimulus % must be smaller than upper bound'
 assert args.step > 0, 'Step size must be positive'
 
 timestamp_folder = make_timestamped_folder( '../../results/RCN_attractor_reactivation/' )
@@ -81,32 +84,34 @@ parameter_set = '2.2'
 #  Or maybe run experiments multiple times and average?
 #  Or maybe shorter experiments?
 
+
 # -- sweep over all combinations of parameters
 print( f'Sweeping over all combinations of parameters: '
-       f'background activity {args.ba_init} Hz → {args.ba} Hz, '
-       f'generic stimulus {args.gs_init} % → {args.gs} %, '
-       f'in steps of {args.step},' )
+       f'background activity {args.ba_amount[ 0 ]} Hz → {args.ba_amount[ 1 ]} Hz, '
+       f'generic stimulus {args.gs_amount[ 0 ]} % → {args.gs_amount[ 1 ]} % at {args.gs_freq} Hz, '
+       f'in steps of {args.step}' )
 
-background_activity = np.arange( args.ba_init, args.ba + args.step, args.step )
+background_activity = np.arange( args.ba_amount[ 0 ], args.ba_amount[ 1 ] + args.step, args.step )
 # 1 ------ initializing/running network ------
 i = 0
 for ba in background_activity:
-    generic_stimulus = np.arange( args.gs_init, args.gs + args.step, args.step )
-    for gs in generic_stimulus:
+    generic_stimulus = np.arange( args.gs_amount[ 0 ], args.gs_amount[ 1 ] + args.step, args.step )
+    for gs_percentage in generic_stimulus:
         i += 1
         
         os.mkdir(
                 os.path.join( timestamp_folder,
-                              f'ba_{ba}_gs_{gs}' ) )
+                              f'ba_{ba}_gs_{gs_percentage}' ) )
         save_dir = os.path.join( timestamp_folder,
-                                 f'ba_{ba}_gs_{gs}' )
+                                 f'ba_{ba}_gs_{gs_percentage}' )
         
         # -- generic stimulus --
-        stim = (gs, (args.pre_runtime + 0.1, args.pre_runtime + 0.2))
+        # stim = (gs_percentage, (args.pre_runtime + 0.1, args.pre_runtime + 0.2))
+        gss, free_time = generate_gss( gs_percentage, args.gs_freq, args.gs_length, args.pre_runtime, args.gs_runtime )
         
         print( f'Iteration {i} of {len( background_activity ) * len( generic_stimulus )}', end=' : ' )
         print( 'ba = ', ba, 'Hz', end=' , ' )
-        print( 'gs = ', gs, '%' )
+        print( 'gs = ', gs_percentage, '%' )
         
         rcn = RecurrentCompetitiveNet(
                 plasticity_rule=plasticity_rule,
@@ -143,11 +148,14 @@ for ba in background_activity:
         rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
         
         # TODO add predicted time to end of experiment
-        # run network, give generic pulse, run network again
+        # run network, give generic pulses, run network again
         rcn.run_net( duration=args.pre_runtime )
-        act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=stim[ 0 ], subset=stim1_ids )
-        rcn.run_net( duration=stim[ 1 ][ 1 ] - stim[ 1 ][ 0 ] )
-        rcn.generic_stimulus_off( act_ids )
+        for gs in gss:
+            act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=gs[ 0 ],
+                                            subset=stim1_ids )  # remember that we're only stimulating E neurons in A1
+            rcn.run_net( duration=gs[ 1 ][ 1 ] - gs[ 1 ][ 0 ] )
+            rcn.generic_stimulus_off( act_ids )
+            rcn.run_net( duration=free_time )
         rcn.run_net( duration=args.post_runtime )
         
         # 2 ------ exporting simulation data ------
@@ -157,20 +165,22 @@ for ba in background_activity:
         rcn.get_u_traces_from_pattern_neurons()
         rcn.get_spks_from_pattern_neurons()
         rcn.get_spikes_pyspike()
+        # -- save the PS statistics for this iteration
         for atr in attractors:
-            find_ps( save_dir, rcn.net.t, atr, write_to_file=True )
+            find_ps( save_dir, rcn.net.t, atr, write_to_file=True, ba=ba, gs=gss )
+        
+        count_pss_in_gss( save_dir, gss )
         
         # 3 ------ plotting simulation data ------
         
-        fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_ba_{ba}_gs_{gs}',
-                                         title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
-                                         generic_stimulus=stim,
+        fig1 = plot_x_u_spks_from_basin( path=save_dir, filename=f'x_u_spks_from_basin_ba_{ba}_gs_{gs_percentage}',
+                                         title_addition=f'background activity {ba} Hz, generic stimulus '
+                                                        f'{gs_percentage} % at {args.gs_freq} Hz',
+                                         generic_stimuli=gss,
                                          attractors=attractors,
                                          num_neurons=len( rcn.E ),
                                          show=args.show )
         # TODO when gs 0 ba 0 it finds one PS
-        
-        export_pss_to_xlsx( timestamp_folder, save_dir )
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
@@ -192,5 +202,9 @@ for ba in background_activity:
         #         filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
         #         title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
         #         show=args.show )
+        
+        # 4 ------ plotting PS statistics ------
+        # -- compile PS statistics for this iteration into one file for the whole experiment
+        append_pss_to_xlsx( timestamp_folder, save_dir )
     
-    compute_pss_statistics( timestamp_folder )
+    df_statistics = compute_pss_statistics( timestamp_folder )
