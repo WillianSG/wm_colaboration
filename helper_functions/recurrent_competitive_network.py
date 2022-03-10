@@ -438,6 +438,7 @@ class RecurrentCompetitiveNet:
     """
     """
     
+    # TODO get rid of gather_very to improve performance
     def run_net( self, duration=3 * second, gather_every=0.1 * second, pulse_ending=False, callback=None ):
         from tqdm import tqdm
         
@@ -456,7 +457,7 @@ class RecurrentCompetitiveNet:
         # if pulse_ending:
         #     self.stimulus_pulse_duration = pulse_ending
         
-        num_runs = int( ceil( duration / gather_every ) )
+        num_runs = int( round( duration / gather_every ) )
         t = tqdm( total=duration / second, desc='RCN', unit='sim s',
                   bar_format='{l_bar} {bar}| {n:.1f}/{total:.1f} s [{elapsed}<{remaining}, ' '{rate_fmt}{'
                              'postfix}]',

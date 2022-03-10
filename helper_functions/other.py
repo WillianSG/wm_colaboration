@@ -181,7 +181,11 @@ def count_pss_in_gss( path, gss ):
                 num_ps_in_gs += 1
     
     total_num_ps = len( df )
-    print( f'Found {num_ps_in_gs} PS in GS out of {total_num_ps} total PS' )
+    try:
+        percent_ps_in_gs = num_ps_in_gs / total_num_ps * 100
+    except ZeroDivisionError:
+        percent_ps_in_gs = 0
+    print( f'Found {num_ps_in_gs} PS in GS out of {total_num_ps} total PS ({percent_ps_in_gs})' )
 
 
 def append_pss_to_xlsx( experiment_path, iteration_path ):
@@ -191,7 +195,6 @@ def append_pss_to_xlsx( experiment_path, iteration_path ):
     
     fn = os.path.join( experiment_path, 'pss.xlsx' )
     if os.path.isfile( fn ):
-        df_experiment = pd.read_excel( fn )
         append_df_to_excel( df_iteration, fn )
     else:
         with pd.ExcelWriter( fn ) as writer:
@@ -215,8 +218,9 @@ def compute_pss_statistics( timestamp_folder, generic_stimuli=False ):
     return df
 
 
+# TODO wrong free time
 def generate_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime ):
-    free_time = gs_runtime - gs_freq * gs_length
+    free_time = 1 - gs_freq * gs_length
     free_time /= (gs_freq - 1)
     
     gss_times = [ ]

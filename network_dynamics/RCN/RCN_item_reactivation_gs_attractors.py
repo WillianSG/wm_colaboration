@@ -58,9 +58,9 @@ parser.add_argument( '--gs_amount', type=int, default=[ 0, 40 ], nargs=2,
 parser.add_argument( '--gs_freq', type=int, default=4, help='Frequency of generic stimulus Hz' )
 parser.add_argument( '--gs_length', type=float, default=0.1, help='Length of generic stimulus in seconds' )
 parser.add_argument( '--step', type=int, default=5, help='Step size for background activity and generic stimulus' )
-parser.add_argument( '--pre_runtime', type=float, default='0.1', help='Runtime before showing generic stimulus' )
-parser.add_argument( '--gs_runtime', type=float, default='0.1', help='Runtime for showing generic stimulus' )
-parser.add_argument( '--post_runtime', type=float, default='0.1', help='Runtime after showing generic stimulus' )
+parser.add_argument( '--pre_runtime', type=float, default=0.1, help='Runtime before showing generic stimulus' )
+parser.add_argument( '--gs_runtime', type=float, default=15, help='Runtime for showing generic stimulus' )
+parser.add_argument( '--post_runtime', type=float, default=0.1, help='Runtime after showing generic stimulus' )
 parser.add_argument( '--attractors', type=int, default=1, choices=[ 1, 2, 3 ], help='Number of attractors' )
 parser.add_argument( '--show', type=str, default='False', help='Show output plots' )
 
@@ -75,15 +75,6 @@ timestamp_folder = make_timestamped_folder( '../../results/RCN_attractor_reactiv
 
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
-
-# TODO why does having 2+ attractors give better reactivation?
-# TODO Mongillo mentions spike synchrony as important
-
-# TODO when ba>0 a gs might not reactivate because a PS just happened.
-#  Maybe fix x and u to a reasonable amount?
-#  Or maybe run experiments multiple times and average?
-#  Or maybe shorter experiments?
-
 
 # -- sweep over all combinations of parameters
 print( f'Sweeping over all combinations of parameters: '
@@ -148,6 +139,7 @@ for ba in background_activity:
         rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
         
         # TODO add predicted time to end of experiment
+        # TODO bug GSs and netwrok timing out of sync after 1s (should be at 1.1, is at 1.2)
         # run network, give generic pulses, run network again
         rcn.run_net( duration=args.pre_runtime )
         for gs in gss:
