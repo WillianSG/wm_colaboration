@@ -83,7 +83,9 @@ parameter_set = '2.2'
 
 # -- sweep over all combinations of parameters
 print( f'Sweeping over all combinations of parameters: '
-       f'background activity 0 Hz → {args.ba} Hz, generic stimulus 0 % → {args.gs} %, in steps of {args.step},' )
+       f'background activity {args.ba_init} Hz → {args.ba} Hz, '
+       f'generic stimulus {args.gs_init} % → {args.gs} %, '
+       f'in steps of {args.step},' )
 
 background_activity = np.arange( args.ba_init, args.ba + args.step, args.step )
 # 1 ------ initializing/running network ------
@@ -140,6 +142,7 @@ for ba in background_activity:
         rcn.set_E_E_plastic( plastic=plastic_syn )
         rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
         
+        # TODO add predicted time to end of experiment
         # run network, give generic pulse, run network again
         rcn.run_net( duration=args.pre_runtime )
         act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=stim[ 0 ], subset=stim1_ids )
@@ -165,10 +168,9 @@ for ba in background_activity:
                                          attractors=attractors,
                                          num_neurons=len( rcn.E ),
                                          show=args.show )
+        # TODO when gs 0 ba 0 it finds one PS
         
-        num_pss = read_ps( save_dir )
-        
-        export_to_xlsx( timestamp_folder, ba, gs, num_pss )
+        export_pss_to_xlsx( timestamp_folder, save_dir )
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
@@ -190,3 +192,5 @@ for ba in background_activity:
         #         filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
         #         title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
         #         show=args.show )
+    
+    compute_pss_statistics( timestamp_folder )

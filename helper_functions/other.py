@@ -108,10 +108,10 @@ def contiguous_regions( condition ):
     return idx
 
 
-def find_ps( path, sim_time, attractor, write_to_file=False ):
+def find_ps( path, sim_time, attractor, write_to_file=False, verbose=False ):
     import pyspike as spk
     from scipy.ndimage.filters import uniform_filter1d
-    import csv
+    import pandas as pd
     
     spike_trains = spk.load_spike_trains_from_txt( os.path.join( path, 'spikes_pyspike.txt' ),
                                                    edges=(0, sim_time),
@@ -131,61 +131,51 @@ def find_ps( path, sim_time, attractor, write_to_file=False ):
     pss = contiguous_regions( y_smooth > 0.8 )
     
     if write_to_file:
-        if not os.path.exists( os.path.join( path, 'pss.csv' ) ):
-            with open( os.path.join( path, 'pss.csv' ), 'w' ) as f:
-                writer = csv.writer( f )
-                writer.writerow( [ 'Attractor', 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
+        df = pd.DataFrame( columns=[ 'Attractor', 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
+        # df = pd.DataFrame( [ [ atr, ba, gs, num_pss ] ], columns=[ 'atr', 'ba', 'gs', 'num_pss' ] )
+        for ps in pss:
+            df = df.append( pd.DataFrame( [ [ attractor[ 0 ],
+                                              x[ ps[ 0 ] ],
+                                              x[ ps[ 1 ] ],
+                                              x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
+                                              np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                                              np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                                              np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ] ],
+                                          columns=[ 'Attractor', 'start_s', 'end_s', 'center', 'max', 'mean',
+                                                    'std' ] ) )
         
-        with open( os.path.join( path, 'pss.csv' ), 'a', newline='' ) as f:
-            writer = csv.writer( f )
-            
-            for ps in pss:
-                writer.writerow( [
-                        attractor[ 0 ],
-                        x[ ps[ 0 ] ],
-                        x[ ps[ 1 ] ],
-                        x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
-                        np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
-                        np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
-                        np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
-                        ] )
+        fn = os.path.join( path, "pss.xlsx" )
+        if not os.path.isfile( fn ):
+            with pd.ExcelWriter( fn ) as writer:
+                df.to_excel( writer, index=False )
+        else:
+            append_df_to_excel( df, fn )
+    
+    if verbose:
+        print( f'Found PS in {attractor[ 0 ]} '
+               f'between {x[ ps[ 0 ] ]} s and {x[ ps[ 1 ] ]} s '
+               f'centered at {x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ]} s '
+               f'with max value {np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )} '
+               f'(mean={np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}, '
+               f'std={np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] )}'
+               )
     
     return x, y, y_smooth, pss
 
 
-def read_ps( path, verbose=False ):
-    import csv
+# TODo was there a PS during GS?
+def export_pss_to_xlsx( experiment_path, iteration_path, generic_stimulus=False ):
+    import pandas as pd
     
-    fn = os.path.join( path, 'pss.csv' )
-    with open( fn, 'r' ) as f:
-        reader = csv.reader( f )
-        
-        next( reader, None )
-        for line in reader:
-            attractor = line[ 0 ]
-            start_s = float( line[ 1 ] )
-            end_s = float( line[ 2 ] )
-            center = float( line[ 3 ] )
-            max_ = float( line[ 4 ] )
-            mean = float( line[ 5 ] )
-            std = float( line[ 6 ] )
-            
-            if verbose:
-                print( f'Found PS in {attractor} '
-                       f'between {start_s} s and {end_s} s '
-                       f'centered at {center} s '
-                       f'with max value {max_} '
-                       f'(mean={mean}, '
-                       f'std={std})'
-                       )
+    fn = os.path.join( experiment_path, 'pss.xlsx' )
+    df_iteration = pd.read_excel( os.path.join( iteration_path, 'pss.xlsx' ) )
     
-    with open( fn ) as f:
-        num_rows = sum( 1 for line in f )
-    num_rows -= 1
-    
-    print( 'Found ', num_rows, 'PSs' )
-    
-    return num_rows
+    if os.path.isfile( fn ):
+        df_experiment = pd.read_excel( fn )
+        append_df_to_excel( df_iteration, fn )
+    else:
+        with pd.ExcelWriter( fn ) as writer:
+            df_iteration.to_excel( writer, index=False )
 
 
 def append_df_to_excel( df, excel_path ):
@@ -196,16 +186,5 @@ def append_df_to_excel( df, excel_path ):
     result.to_excel( excel_path, index=False )
 
 
-def export_to_xlsx( path, ba, gs, num_pss ):
-    import pandas as pd
-    
-    df = pd.DataFrame( [ [ ba, gs, num_pss ] ], columns=[ 'ba', 'gs', 'num_pss' ] )
-    
-    fn = os.path.join( path, "num_pss.xlsx" )
-    if not os.path.isfile( fn ):
-        with pd.ExcelWriter( fn ) as writer:
-            df.to_excel( writer, index=False )
-    else:
-        append_df_to_excel( df, fn )
-    
-    return fn
+def compute_pss_statistics( timestamp_folder ):
+    pass

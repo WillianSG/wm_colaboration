@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added run configurations">
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/One_attractor_reactivation_fast.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/One_attractor_reactivation_fast.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -73,7 +78,45 @@
       <recent name="$PROJECT_DIR$/graph_analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.One attractor reactivation fast">
+  <component name="RunManager" selected="Python.One attractor fixed ba full experiment">
+    <configuration name="One attractor ba full experiment" type="PythonConfigurationType" factoryName="Python">
+      <module name="wm_colaboration" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" />
+      <option name="PARAMETERS" value="--ba 40 --gs 0 --step 5 --attractors 1 --show False" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="One attractor fixed ba full experiment" type="PythonConfigurationType" factoryName="Python">
+      <module name="wm_colaboration" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" />
+      <option name="PARAMETERS" value="--ba 15 --ba_init 15 --gs 40 --step 5 --attractors 1 --show False" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="RCN_item_reactivation" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -170,7 +213,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" />
-      <option name="PARAMETERS" value="--ba 10 --gs 0 --step 5 --attractors 2 --show True --ba_init 10 --post_runtime 0.1" />
+      <option name="PARAMETERS" value="--ba 15 --gs 0 --step 5 --attractors 2 --show True --ba_init 15 --post_runtime 0.1" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -204,10 +247,12 @@
       <item itemvalue="Python.One attractor reactivation fast" />
       <item itemvalue="Python.Two attractor reactivation fast " />
       <item itemvalue="Python.Three attractor reactivation fast" />
+      <item itemvalue="Python.One attractor reactivation full experiment" />
+      <item itemvalue="Python.One attractor ba full experiment" />
+      <item itemvalue="Python.One attractor fixed ba full experiment" />
       <item itemvalue="Python.RCN_item_reactivation_ba" />
       <item itemvalue="Python.RCN_item_reactivation" />
       <item itemvalue="Python.RCN_item_reactivation_ba_gs" />
-      <item itemvalue="Python.One attractor reactivation full experiment" />
     </list>
     <recent_temporary>
       <list>
@@ -235,7 +280,7 @@
       <workItem from="1644432071816" duration="9663000" />
       <workItem from="1646390900131" duration="35773000" />
       <workItem from="1646816264738" duration="56000" />
-      <workItem from="1646834988562" duration="16690000" />
+      <workItem from="1646834988562" duration="21665000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -391,7 +436,14 @@
       <option name="project" value="LOCAL" />
       <updated>1646914658653</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="- added run configurations">
+      <created>1646914752648</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1646914752648</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -432,7 +484,8 @@
     <MESSAGE value="- removed u variable as I wanted to have displayed it for each attractor" />
     <MESSAGE value="- export_to_xlsx() function to save results between runs" />
     <MESSAGE value="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
-    <option name="LAST_COMMIT_MESSAGE" value="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
+    <MESSAGE value="- added run configurations" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added run configurations" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -452,16 +505,17 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/wm_colaboration$attractor_viz_lite.coverage" NAME="attractor_viz_lite Coverage Results" MODIFIED="1644337682622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast.coverage" NAME="One attractor reactivation fast Coverage Results" MODIFIED="1646928973933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs.coverage" NAME="RCN_item_reactivation_gs Coverage Results" MODIFIED="1646243957580" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation.coverage" NAME="network_visualisation Coverage Results" MODIFIED="1644490029113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs_attractors.coverage" NAME="One attractor reactivation full experiment Coverage Results" MODIFIED="1646913034090" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_ba.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646331179889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN.coverage" NAME="RCN Coverage Results" MODIFIED="1646048705953" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast.coverage" NAME="One attractor reactivation fast Coverage Results" MODIFIED="1646914436252" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$Two_attractor_reactivation_fast_.coverage" NAME="Two attractor reactivation fast  Coverage Results" MODIFIED="1646930302813" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_stim.coverage" NAME="RCN_item_reactivation_stim Coverage Results" MODIFIED="1646210347594" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646235910231" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation_lite.coverage" NAME="network_visualisation_lite Coverage Results" MODIFIED="1644336752261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs.coverage" NAME="RCN_item_reactivation_gs Coverage Results" MODIFIED="1646243957580" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$recurrent_competitive_network.coverage" NAME="recurrent_competitive_network Coverage Results" MODIFIED="1646148885484" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/helper_functions" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation.coverage" NAME="network_visualisation Coverage Results" MODIFIED="1644490029113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_graph.coverage" NAME="RCN_item_reactivation_graph Coverage Results" MODIFIED="1646330990910" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
   </component>
 </project>
