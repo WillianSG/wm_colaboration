@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- export_to_xlsx() function to save results between runs">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -277,7 +275,7 @@
       <workItem from="1644432071816" duration="9663000" />
       <workItem from="1646390900131" duration="35773000" />
       <workItem from="1646816264738" duration="56000" />
-      <workItem from="1646834988562" duration="16576000" />
+      <workItem from="1646834988562" duration="16660000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -419,7 +417,14 @@
       <option name="project" value="LOCAL" />
       <updated>1646912510568</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors">
+      <created>1646914626881</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1646914626881</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -459,7 +464,8 @@
     <MESSAGE value="- fixed bug in contiguous_regions() where if the PS happened at the end of the simulation" />
     <MESSAGE value="- removed u variable as I wanted to have displayed it for each attractor" />
     <MESSAGE value="- export_to_xlsx() function to save results between runs" />
-    <option name="LAST_COMMIT_MESSAGE" value="- export_to_xlsx() function to save results between runs" />
+    <MESSAGE value="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
