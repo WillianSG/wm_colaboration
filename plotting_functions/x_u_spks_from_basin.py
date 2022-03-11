@@ -261,6 +261,8 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
                         facecolor='grey',
                         alpha=alpha2,
                         )
+                # TODo improve spacing with x-axis
+                # TODo add ps statistics to plot
                 ax.annotate( 'GS',
                              xycoords='data',
                              xy=((gs[ 1 ][ 0 ] + gs[ 1 ][ 1 ]) / 2, 0),

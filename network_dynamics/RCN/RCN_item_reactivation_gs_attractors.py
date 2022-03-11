@@ -139,7 +139,6 @@ for ba in background_activity:
         rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
         
         # TODO add predicted time to end of experiment
-        # TODO bug GSs and netwrok timing out of sync after 1s (should be at 1.1, is at 1.2)
         # run network, give generic pulses, run network again
         rcn.run_net( duration=args.pre_runtime )
         for gs in gss:
@@ -161,7 +160,7 @@ for ba in background_activity:
         for atr in attractors:
             find_ps( save_dir, rcn.net.t, atr, write_to_file=True, ba=ba, gs=gss )
         
-        count_pss_in_gss( save_dir, gss )
+        count_pss_in_gss( save_dir, write_to_file=True, experiment_path=timestamp_folder, ba=ba, gss=gss )
         
         # 3 ------ plotting simulation data ------
         
@@ -172,7 +171,8 @@ for ba in background_activity:
                                          attractors=attractors,
                                          num_neurons=len( rcn.E ),
                                          show=args.show )
-        # TODO when gs 0 ba 0 it finds one PS
+        # TODO when gs 0 ba 0 it finds one PS instead of none, could ruin statistics
+        # how to treat 0 ps case?
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
@@ -195,8 +195,9 @@ for ba in background_activity:
         #         title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
         #         show=args.show )
         
-        # 4 ------ plotting PS statistics ------
-        # -- compile PS statistics for this iteration into one file for the whole experiment
+        # 4 ------ saving PS statistics ------
+        # -- append PS statistics for this iteration into one file for the whole experiment
         append_pss_to_xlsx( timestamp_folder, save_dir )
     
+    # 5 ------ compute PS statistics for the whole experiment ------
     df_statistics = compute_pss_statistics( timestamp_folder )
