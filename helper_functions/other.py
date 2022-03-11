@@ -165,11 +165,10 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
                                                     'std' ] ) )
         
         fn = os.path.join( path, "pss.xlsx" )
-        if not os.path.isfile( fn ):
-            with pd.ExcelWriter( fn, engine='xlsxwriter' ) as writer:
-                df.to_excel( writer, index=False, sheet_name="PSs" )
-        else:
-            append_df_to_excel( df, fn, sheet_name="PSs" )
+        
+        ensure_excel( fn )
+        
+        append_df_to_excel( df, fn, sheet_name="PSs" )
     
     if verbose:
         print( f'Found PS in {attractor[ 0 ]} '
@@ -183,40 +182,36 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
     return x, y, y_smooth, pss
 
 
-# TODo save these somewhere sensible
-def count_pss_in_gss( pss_path, write_to_file=False, experiment_path=None, ba=None, gss=None, verbose=False ):
+def count_pss_in_gss( pss_path, write_to_file=False, ba=None, gss=None, verbose=False ):
     import pandas as pd
     
     fn_pss = os.path.join( pss_path, 'pss.xlsx' )
     df = pd.read_excel( fn_pss, engine='openpyxl' )
     
-    # TODO split this by attractor
-    num_ps_in_gs = 0
-    for _, row in df.iterrows():
-        for gs in gss:
-            if row[ 'start_s' ] >= gs[ 1 ][ 0 ] and row[ 'end_s' ] <= gs[ 1 ][ 1 ]:
-                num_ps_in_gs += 1
-    
-    total_num_ps = len( df )
-    try:
-        percent_ps_in_gs = num_ps_in_gs / total_num_ps * 100
-    except ZeroDivisionError:
-        percent_ps_in_gs = 0
-    if verbose:
-        print( f'Found {num_ps_in_gs} PS in GS out of {total_num_ps} total PS ({percent_ps_in_gs} %)' )
-    
-    if write_to_file:
-        from openpyxl import load_workbook
+    for atr in df[ 'atr' ].unique():
+        num_ps_in_gs = 0
+        for _, row in df.iterrows():
+            if row[ 'atr' ] == atr:
+                for gs in gss:
+                    if row[ 'start_s' ] >= gs[ 1 ][ 0 ] and row[ 'end_s' ] <= gs[ 1 ][ 1 ]:
+                        num_ps_in_gs += 1
         
-        df = pd.DataFrame( [ [ ba, gss[ 0 ][ 0 ], num_ps_in_gs, total_num_ps, percent_ps_in_gs ] ],
-                           columns=[ 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num_ps', 'percent_ps_in_gs' ] )
+        total_num_ps = len( df )
+        try:
+            percent_ps_in_gs = num_ps_in_gs / total_num_ps * 100
+        except ZeroDivisionError:
+            percent_ps_in_gs = 0
         
-        fn_exp = os.path.join( experiment_path, 'pss.xlsx' )
-        book = load_workbook( fn_pss )
-        with pd.ExcelWriter( fn_pss, engine='openpyxl' ) as writer:
-            writer.book = book
-            writer.sheets = dict( (ws.title, ws) for ws in book.worksheets )
-            df.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
+        if verbose:
+            print( f'In {atr}: found {num_ps_in_gs} PS in GS out of {total_num_ps} total PS ({percent_ps_in_gs} %)' )
+        
+        if write_to_file:
+            ensure_excel( fn_pss )
+            
+            df = pd.DataFrame( [ [ atr, ba, gss[ 0 ][ 0 ], num_ps_in_gs, total_num_ps, percent_ps_in_gs ] ],
+                               columns=[ 'atr', 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num_ps', 'percent_ps_in_gs' ] )
+            
+            append_df_to_excel( df, fn_pss, sheet_name='PSs_in_GSs' )
 
 
 def append_pss_to_xlsx( experiment_path, iteration_path ):
@@ -225,11 +220,7 @@ def append_pss_to_xlsx( experiment_path, iteration_path ):
     fn_iteration = os.path.join( iteration_path, 'pss.xlsx' )
     fn_experiment = os.path.join( experiment_path, 'pss.xlsx' )
     
-    if not os.path.isfile( fn_experiment ):
-        with pd.ExcelWriter( fn_experiment, engine='openpyxl' ) as writer:
-            df_empty = pd.DataFrame()
-            df_empty.to_excel( writer, index=False, sheet_name="PSs" )
-            df_empty.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
+    ensure_excel( fn_experiment )
     
     xls = pd.ExcelFile( fn_iteration )
     for sheet in xls.sheet_names:
@@ -244,6 +235,16 @@ def append_pss_to_xlsx( experiment_path, iteration_path ):
     # else:
     #     with pd.ExcelWriter( fn, engine='openpyxl' ) as writer:
     #         df_iteration.to_excel( writer, index=False, sheet_name="PSs" )
+
+
+def ensure_excel( fn ):
+    import pandas as pd
+    
+    if not os.path.isfile( fn ):
+        with pd.ExcelWriter( fn, engine='openpyxl' ) as writer:
+            df_empty = pd.DataFrame()
+            df_empty.to_excel( writer, index=False, sheet_name="PSs" )
+            df_empty.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
 
 
 def compute_pss_statistics( timestamp_folder, generic_stimuli=False ):

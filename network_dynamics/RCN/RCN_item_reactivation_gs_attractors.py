@@ -160,7 +160,7 @@ for ba in background_activity:
         for atr in attractors:
             find_ps( save_dir, rcn.net.t, atr, write_to_file=True, ba=ba, gs=gss )
         
-        count_pss_in_gss( save_dir, write_to_file=True, experiment_path=timestamp_folder, ba=ba, gss=gss )
+        count_pss_in_gss( save_dir, write_to_file=True, ba=ba, gss=gss )
         
         # 3 ------ plotting simulation data ------
         
@@ -172,7 +172,7 @@ for ba in background_activity:
                                          num_neurons=len( rcn.E ),
                                          show=args.show )
         # TODO when gs 0 ba 0 it finds one PS instead of none, could ruin statistics
-        # how to treat 0 ps case?
+        # TODo how to treat 0 ps case? maybe with N/A?
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
