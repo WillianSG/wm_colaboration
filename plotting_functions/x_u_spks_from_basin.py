@@ -243,7 +243,7 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
     
     f3_ax1.set_xlim( 0, sim_t_array[ -1 ] )
     f3_ax1.set_ylim( 0, 1 )
-    f3_ax1.set_xlabel( 'Time (s)', size=axis_label_size, )
+    f3_ax1.set_xlabel( 'Time (s)', size=axis_label_size )
     f3_ax1.set_ylabel( 'SPIKE-sync', size=axis_label_size, )
     
     f3_ax1.set_title( f'SPIKE-sync profile', size=title_fontsize )
@@ -276,12 +276,13 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
             # color = next( ax._get_lines.prop_cycler )[ 'color' ]
             color = colour_cycle[ i ]
             
-            for ps in pss:
-                ax.annotate( 'PS',
-                             xycoords='data',
-                             xy=(x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ], ax.get_ylim()[ 1 ]),
-                             horizontalalignment='right', verticalalignment='bottom',
-                             color=color )
+            if pss.size:
+                for ps in pss:
+                    ax.annotate( 'PS',
+                                 xycoords='data',
+                                 xy=(x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ], ax.get_ylim()[ 1 ]),
+                                 horizontalalignment='right', verticalalignment='bottom',
+                                 color=color )
     
     # finishing
     

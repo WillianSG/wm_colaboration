@@ -75,7 +75,7 @@ def make_folders( path ):
 def make_timestamped_folder( path ):
     if not os.path.exists( path ):
         os.makedirs( path )
-    timestamp = datetime.datetime.now().strftime( "%Y-%m-%d_%H-%M-%S" )
+    timestamp = datetime.datetime.now().strftime( "%d-%m-%Y_%H-%M-%S" )
     os.makedirs( os.path.join( path, timestamp ) )
     
     return os.path.join( path, timestamp )
@@ -143,7 +143,11 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
     except:
         y_smooth = np.zeros( len( x ) )
     
-    pss = contiguous_regions( y_smooth > 0.8 )
+    # if there are no spikes we need to force it to count zero PSs
+    if np.count_nonzero( [ i for i in spike_trains ] ) == 0:
+        pss = np.array( [ [ ] ] )
+    else:
+        pss = contiguous_regions( y_smooth > 0.8 )
     
     if write_to_file:
         assert ba is not None
@@ -151,18 +155,20 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
         
         df = pd.DataFrame( columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
         
-        for ps in pss:
-            df = df.append( pd.DataFrame( [ [ attractor[ 0 ],
-                                              ba,
-                                              gs[ 0 ][ 0 ],
-                                              x[ ps[ 0 ] ],
-                                              x[ ps[ 1 ] ],
-                                              x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
-                                              np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
-                                              np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
-                                              np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ] ],
-                                          columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center', 'max', 'mean',
-                                                    'std' ] ) )
+        if pss.size:
+            for ps in pss:
+                df = df.append( pd.DataFrame( [ [ attractor[ 0 ],
+                                                  ba,
+                                                  gs[ 0 ][ 0 ],
+                                                  x[ ps[ 0 ] ],
+                                                  x[ ps[ 1 ] ],
+                                                  x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
+                                                  np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                                                  np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                                                  np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ] ],
+                                              columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center', 'max',
+                                                        'mean',
+                                                        'std' ] ) )
         
         fn = os.path.join( path, "pss.xlsx" )
         
