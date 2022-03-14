@@ -108,19 +108,24 @@ def contiguous_regions( condition ):
     return idx
 
 
-def append_df_to_excel( df, excel_path, sheet_name ):
+def append_df_to_excel( df, excel_path, sheet_name, index=False ):
     import pandas as pd
     from openpyxl import load_workbook
     
+    book = load_workbook( excel_path )
+    if not sheet_name in book.sheetnames:
+        book.create_sheet( sheet_name )
+    book.save( excel_path )
+    
     df_excel = pd.read_excel( excel_path, engine='openpyxl', sheet_name=sheet_name )
-    result = pd.concat( [ df_excel, df ], ignore_index=True )
+    result = pd.concat( [ df_excel, df ], ignore_index=not index )
     
     excel_book = load_workbook( excel_path )
     with pd.ExcelWriter( excel_path, engine='openpyxl', mode='a', if_sheet_exists='overlay' ) as writer:
         writer.book = excel_book
         writer.sheets = dict( (ws.title, ws) for ws in excel_book.worksheets )
         
-        result.to_excel( writer, index=False, sheet_name=sheet_name, engine='openpyxl' )
+        result.to_excel( writer, index=index, sheet_name=sheet_name, engine='openpyxl' )
 
 
 def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, verbose=False ):
@@ -172,7 +177,7 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
         
         fn = os.path.join( path, "pss.xlsx" )
         
-        ensure_excel( fn )
+        ensure_excel_exists( fn )
         
         append_df_to_excel( df, fn, sheet_name="PSs" )
     
@@ -188,7 +193,7 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
     return x, y, y_smooth, pss
 
 
-def count_pss_in_gss( pss_path, write_to_file=False, ba=None, gss=None, verbose=False ):
+def count_pss_in_gss( pss_path, write_to_file=False, ba=None, gss=None, verbose=True ):
     import pandas as pd
     
     fn_pss = os.path.join( pss_path, 'pss.xlsx' )
@@ -212,7 +217,7 @@ def count_pss_in_gss( pss_path, write_to_file=False, ba=None, gss=None, verbose=
             print( f'In {atr}: found {num_ps_in_gs} PS in GS out of {total_num_ps} total PS ({percent_ps_in_gs} %)' )
         
         if write_to_file:
-            ensure_excel( fn_pss )
+            ensure_excel_exists( fn_pss )
             
             df = pd.DataFrame( [ [ atr, ba, gss[ 0 ][ 0 ], num_ps_in_gs, total_num_ps, percent_ps_in_gs ] ],
                                columns=[ 'atr', 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num_ps', 'percent_ps_in_gs' ] )
@@ -226,25 +231,17 @@ def append_pss_to_xlsx( experiment_path, iteration_path ):
     fn_iteration = os.path.join( iteration_path, 'pss.xlsx' )
     fn_experiment = os.path.join( experiment_path, 'pss.xlsx' )
     
-    ensure_excel( fn_experiment )
+    ensure_excel_exists( fn_experiment )
     
     xls = pd.ExcelFile( fn_iteration )
     for sheet in xls.sheet_names:
         df = pd.read_excel( fn_iteration, sheet_name=sheet, engine='openpyxl' )
         append_df_to_excel( df, fn_experiment, sheet_name=sheet )
-    
-    # df_iteration = pd.read_excel( os.path.join( iteration_path, 'pss.xlsx' ), engine='openpyxl', )
-    #
-    # fn = os.path.join( experiment_path, 'pss.xlsx' )
-    # if os.path.isfile( fn ):
-    #     append_df_to_excel( df_iteration, fn )
-    # else:
-    #     with pd.ExcelWriter( fn, engine='openpyxl' ) as writer:
-    #         df_iteration.to_excel( writer, index=False, sheet_name="PSs" )
 
 
-def ensure_excel( fn ):
+def ensure_excel_exists( fn ):
     import pandas as pd
+    import openpyxl
     
     if not os.path.isfile( fn ):
         with pd.ExcelWriter( fn, engine='openpyxl' ) as writer:
@@ -253,11 +250,24 @@ def ensure_excel( fn ):
             df_empty.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
 
 
-def compute_pss_statistics( timestamp_folder, generic_stimuli=False ):
+def compute_pss_statistics( timestamp_folder, write_to_file=True, verbose=True ):
     import pandas as pd
     
     fn = os.path.join( timestamp_folder, 'pss.xlsx' )
-    df = pd.read_excel( fn, engine='openpyxl', )
+    df = pd.read_excel( fn, engine='openpyxl', sheet_name='PSs' )
+    
+    group_pss_by_attractor = pd.DataFrame( df.groupby( by='atr' ).size(), columns=[ 'Count' ] )
+    group_pss_by_experiment = pd.DataFrame( df.groupby( [ 'ba_Hz', 'gs_%', 'atr' ] ).size(), columns=[ 'Count' ] )
+    
+    if verbose:
+        print( 'PSs per attractor across whole experiment\n', group_pss_by_attractor )
+        print( 'PSs within each experiment\n', group_pss_by_experiment )
+    
+    if write_to_file:
+        ensure_excel_exists( fn )
+        
+        append_df_to_excel( group_pss_by_attractor, fn, sheet_name='PSs_groupby_attractor', index=True )
+        append_df_to_excel( group_pss_by_experiment, fn, sheet_name='PSs_groupby_experiment', index=True )
     
     return df
 

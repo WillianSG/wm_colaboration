@@ -171,8 +171,6 @@ for ba in background_activity:
                                          attractors=attractors,
                                          num_neurons=len( rcn.E ),
                                          show=args.show )
-        # TODO when gs 0 ba 0 it finds one PS instead of none, could ruin statistics
-        # TODo how to treat 0 ps case? maybe with N/A?
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
@@ -198,6 +196,6 @@ for ba in background_activity:
         # 4 ------ saving PS statistics ------
         # -- append PS statistics for this iteration into one file for the whole experiment
         append_pss_to_xlsx( timestamp_folder, save_dir )
-    
-    # 5 ------ compute PS statistics for the whole experiment ------
-    df_statistics = compute_pss_statistics( timestamp_folder )
+
+# 5 ------ compute PS statistics for the whole experiment and write back to excel ------
+df_statistics = compute_pss_statistics( timestamp_folder )

@@ -10,8 +10,8 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" />
-    <option name="PARAMETERS" value="--ba_amount 0 0 --gs_amount 0 0 --attractors 1 --show True --gs_runtime=1" />
-    <option name="SHOW_COMMAND_LINE" value="true" />
+    <option name="PARAMETERS" value="--ba_amount 15 15 --gs_amount 20 20 --attractors 1 --show True --gs_runtime=1" />
+    <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
     <option name="REDIRECT_INPUT" value="false" />
