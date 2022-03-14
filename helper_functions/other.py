@@ -162,18 +162,19 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
         
         if pss.size:
             for ps in pss:
-                df = df.append( pd.DataFrame( [ [ attractor[ 0 ],
-                                                  ba,
-                                                  gs[ 0 ][ 0 ],
-                                                  x[ ps[ 0 ] ],
-                                                  x[ ps[ 1 ] ],
-                                                  x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
-                                                  np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
-                                                  np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
-                                                  np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ] ],
-                                              columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center', 'max',
-                                                        'mean',
-                                                        'std' ] ) )
+                df = pd.concat( [ df, pd.DataFrame( [ [ attractor[ 0 ],
+                                                        ba,
+                                                        gs[ 0 ][ 0 ],
+                                                        x[ ps[ 0 ] ],
+                                                        x[ ps[ 1 ] ],
+                                                        x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
+                                                        np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                                                        np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
+                                                        np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ] ],
+                                                    columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center',
+                                                              'max',
+                                                              'mean',
+                                                              'std' ] ) ] )
         
         fn = os.path.join( path, "pss.xlsx" )
         

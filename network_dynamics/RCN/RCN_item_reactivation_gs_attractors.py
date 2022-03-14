@@ -19,6 +19,8 @@ import os.path as path
 import numpy as np
 import argparse
 import multiprocessing as mp
+import warnings
+from tqdm import TqdmWarning
 
 from brian2 import prefs, ms, Hz, mV
 from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
@@ -30,6 +32,9 @@ from plotting_functions.spike_synchronisation import *
 from plotting_functions import *
 
 prefs.codegen.target = 'numpy'
+
+np.warnings.filterwarnings( 'ignore', category=np.VisibleDeprecationWarning )
+warnings.filterwarnings( 'ignore', category=TqdmWarning )
 
 # helper_dir = 'helper_functions'
 # plotting_funcs_dir = 'plotting_functions'

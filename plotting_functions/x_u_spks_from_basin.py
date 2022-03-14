@@ -87,7 +87,7 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
     plt.rcParams[ 'axes.titlepad' ] = 20
     
     # Plotting
-    fig = plt.figure( constrained_layout=True, figsize=(15, 10) )
+    fig = plt.figure( figsize=(15, 10) )
     
     widths = [ 10 ]
     heights = [ 2 ] * len( attractors ) + [ 2, 2 ]
