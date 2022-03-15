@@ -67,7 +67,7 @@ parser.add_argument( '--pre_runtime', type=float, default=0.1, help='Runtime bef
 parser.add_argument( '--gs_runtime', type=float, default=15, help='Runtime for showing generic stimulus' )
 parser.add_argument( '--post_runtime', type=float, default=0.1, help='Runtime after showing generic stimulus' )
 parser.add_argument( '--attractors', type=int, default=1, choices=[ 1, 2, 3 ], help='Number of attractors' )
-parser.add_argument( '--show', type=str, default='False', help='Show output plots' )
+parser.add_argument( '--show', default=False, action=argparse.BooleanOptionalAction )
 
 args = parser.parse_args()
 
