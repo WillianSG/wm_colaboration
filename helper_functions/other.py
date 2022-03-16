@@ -282,3 +282,30 @@ def generate_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime ):
         gss_times.append( (gs_percentage, (t, t + gs_length)) )
     
     return gss_times, free_time
+
+
+def compile_xlsx_from_folders( base_folder ):
+    from os import listdir
+    from os.path import isfile, join
+    from natsort import os_sorted
+    from tqdm import tqdm
+    
+    # base_fol = '/Users/thomas/PycharmProjects/wm_colaboration/results/RCN_attractor_reactivation/15-03-2022_21-15-09'
+    iter_folds = os_sorted( [ f for f in listdir( base_folder ) if not isfile( join( base_folder, f ) ) ] )
+    for fol in tqdm( iter_folds ):
+        append_pss_to_xlsx( base_folder, os.path.join( base_folder, fol ) )
+    
+    compute_pss_statistics( base_folder )
+
+
+def remove_pickles( base_folder ):
+    import os
+    
+    count = 0
+    for path, subdirs, files in os.walk( base_folder ):
+        for name in files:
+            if name.endswith( '.pickle' ):
+                os.remove( os.path.join( path, name ) )
+                count += 1
+    
+    print( f'Removed {count} .pickle files' )

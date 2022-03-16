@@ -201,6 +201,9 @@ for ba in background_activity:
         # 4 ------ saving PS statistics ------
         # -- append PS statistics for this iteration into one file for the whole experiment
         append_pss_to_xlsx( timestamp_folder, save_dir )
+        # -- delete .pickle files as they're just too large to store
+        remove_pickles( timestamp_folder )
 
 # 5 ------ compute PS statistics for the whole experiment and write back to excel ------
 df_statistics = compute_pss_statistics( timestamp_folder )
+# TODO am I just printing the attractor neurons?
