@@ -212,7 +212,7 @@ def count_pss_in_gss( pss_path, normalise_by_PS=False, num_gss=None, write_to_fi
         if normalise_by_PS:
             total_num = len( df )
             try:
-                ps_in_gs = num_ps_in_gs / total_num_ps * 100
+                ps_in_gs = num_ps_in_gs / total_num * 100
             except ZeroDivisionError:
                 ps_in_gs = 0
         else:
@@ -224,7 +224,7 @@ def count_pss_in_gss( pss_path, normalise_by_PS=False, num_gss=None, write_to_fi
                 ps_in_gs = 0
         
         if verbose:
-            print( f'In {atr}: found {num_ps_in_gs} PS in GS out of {total_num} total PS ({ps_in_gs} %)' )
+            print( f'In {atr}: found {num_ps_in_gs} PS in GS out of {total_num} total ({ps_in_gs} %)' )
         
         if write_to_file:
             ensure_excel_exists( fn_pss )

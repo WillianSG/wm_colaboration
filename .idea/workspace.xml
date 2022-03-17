@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added remove_pickles() function as they're too large to store">
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/One_attractor_reactivation_fast.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/One_attractor_reactivation_fast.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/One_attractor_reactivation_full_experiment_BA_sweep.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/One_attractor_reactivation_full_experiment_BA_sweep.xml" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added ability to normalise the number of PSs by the number of GSs, which should make it independent of BA and total number of PSs">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,7 +76,7 @@
       <recent name="$PROJECT_DIR$/graph_analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.One attractor reactivation fast">
+  <component name="RunManager" selected="Python.One attractor reactivation fast experiment BA GS sweep">
     <configuration name="One attractor ba full experiment" type="PythonConfigurationType" factoryName="Python">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -124,13 +121,29 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="One attractor reactivation fast experiment BA GS sweep" type="PythonConfigurationType" factoryName="Python">
+      <module name="wm_colaboration" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" />
+      <option name="PARAMETERS" value="--ba_amount 10 15 --gs_amount 20 30 --step 5 --gs_runtime 2" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="One attractor reactivation full experiment BA GS sweep" type="PythonConfigurationType" factoryName="Python">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -240,6 +253,7 @@
       <item itemvalue="Python.Three attractor reactivation fast" />
       <item itemvalue="Python.One attractor reactivation full experiment BA sweep" />
       <item itemvalue="Python.One attractor reactivation full experiment BA GS sweep" />
+      <item itemvalue="Python.One attractor reactivation fast experiment BA GS sweep" />
       <item itemvalue="Python.One attractor reactivation full experiment BA fixed" />
       <item itemvalue="Python.One attractor ba full experiment" />
       <item itemvalue="Python.One attractor fixed ba full experiment" />
@@ -268,7 +282,7 @@
       <workItem from="1647338168809" duration="1111000" />
       <workItem from="1647339295741" duration="13279000" />
       <workItem from="1647446524406" duration="7327000" />
-      <workItem from="1647518712911" duration="884000" />
+      <workItem from="1647518712911" duration="1732000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -501,7 +515,14 @@
       <option name="project" value="LOCAL" />
       <updated>1647445488561</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="- added ability to normalise the number of PSs by the number of GSs, which should make it independent of BA and total number of PSs">
+      <created>1647519645351</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1647519645351</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -519,7 +540,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="- fixed attractors being connected together" />
     <MESSAGE value="- fixed x axis being longer than necessary in x u plots" />
     <MESSAGE value="- attractor reactivation experiment" />
     <MESSAGE value="- added command line parameters to RCN_item_reactivation_gs_attractors.py" />
@@ -544,7 +564,8 @@
     <MESSAGE value="- suppressed runtime warnings" />
     <MESSAGE value="- run_net() should be a bit faster now" />
     <MESSAGE value="- added remove_pickles() function as they're too large to store" />
-    <option name="LAST_COMMIT_MESSAGE" value="- added remove_pickles() function as they're too large to store" />
+    <MESSAGE value="- added ability to normalise the number of PSs by the number of GSs, which should make it independent of BA and total number of PSs" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added ability to normalise the number of PSs by the number of GSs, which should make it independent of BA and total number of PSs" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
