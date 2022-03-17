@@ -194,11 +194,12 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
     return x, y, y_smooth, pss
 
 
-def count_pss_in_gss( pss_path, write_to_file=False, ba=None, gss=None, verbose=True ):
+def count_pss_in_gss( pss_path, normalise_by_PS=False, num_gss=None, write_to_file=False, ba=None, gss=None,
+                      verbose=True ):
     import pandas as pd
     
     fn_pss = os.path.join( pss_path, 'pss.xlsx' )
-    df = pd.read_excel( fn_pss, engine='openpyxl' )
+    df = pd.read_excel( fn_pss, engine='openpyxl', sheet_name='PSs' )
     
     for atr in df[ 'atr' ].unique():
         num_ps_in_gs = 0
@@ -208,22 +209,33 @@ def count_pss_in_gss( pss_path, write_to_file=False, ba=None, gss=None, verbose=
                     if row[ 'start_s' ] >= gs[ 1 ][ 0 ] and row[ 'end_s' ] <= gs[ 1 ][ 1 ]:
                         num_ps_in_gs += 1
         
-        total_num_ps = len( df )
-        try:
-            percent_ps_in_gs = num_ps_in_gs / total_num_ps * 100
-        except ZeroDivisionError:
-            percent_ps_in_gs = 0
+        if normalise_by_PS:
+            total_num = len( df )
+            try:
+                ps_in_gs = num_ps_in_gs / total_num_ps * 100
+            except ZeroDivisionError:
+                ps_in_gs = 0
+        else:
+            assert num_gss is not None
+            total_num = num_gss
+            try:
+                ps_in_gs = num_ps_in_gs / num_gss * 100
+            except ZeroDivisionError:
+                ps_in_gs = 0
         
         if verbose:
-            print( f'In {atr}: found {num_ps_in_gs} PS in GS out of {total_num_ps} total PS ({percent_ps_in_gs} %)' )
+            print( f'In {atr}: found {num_ps_in_gs} PS in GS out of {total_num} total PS ({ps_in_gs} %)' )
         
         if write_to_file:
             ensure_excel_exists( fn_pss )
             
-            df = pd.DataFrame( [ [ atr, ba, gss[ 0 ][ 0 ], num_ps_in_gs, total_num_ps, percent_ps_in_gs ] ],
-                               columns=[ 'atr', 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num_ps', 'percent_ps_in_gs' ] )
+            df = pd.DataFrame( [ [ atr, ba, gss[ 0 ][ 0 ], num_ps_in_gs, total_num, ps_in_gs ] ],
+                               columns=[ 'atr', 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num', 'percent_ps_in_gs' ] )
             
-            append_df_to_excel( df, fn_pss, sheet_name='PSs_in_GSs' )
+            if normalise_by_PS:
+                append_df_to_excel( df, fn_pss, sheet_name='PSs_in_GSs_norm_PS' )
+            else:
+                append_df_to_excel( df, fn_pss, sheet_name='PSs_in_GSs_norm_GS' )
 
 
 def append_pss_to_xlsx( experiment_path, iteration_path ):
@@ -242,13 +254,12 @@ def append_pss_to_xlsx( experiment_path, iteration_path ):
 
 def ensure_excel_exists( fn ):
     import pandas as pd
-    import openpyxl
     
     if not os.path.isfile( fn ):
         with pd.ExcelWriter( fn, engine='openpyxl' ) as writer:
             df_empty = pd.DataFrame()
             df_empty.to_excel( writer, index=False, sheet_name="PSs" )
-            df_empty.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
+            # df_empty.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
 
 
 def compute_pss_statistics( timestamp_folder, write_to_file=True, verbose=True ):

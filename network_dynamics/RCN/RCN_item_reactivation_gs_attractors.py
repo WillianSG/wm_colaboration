@@ -165,7 +165,7 @@ for ba in background_activity:
         for atr in attractors:
             find_ps( save_dir, rcn.net.t, atr, write_to_file=True, ba=ba, gs=gss )
         
-        count_pss_in_gss( save_dir, write_to_file=True, ba=ba, gss=gss )
+        count_pss_in_gss( save_dir, num_gss=len( gss ), write_to_file=True, ba=ba, gss=gss )
         
         # 3 ------ plotting simulation data ------
         
