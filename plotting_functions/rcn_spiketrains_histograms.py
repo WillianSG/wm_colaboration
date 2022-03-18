@@ -20,8 +20,8 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
 from brian2 import mV, Hz, second, ms, mean, std
-
 from helper_functions.firing_rate_histograms import firing_rate_histograms
+from helper_functions.other import make_folders
 
 
 def plot_rcn_spiketrains_histograms(
@@ -38,13 +38,15 @@ def plot_rcn_spiketrains_histograms(
         I_spks,
         I_ids,
         t_run,
-        path_to_plot,
+        path,
+        filename=None,
         bin_width_desired=50 * ms,
-        show=False ):
+        title_addition='',
+        show=True ):
     # General plotting settings
     lwdth = 3
-    s1 = 60
-    s2 = 105
+    s1 = 20
+    s2 = 30
     mpl.rcParams[ 'axes.linewidth' ] = lwdth
     
     plt.close( 'all' )
@@ -94,7 +96,7 @@ def plot_rcn_spiketrains_histograms(
     
     # Plotting spiking activity and histograms
     
-    fig = plt.figure( figsize=(65, 45) )
+    fig = plt.figure( figsize=(20, 15) )
     
     gs = gridspec.GridSpec( 9, 1,
                             height_ratios=[ 1, 0.5, 1, 1, 0.5, 4, 1, 0.5, 1 ] )
@@ -207,9 +209,18 @@ def plot_rcn_spiketrains_histograms(
                      pad=15 )
     plt.xlabel( 'Time (s)', size=s1 )
     
+    fig.suptitle( 'RCN population spiking\n' + title_addition, fontsize=s2 )
+    
+    if not filename:
+        filename = 'rcn_population_spiking.png'
+    else:
+        filename = filename + '.png'
+    
+    fig.savefig(
+            os.path.join( path, filename ),
+            bbox_inches='tight' )
+    
     if show:
         plt.show()
     
-    fig.savefig(
-            path_to_plot + '/rcn_population_spiking.png',
-            bbox_inches='tight' )
+    return fig

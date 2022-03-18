@@ -3,9 +3,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as st
 import math
+import sys, os
+from brian2 import second, mV
 
-from brian2 import second
-from helper_functions.other import has_spiked
+if sys.platform == 'linux':
+    parent_dir = os.path.dirname(os.path.abspath(os.path.join(__file__, '../')))
+    sys.path.append(os.path.join(parent_dir, 'helper_functions'))
+
+    from other import has_spiked
+else:
+    from helper_functions.other import has_spiked
 
 """
 @author: t.f.tiotto@rug.nl
@@ -215,6 +222,7 @@ def plot_synaptic_weights( window, synapse, data_monitor, neuron_monitor, show_p
     ws = plot.get_variable( 'w', filter_by='synapse', index_by_neuron=True )
     
     for i, w in ws.items():
+        print(w, len(w))
         plot.add_top_plot( np.mean( w, axis=0 ), xlabel='Time (s)', ylabel='Weight (w)', colour='green',
                            title=f'Neuron {i}' )
     

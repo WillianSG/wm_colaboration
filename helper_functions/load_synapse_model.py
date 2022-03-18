@@ -36,50 +36,51 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
     if bistability == True:
         if stoplearning:
             model_E_E_plastic = ''' 
-			w : volt
-			plastic : boolean (shared)
-			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
-			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
-			dxstop/dt = (-xstop / tau_xstop)*int(plastic) : 1 (clock-driven) 
-			drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
-			int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
-				: 1  (clock-driven)'''
+            w : volt
+            plastic : boolean (shared)
+            dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+            dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
+            dxstop/dt = (-xstop / tau_xstop)*int(plastic) : 1 (clock-driven) 
+            drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
+            int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
+                : 1  (clock-driven)'''
         elif resources and plasticity_rule == 'LR4':
             model_E_E_plastic = ''' 
-			w : volt
-			plastic : boolean (shared)
-			du/dt = ((U - u)/tau_f)*int(plastic) : 1 (clock-driven)
-			dx_/dt = ((1 - x_)/tau_d)*int(plastic) : 1 (clock-driven)
-			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
-			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
-			drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
-			int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
-				: 1  (clock-driven)'''
+            w : volt
+            plastic : boolean (shared)
+            plastic_2 : boolean (shared)
+            du/dt = ((U - u)/tau_f)*int(plastic_2) : 1 (clock-driven)
+            dx_/dt = ((1 - x_)/tau_d)*int(plastic_2) : 1 (clock-driven)
+            dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+            dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
+            drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
+            int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
+                : 1  (clock-driven)'''
         else:
             model_E_E_plastic = ''' 
-			w : volt
-			plastic : boolean (shared)
-			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
-			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
-			drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
-			int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
-				: 1  (clock-driven)'''
+            w : volt
+            plastic : boolean (shared)
+            dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+            dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
+            drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
+            int(rho <= thr_b_rho) * beta*int(plastic) * int(rho > rho_min)) / tau_rho 
+                : 1  (clock-driven)'''
     elif bistability == False:
         if stoplearning:
             model_E_E_plastic = ''' 
-			w : volt
-			rho : 1
-			plastic : boolean (shared)
-			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
-			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
-			dxstop/dt = (-xstop / tau_xstop)*int(plastic) : 1 (clock-driven)'''
+            w : volt
+            rho : 1
+            plastic : boolean (shared)
+            dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+            dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
+            dxstop/dt = (-xstop / tau_xstop)*int(plastic) : 1 (clock-driven)'''
         else:
             model_E_E_plastic = ''' 
-			w : volt
-			rho : 1
-			plastic : boolean (shared)
-			dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
-			dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)'''
+            w : volt
+            rho : 1
+            plastic : boolean (shared)
+            dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
+            dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)'''
     else:
         print('Bistabilty setting unclear')
 
@@ -91,8 +92,8 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
     xpre_factor: c
     """
     post_E_E_LR1 = '''xpost = xpost + xpost_jump
-		rho = clip(rho + xpre * xpre_factor, rho_min, rho_max)
-		w = rho*w_max'''
+        rho = clip(rho + xpre * xpre_factor, rho_min, rho_max)
+        w = rho*w_max'''
 
     # - On post spike (LR2)
     """
@@ -101,8 +102,8 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
     rho_dep2: rho_neg2
     """
     post_E_E_LR2 = '''xpost = xpost + xpost_jump
-		rho = clip(rho + xpre * xpre_factor+ rho_neg2 *int(xpre < thr_pre) * int(xpre > 0), rho_min, rho_max)
-		w = rho*w_max'''
+        rho = clip(rho + xpre * xpre_factor+ rho_neg2 *int(xpre < thr_pre) * int(xpre > 0), rho_min, rho_max)
+        w = rho*w_max'''
 
     # - On post spike (LR3)
     """
@@ -112,26 +113,26 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
     """
     if stoplearning:
         post_E_E_LR3 = '''xstop = xstop + xstop_jump * (xstop_max - xstop) * int(plastic)
-		xpost = clip((xpost + xpost_jump * int(plastic)), 0.0, 1.0)
-		rho = clip((rho + ((xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre) * int(xpre > 0))*int(plastic))*int(xstop < thr_stop_h)*int(xstop > thr_stop_l)), rho_min, rho_max)
-		w = w_max*int(rho > 0.5) + 0*mV'''
+        xpost = clip((xpost + xpost_jump * int(plastic)), 0.0, 1.0)
+        rho = clip((rho + ((xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre) * int(xpre > 0))*int(plastic))*int(xstop < thr_stop_h)*int(xstop > thr_stop_l)), rho_min, rho_max)
+        w = w_max*int(rho > 0.5) + 0*mV'''
     else:
         post_E_E_LR3 = '''xpost = clip((xpost + xpost_jump * int(plastic)), 0.0, 1.0)
-			rho = clip((rho + (xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre)*int(xpre > 0))*int(plastic)), rho_min, rho_max)
-			w = w_max*int(rho > 0.5) + 0*mV'''
+            rho = clip((rho + (xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre)*int(xpre > 0))*int(plastic)), rho_min, rho_max)
+            w = w_max*int(rho > 0.5) + 0*mV'''
 
     # - On post spike (LR4)
     post_E_E_LR4 = '''xpost = clip((xpost + xpost_jump * int(plastic)), 0.0, 1.0)
-		rho = clip((rho + (xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre)*int(xpre > 0))*int(plastic)), rho_min, rho_max)
-		w = w_max*rho'''
+        rho = clip((rho + (xpre * xpre_factor + rho_neg2 *int(xpre < thr_pre)*int(xpre > 0))*int(plastic)), rho_min, rho_max)
+        w = w_max*rho'''
 
     # - On pre (1) spike (LR3)
     xpre_update_LR3 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre) * int(plastic)'''}
 
     # - On pre (1) spike (LR4)
     xpre_update_LR4 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre) * int(plastic)'''}
-    x_update_LR4 = {'x_update': '''x_ = x_ - u*x_*int(plastic)'''}
-    u_update_LR4 = {'u_update': '''u = u + U*(1 - u)*int(plastic)'''}
+    x_update_LR4 = {'x_update': '''x_ = x_ - u*x_*int(plastic_2)'''}
+    u_update_LR4 = {'u_update': '''u = u + U*(1 - u)*int(plastic_2)'''}
 
     # - On pre (2) spike (both LR1/LR2/LR3)
     """
@@ -158,7 +159,8 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
     """
     Vepsp_transmission = {'Vepsp_transmission': '''Vepsp += w'''}
 
-    Vepsp_transmission_LR4 = {'Vepsp_transmission': '''Vepsp += w*(x_*u)'''}
+    Vepsp_transmission_LR4 = {'Vepsp_transmission': '''Vepsp += w*((x_*u)/U)'''}
+    # Vepsp_transmission_LR4 = {'Vepsp_transmission': '''Vepsp += w'''}
 
     # Creaing the equation structure (eqs) needed for Brian2
 
@@ -244,10 +246,5 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
 
     else:
         raise ValueError("invalid compination of learning rule and neuron type")
-
-    print('Synapse model:')
-    print('\tModel E_E:', model_E_E)
-    print('\tPre E_E:', pre_E_E)
-    print('\tPost E_E:', post_E_E)
 
     return model_E_E, pre_E_E, post_E_E
