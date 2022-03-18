@@ -60,7 +60,7 @@ parser = argparse.ArgumentParser( description='RCN_item_reactivation_gs_attracto
 parser.add_argument( '--ba_amount', type=int, default=[ 0, 40 ], nargs=2, help='Bounds for background activity in Hz' )
 parser.add_argument( '--gs_amount', type=int, default=[ 0, 40 ], nargs=2,
                      help='Bounds for generic stimulus in % of stimulated neurons' )
-parser.add_argument( '--gs_freq', type=int, default=4, help='Frequency of generic stimulus Hz' )
+parser.add_argument( '--gs_freq', type=float, default=4, help='Frequency of generic stimulus Hz' )
 parser.add_argument( '--gs_length', type=float, default=0.1, help='Length of generic stimulus in seconds' )
 parser.add_argument( '--step', type=int, default=5, help='Step size for background activity and generic stimulus' )
 parser.add_argument( '--pre_runtime', type=float, default=0.1, help='Runtime before showing generic stimulus' )
@@ -120,6 +120,9 @@ for ba in background_activity:
         rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
         rcn.spont_rate = ba * Hz
         
+        rcn.w_e_i = 3 * mV  # 3 mV default
+        rcn.w_i_e = 1 * mV  # 1 mV default
+        
         rcn.net_init()
         rcn.net_sim_data_path = save_dir
         
@@ -143,16 +146,21 @@ for ba in background_activity:
         rcn.set_E_E_plastic( plastic=plastic_syn )
         rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
         
+        rcn.set_stimulus_i( stimulus='flat_to_I', frequency=30 * Hz )
+        
         # TODO add predicted time to end of experiment
         # run network, give generic pulses, run network again
         rcn.run_net( duration=args.pre_runtime )
+        # gss = [ (20, (0.1, 0.2)), (20, (0.5, 0.6)), (20, (0.9, 1.0)), ]
         for gs in gss:
             act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=gs[ 0 ],
-                                            subset=stim1_ids )  # remember that we're only stimulating E neurons in A1
+                                            subset=stim1_ids )  # remember that we're only stimulating E neurons
+            # in A1
             rcn.run_net( duration=gs[ 1 ][ 1 ] - gs[ 1 ][ 0 ] )
             rcn.generic_stimulus_off( act_ids )
             rcn.run_net( duration=free_time )
         rcn.run_net( duration=args.post_runtime )
+        # rcn.run_net( duration=3 )
         
         # 2 ------ exporting simulation data ------
         
@@ -179,24 +187,24 @@ for ba in background_activity:
         
         # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
         
-        # fig2 = plot_rcn_spiketrains_histograms(
-        #         Einp_spks=rcn.get_Einp_spks()[ 0 ],
-        #         Einp_ids=rcn.get_Einp_spks()[ 1 ],
-        #         stim_E_size=rcn.stim_size_e,
-        #         E_pop_size=rcn.N_input_e,
-        #         Iinp_spks=rcn.get_Iinp_spks()[ 0 ],
-        #         Iinp_ids=rcn.get_Iinp_spks()[ 1 ],
-        #         stim_I_size=rcn.stim_size_i,
-        #         I_pop_size=rcn.N_input_i,
-        #         E_spks=rcn.get_E_spks()[ 0 ],
-        #         E_ids=rcn.get_E_spks()[ 1 ],
-        #         I_spks=rcn.get_I_spks()[ 0 ],
-        #         I_ids=rcn.get_I_spks()[ 1 ],
-        #         t_run=rcn.net.t,
-        #         path=save_dir,
-        #         filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
-        #         title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
-        #         show=args.show )
+        fig2 = plot_rcn_spiketrains_histograms(
+                Einp_spks=rcn.get_Einp_spks()[ 0 ],
+                Einp_ids=rcn.get_Einp_spks()[ 1 ],
+                stim_E_size=rcn.stim_size_e,
+                E_pop_size=rcn.N_input_e,
+                Iinp_spks=rcn.get_Iinp_spks()[ 0 ],
+                Iinp_ids=rcn.get_Iinp_spks()[ 1 ],
+                stim_I_size=rcn.stim_size_i,
+                I_pop_size=rcn.N_input_i,
+                E_spks=rcn.get_E_spks()[ 0 ],
+                E_ids=rcn.get_E_spks()[ 1 ],
+                I_spks=rcn.get_I_spks()[ 0 ],
+                I_ids=rcn.get_I_spks()[ 1 ],
+                t_run=rcn.net.t,
+                path=save_dir,
+                filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
+                title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
+                show=args.show )
         
         # 4 ------ saving PS statistics ------
         # -- append PS statistics for this iteration into one file for the whole experiment
@@ -206,4 +214,5 @@ for ba in background_activity:
 
 # 5 ------ compute PS statistics for the whole experiment and write back to excel ------
 df_statistics = compute_pss_statistics( timestamp_folder )
-# TODO am I just printing the attractor neurons?
+# TODO am I just printing the attractor neurons in raster plot?
+# TODO not counting PSs in second attractor

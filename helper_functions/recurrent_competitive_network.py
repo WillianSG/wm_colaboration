@@ -121,7 +121,7 @@ class RecurrentCompetitiveNet:
         
         self.w_input_e = 1 * mV
         self.w_input_e_spont = 70 * mV
-        self.w_input_i = 1 * mV
+        self.w_input_i = 60 * mV
         self.w_e_i = 1 * mV
         self.w_i_e = 1 * mV
         self.w_e_e = 0.5 * mV

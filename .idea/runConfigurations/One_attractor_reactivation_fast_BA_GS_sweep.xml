@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="One attractor reactivation full experiment BA sweep" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="One attractor reactivation fast BA GS sweep" type="PythonConfigurationType" factoryName="Python">
     <module name="wm_colaboration" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
@@ -10,7 +10,7 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" />
-    <option name="PARAMETERS" value="--ba_amount 5 15 --gs_amount 0 0 --step 1 --gs_runtime 15" />
+    <option name="PARAMETERS" value="--ba_amount 10 15  --gs_amount 20 30 --attractors 2 --step 5 --gs_runtime 2 --show" />
     <option name="SHOW_COMMAND_LINE" value="true" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
