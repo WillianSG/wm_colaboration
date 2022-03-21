@@ -110,11 +110,6 @@ for ba in background_activity:
         # stim = (gs_percentage, (args.pre_runtime + 0.1, args.pre_runtime + 0.2))
         gss, free_time = generate_gss( gs_percentage, args.gs_freq, args.gs_length, args.pre_runtime, args.gs_runtime )
         
-        print( '-------------------------------------------------------' )
-        print( f'Iteration {i} of {len( background_activity ) * len( generic_stimulus )}', end=' : ' )
-        print( 'ba = ', ba, 'Hz', end=' , ' )
-        print( 'gs = ', gs_percentage, '%' )
-        
         rcn = RecurrentCompetitiveNet(
                 plasticity_rule=plasticity_rule,
                 parameter_set=parameter_set )
@@ -126,11 +121,15 @@ for ba in background_activity:
         rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
         rcn.spont_rate = ba * Hz
         
+        I_to_E_weight = 1 * mV
         rcn.w_e_i = 3 * mV  # 3 mV default
-        rcn.w_i_e = 1 * mV  # 1 mV default
+        rcn.w_i_e = I_to_E_weight  # 1 mV default
         
         rcn.net_init()
         rcn.net_sim_data_path = save_dir
+        
+        I_input_freq = 30
+        rcn.set_stimulus_i( stimulus='flat_to_I', frequency=I_input_freq * Hz )
         
         attractors = [ ]
         if args.attractors >= 1:
@@ -152,14 +151,18 @@ for ba in background_activity:
         rcn.set_E_E_plastic( plastic=plastic_syn )
         rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
         
-        rcn.set_stimulus_i( stimulus='flat_to_I', frequency=30 * Hz )
+        print( '-------------------------------------------------------' )
+        print( f'Iteration {i} of {len( background_activity ) * len( generic_stimulus )}', end=' : ' )
+        print( 'ba = ', ba, 'Hz', end=' , ' )
+        print( 'gs = ', gs_percentage, '%', end=' , ' )
+        print( 'I input = ', I_input_freq, 'Hz', 'I-to-E weight', I_to_E_weight, 'mV' )
         
         # run network, give generic pulses, run network again
         rcn.run_net( duration=args.pre_runtime )
         # gss = [ (20, (0.1, 0.2)), (20, (0.5, 0.6)), (20, (0.9, 1.0)), ]
         for gs in gss:
             act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=gs[ 0 ],
-                                            subset=stim1_ids )  # remember that we're only stimulating E neurons in A1
+                                            subset=np.append( stim1_ids, stim2_ids ) )
             rcn.run_net( duration=gs[ 1 ][ 1 ] - gs[ 1 ][ 0 ] )
             rcn.generic_stimulus_off( act_ids )
             rcn.run_net( duration=free_time )
@@ -207,8 +210,8 @@ for ba in background_activity:
                 I_ids=rcn.get_I_spks()[ 1 ],
                 t_run=rcn.net.t,
                 path=save_dir,
-                filename=f'rcn_population_spiking_ba_{ba}_gs_{gs}',
-                title_addition=f'background activity {ba} Hz, generic stimulus {gs} %',
+                filename=f'rcn_population_spiking_ba_{ba}_gs_{gs[ 0 ]}',
+                title_addition=f'background activity {ba} Hz, generic stimulus {gs[ 0 ]} %',
                 show=args.show )
         
         # 4 ------ saving PS statistics ------
@@ -225,4 +228,3 @@ for ba in background_activity:
 # 5 ------ compute PS statistics for the whole experiment and write back to excel ------
 df_statistics = compute_pss_statistics( timestamp_folder )
 # TODO am I just printing the attractor neurons in raster plot?
-# TODO not counting PSs in second attractor

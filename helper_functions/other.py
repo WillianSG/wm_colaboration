@@ -229,13 +229,14 @@ def count_pss_in_gss( pss_path, normalise_by_PS=False, num_gss=None, write_to_fi
         if write_to_file:
             ensure_excel_exists( fn_pss )
             
-            df = pd.DataFrame( [ [ atr, ba, gss[ 0 ][ 0 ], num_ps_in_gs, total_num, ps_in_gs ] ],
-                               columns=[ 'atr', 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num', 'percent_ps_in_gs' ] )
+            df_to_file = pd.DataFrame( [ [ atr, ba, gss[ 0 ][ 0 ], num_ps_in_gs, total_num, ps_in_gs ] ],
+                                       columns=[ 'atr', 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num',
+                                                 'percent_ps_in_gs' ] )
             
             if normalise_by_PS:
-                append_df_to_excel( df, fn_pss, sheet_name='PSs_in_GSs_norm_PS' )
+                append_df_to_excel( df_to_file, fn_pss, sheet_name='PSs_in_GSs_norm_PS' )
             else:
-                append_df_to_excel( df, fn_pss, sheet_name='PSs_in_GSs_norm_GS' )
+                append_df_to_excel( df_to_file, fn_pss, sheet_name='PSs_in_GSs_norm_GS' )
 
 
 def append_pss_to_xlsx( experiment_path, iteration_path ):
