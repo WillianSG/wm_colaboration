@@ -51,6 +51,8 @@ class RecurrentCompetitiveNet:
         self.t_run = t_run
         self.dt = 0.1 * ms
         
+        self.tqdm_bar = None
+        
         self.int_meth_neur = 'linear'
         self.int_meth_syn = 'euler'
         
@@ -459,12 +461,15 @@ class RecurrentCompetitiveNet:
             num_runs = int( round( duration / gather_every ) )
             duration = gather_every
         
-        t = tqdm( total=duration / second, desc='RCN', unit='sim s',
-                  bar_format='{l_bar} {bar}| {n:.1f}/{total:.1f} s [{elapsed}<{remaining}, ' '{rate_fmt}{'
-                             'postfix}]',
-                  leave=False, dynamic_ncols=True )
+        if not self.tqdm_bar:
+            self.tqdm_bar = tqdm( total=(self.net.t + duration) / second, desc='RCN', unit='sim s',
+                                  bar_format='{n:.1f}/{total:.1f} sim s in {elapsed} s, {rate_fmt} {postfix}]',
+                                  leave=False, dynamic_ncols=True )
         for i in range( num_runs ):
-            t.set_description(
+            self.tqdm_bar.total = (self.net.t + duration) / second
+            self.tqdm_bar.update( duration / second )
+            
+            self.tqdm_bar.set_description(
                     f'Running RCN in [{self.net.t:.1f}-{self.net.t + duration:.1f}] s, '
                     # f'input ending at {self.stimulus_pulse_duration:.1f} s'
                     )
@@ -478,8 +483,8 @@ class RecurrentCompetitiveNet:
                     f( self )
             
             self.net.stop()
-            t.update( duration / second )
-        t.close()
+            # self.tqdm_bar.update( duration / second )
+        # self.tqdm_bar.close()
     
     """
     """

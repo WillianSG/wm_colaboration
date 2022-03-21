@@ -4,13 +4,31 @@
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
-          <list size="3">
-            <item index="0" class="java.lang.String" itemvalue="pandas" />
-            <item index="1" class="java.lang.String" itemvalue="block-timer" />
-            <item index="2" class="java.lang.String" itemvalue="order-of-magnitude" />
+          <list size="15">
+            <item index="0" class="java.lang.String" itemvalue="readme-renderer" />
+            <item index="1" class="java.lang.String" itemvalue="PyQt5-sip" />
+            <item index="2" class="java.lang.String" itemvalue="astroid" />
+            <item index="3" class="java.lang.String" itemvalue="PyQtChart" />
+            <item index="4" class="java.lang.String" itemvalue="pyinstaller-hooks-contrib" />
+            <item index="5" class="java.lang.String" itemvalue="PyQtWebEngine" />
+            <item index="6" class="java.lang.String" itemvalue="lazy-object-proxy" />
+            <item index="7" class="java.lang.String" itemvalue="ipython-genutils" />
+            <item index="8" class="java.lang.String" itemvalue="PyQt5-Qt5" />
+            <item index="9" class="java.lang.String" itemvalue="matlabengineforpython" />
+            <item index="10" class="java.lang.String" itemvalue="pwlf" />
+            <item index="11" class="java.lang.String" itemvalue="pylustrator" />
+            <item index="12" class="java.lang.String" itemvalue="PyQt5" />
+            <item index="13" class="java.lang.String" itemvalue="xgboost" />
+            <item index="14" class="java.lang.String" itemvalue="async-generator" />
           </list>
         </value>
       </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
+    <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="true" />
     </inspection_tool>
   </profile>
 </component>

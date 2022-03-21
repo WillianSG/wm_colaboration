@@ -154,8 +154,7 @@ for ba in background_activity:
         # gss = [ (20, (0.1, 0.2)), (20, (0.5, 0.6)), (20, (0.9, 1.0)), ]
         for gs in gss:
             act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=gs[ 0 ],
-                                            subset=stim1_ids )  # remember that we're only stimulating E neurons
-            # in A1
+                                            subset=stim1_ids )  # remember that we're only stimulating E neurons in A1
             rcn.run_net( duration=gs[ 1 ][ 1 ] - gs[ 1 ][ 0 ] )
             rcn.generic_stimulus_off( act_ids )
             rcn.run_net( duration=free_time )

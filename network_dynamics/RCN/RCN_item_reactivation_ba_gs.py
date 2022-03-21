@@ -51,9 +51,6 @@ parameter_set = '2.2'
 # stim_pulse_duration = 20 * ms
 percentage_stim_ids = 35  # percentage
 
-# TODO why does having 2+ attractors give better reactivation?
-# TODO Mongillo mentions spike synchrony as important
-
 # 1 ------ initializing/running network ------
 for ba in np.arange( 0, 105, 5 ):
     print( 'ba =', ba, '%' )
