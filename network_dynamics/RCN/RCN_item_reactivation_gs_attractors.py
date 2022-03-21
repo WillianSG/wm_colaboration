@@ -21,6 +21,7 @@ import argparse
 import multiprocessing as mp
 import warnings
 from tqdm import TqdmWarning
+import timeit
 
 from brian2 import prefs, ms, Hz, mV
 from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
@@ -90,7 +91,11 @@ print( f'Sweeping over all combinations of parameters: '
 background_activity = np.arange( args.ba_amount[ 0 ], args.ba_amount[ 1 ] + args.step, args.step )
 # 1 ------ initializing/running network ------
 i = 0
+running_times = [ ]
 for ba in background_activity:
+    # --initialise time to predict overall experiment time
+    start_time = timeit.default_timer()
+    
     generic_stimulus = np.arange( args.gs_amount[ 0 ], args.gs_amount[ 1 ] + args.step, args.step )
     for gs_percentage in generic_stimulus:
         i += 1
@@ -105,6 +110,7 @@ for ba in background_activity:
         # stim = (gs_percentage, (args.pre_runtime + 0.1, args.pre_runtime + 0.2))
         gss, free_time = generate_gss( gs_percentage, args.gs_freq, args.gs_length, args.pre_runtime, args.gs_runtime )
         
+        print( '-------------------------------------------------------' )
         print( f'Iteration {i} of {len( background_activity ) * len( generic_stimulus )}', end=' : ' )
         print( 'ba = ', ba, 'Hz', end=' , ' )
         print( 'gs = ', gs_percentage, '%' )
@@ -148,7 +154,6 @@ for ba in background_activity:
         
         rcn.set_stimulus_i( stimulus='flat_to_I', frequency=30 * Hz )
         
-        # TODO add predicted time to end of experiment
         # run network, give generic pulses, run network again
         rcn.run_net( duration=args.pre_runtime )
         # gss = [ (20, (0.1, 0.2)), (20, (0.5, 0.6)), (20, (0.9, 1.0)), ]
@@ -158,6 +163,7 @@ for ba in background_activity:
             rcn.run_net( duration=gs[ 1 ][ 1 ] - gs[ 1 ][ 0 ] )
             rcn.generic_stimulus_off( act_ids )
             rcn.run_net( duration=free_time )
+        
         rcn.run_net( duration=args.post_runtime )
         # rcn.run_net( duration=3 )
         
@@ -210,6 +216,11 @@ for ba in background_activity:
         append_pss_to_xlsx( timestamp_folder, save_dir )
         # -- delete .pickle files as they're just too large to store
         remove_pickles( timestamp_folder )
+        
+        running_times.append( timeit.default_timer() - start_time )
+        print(
+                f'Predicted time remaining in experiment: '
+                f'{np.round( np.mean( running_times ) * (len( background_activity ) * len( generic_stimulus ) - i), 2 )} s' )
 
 # 5 ------ compute PS statistics for the whole experiment and write back to excel ------
 df_statistics = compute_pss_statistics( timestamp_folder )
