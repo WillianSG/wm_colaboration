@@ -296,15 +296,33 @@ def generate_gss( gs_percentage, gs_length, pre_runtime, gs_runtime, target=None
 
 
 def generate_periodic_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target=None ):
-    free_time = 1 - gs_freq * gs_length
+    import numpy as np
+    from scipy import signal as sg
     
-    free_time /= (gs_freq - 1)
+    cycle = 1 / gs_freq
+    duty_perc = gs_length / cycle
     
-    gss_times = [ ]
-    for t in np.arange( pre_runtime, pre_runtime + gs_runtime, free_time + gs_length ):
-        gss_times.append( (gs_percentage, target, (t, t + gs_length), free_time) )
+    t = np.linspace( 0, gs_runtime, 1000 )
     
-    return gss_times
+    signal = sg.square( 2 * np.pi * gs_freq * t, duty=duty_perc )
+    signal = np.where( signal > 0, 1, 0 )
+    
+    switching_idx = np.where( np.abs( np.diff( signal ) ) > 0 )[ 0 ]
+    gss_times = t[ switching_idx ]
+    gss_times = np.delete( gss_times, 0 )
+    gss_times = np.round( gss_times, decimals=1 )
+    
+    gss = [ ]
+    for i in range( 0, len( gss_times ), 2 ):
+        try:
+            gss.append(
+                    (gs_percentage, target, (gss_times[ i ], gss_times[ i + 1 ]),
+                     gss_times[ i + 2 ] - gss_times[ i + 1 ])
+                    )
+        except IndexError:
+            pass
+    
+    return gss
 
 
 def compile_xlsx_from_folders( base_folder ):

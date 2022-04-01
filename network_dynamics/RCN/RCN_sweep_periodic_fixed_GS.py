@@ -67,7 +67,7 @@ parser.add_argument( '--gs_amount', type=int, default=[ 15, 15 ], nargs='+',
 parser.add_argument( '--gs_step', type=int, default=5, help='Step size for generic stimulus' )
 parser.add_argument( '--i_amount', type=int, default=[ 15, 15 ], nargs='+',
                      help='Bounds for I-to-E inhibition weight' )
-parser.add_argument( '--i_step', type=int, default=1, help='Step size for I-to-E inhibition weight' )
+parser.add_argument( '--i_step', type=int, default=2, help='Step size for I-to-E inhibition weight' )
 parser.add_argument( '--i_stim_amount', type=int, default=[ 15, 15 ], nargs='+',
                      help='Bounds for I inhibition input in Hz' )
 parser.add_argument( '--i_stim_step', type=int, default=10, help='Step size for I inhibition' )
@@ -115,11 +115,14 @@ assert args.gs_step > 0, 'Step size must be positive'
 assert args.i_step > 0, 'Step size must be positive'
 assert args.i_stim_step > 0, 'Step size must be positive'
 
-timestamp_folder = make_timestamped_folder( '../../results/RCN_inhibition_sweep/' )
+timestamp_folder = make_timestamped_folder( '../../results/RCN_engineering_reactivation/' )
 
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
-
+"""
+tau_d = 90 * ms  # x's
+tau_f = 700 * ms  # u's'
+"""
 # -- sweep over all combinations of parameters
 background_activity = np.arange( args.ba_amount[ 0 ], args.ba_amount[ 1 ] + args.ba_step, args.ba_step )
 generic_stimuli = np.arange( args.gs_amount[ 0 ], args.gs_amount[ 1 ] + args.gs_step, args.gs_step )
@@ -177,7 +180,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     gss_periodic = generate_periodic_gss( gs_percentage, args.gs_freq, args.gs_length,
                                           args.pre_runtime,
                                           args.gs_runtime )
-    gss_A1 = generate_gss( gs_percentage, args.gs_length, args.pre_runtime, args.gs_runtime,
+    gss_A1 = generate_gss( 60, args.gs_length, args.pre_runtime, args.gs_runtime,
                            target=stim1_ids )
     gss = find_overlapping_gss( gss_periodic, gss_A1 )
     

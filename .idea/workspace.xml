@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- fixed bug where PSs for attractors &gt; A1 were not counted">
-      <change afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_fixed_GS.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_GS.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_fixed_GS.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_fixed_GS.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_fixed_GS.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -167,6 +164,25 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="RCN_sweep_periodic_fixed_GS BA" type="PythonConfigurationType" factoryName="Python">
+      <module name="wm_colaboration" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_fixed_GS.py" />
+      <option name="PARAMETERS" value="--ba_amount 10 --gs_amount 0 --gs_step 10 --i_amount 0 --i_stim_amount 0 --gs_runtime 3 --show" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="RCN_sweep_periodic_fixed_GS" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -178,7 +194,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_fixed_GS.py" />
-      <option name="PARAMETERS" value="--ba_amount 10 --gs_amount 15 --i_amount 2 --i_stim_amount 0 --gs_runtime 2 --show" />
+      <option name="PARAMETERS" value="--ba_amount 5 --gs_freq 2 --gs_amount 20 --gs_step 10 --i_amount 20 --i_stim_amount 0 --gs_runtime 3 --show" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -331,6 +347,7 @@
       <item itemvalue="Python.One attractor reactivation full BA fixed" />
       <item itemvalue="Python.One attractor ba full experiment" />
       <item itemvalue="Python.One attractor fixed ba full experiment" />
+      <item itemvalue="Python.RCN_sweep_periodic_fixed_GS BA" />
       <item itemvalue="Python.RCN inhibition sweep " />
       <item itemvalue="Python.RCN_sweep_periodic_fixed_GS" />
     </list>
@@ -368,7 +385,7 @@
       <workItem from="1647621272887" duration="899000" />
       <workItem from="1647855607643" duration="23949000" />
       <workItem from="1648112465204" duration="3536000" />
-      <workItem from="1648803018394" duration="9770000" />
+      <workItem from="1648803018394" duration="18871000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -636,7 +653,14 @@
       <option name="project" value="LOCAL" />
       <updated>1647864263104</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together">
+      <created>1648823566187</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1648823566187</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -667,8 +691,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- initial PS finding based on SPIKE-sync" />
-    <MESSAGE value="- colouring attractor spikes" />
     <MESSAGE value="- made pss modular&#10;- added PS annotation to all axes" />
     <MESSAGE value="- adjusted anomaly detection algorithm for finding PSs" />
     <MESSAGE value="- saving PS stats to pss.csv and reading back counting number of PSs" />
@@ -692,7 +714,9 @@
     <MESSAGE value="- updated run_net() progress bar" />
     <MESSAGE value="- added predicted time to end of experiment" />
     <MESSAGE value="- fixed bug where PSs for attractors &gt; A1 were not counted" />
-    <option name="LAST_COMMIT_MESSAGE" value="- fixed bug where PSs for attractors &gt; A1 were not counted" />
+    <MESSAGE value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added support for multiple GS types together" />
+    <MESSAGE value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together" />
+    <option name="LAST_COMMIT_MESSAGE" value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -732,7 +756,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_ba.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646331179889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_inhibition_sweep.coverage" NAME="RCN inhibition sweep fast Coverage Results" MODIFIED="1647876738724" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$Three_attractor_reactivation_fast.coverage" NAME="Three attractor reactivation fast Coverage Results" MODIFIED="1647272565998" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_sweep_periodic_fixed_GS.coverage" NAME="RCN_sweep_periodic_fixed_GS Coverage Results" MODIFIED="1648818729148" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_sweep_periodic_fixed_GS.coverage" NAME="RCN_sweep_periodic_fixed_GS Coverage Results" MODIFIED="1648839239334" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN.coverage" NAME="RCN Coverage Results" MODIFIED="1646048705953" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_experiment_BA_GS_sweep.coverage" NAME="One attractor reactivation full experiment BA GS sweep Coverage Results" MODIFIED="1647341862665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$Two_attractor_reactivation_fast_.coverage" NAME="Two attractor reactivation fast  Coverage Results" MODIFIED="1647017494788" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />

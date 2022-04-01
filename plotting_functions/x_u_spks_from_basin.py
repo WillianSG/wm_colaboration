@@ -134,9 +134,9 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
                 alpha=alpha2 )
         
         f_ax1.set_ylabel(
-                'x (a.u.)',
+                'x, u \n(a.u.)',
                 size=axis_label_size,
-                color=x_color )
+                color='black' )
         
         f_ax1.tick_params( axis='y', labelcolor=x_color )
         
@@ -160,10 +160,10 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
                 color=u_color,
                 alpha=alpha2 )
         
-        f_ax2.set_ylabel(
-                'u (a.u.)',
-                size=axis_label_size,
-                color=u_color )
+        # f_ax2.set_ylabel(
+        #         'u (a.u.)',
+        #         size=axis_label_size,
+        #         color=u_color )
         
         f_ax2.tick_params( axis='y', labelcolor=u_color )
         
@@ -179,14 +179,8 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         
         f_ax3 = f_ax2.twinx()
         
-        # Offset the right spine of par2.  The ticks and label have already been
-        # placed on the right by twinx above.
-        f_ax3.spines[ "right" ].set_position( ("axes", 1.02) )
-        # Having been created by twinx, par2 has its frame off, so the line of its
-        # detached spine is invisible.  First, activate the frame but make the patch
-        # and spines invisible.
+        f_ax3.spines[ "right" ].set_position( ("axes", 1) )
         make_patch_spines_invisible( f_ax3 )
-        # Second, show the right spine.
         f_ax3.spines[ "right" ].set_visible( True )
         
         x_times_u = (x_mean * u_mean) / U
@@ -196,12 +190,6 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
                 zorder=0,
                 linewidth=linewidth2,
                 color=ux_color )
-        # f_ax3.fill_between(
-        #         sim_t_array,
-        #         u_mean + u_std,
-        #         u_mean - u_std,
-        #         color=ux_color,
-        #         alpha=alpha2 )
         f_ax3.set_ylabel(
                 'x*u*1/U \n (a.u.)',
                 size=axis_label_size,
@@ -271,30 +259,30 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         # -- add generic stimuli shading
         if generic_stimuli:
             for gs in generic_stimuli:
-                
-                if gs[ 1 ] is not None:
-                    ax.fill_between(
-                            [ gs[ 2 ][ 0 ], gs[ 2 ][ 1 ] ],
-                            np.min( gs[ 1 ] ),
-                            np.max( gs[ 1 ] ),
-                            alpha=alpha2,
-                            color='grey'
-                            )
-                else:
-                    ax.axvspan(
-                            gs[ 2 ][ 0 ],
-                            gs[ 2 ][ 1 ],
-                            facecolor='grey',
-                            alpha=alpha2,
-                            )
-                # TODo improve spacing with x-axis
-                # TODo add ps statistics to plot
-                ax.annotate( 'GS',
-                             xycoords='data',
-                             xy=((gs[ 2 ][ 0 ] + gs[ 2 ][ 1 ]) / 2, 0),
-                             xytext=(0, -15), textcoords='offset points',
-                             horizontalalignment='right', verticalalignment='bottom',
-                             color='grey' )
+                if gs[ 0 ] > 0:
+                    if gs[ 1 ] is not None:
+                        ax.fill_between(
+                                [ gs[ 2 ][ 0 ], gs[ 2 ][ 1 ] ],
+                                np.min( gs[ 1 ] ),
+                                np.max( gs[ 1 ] ),
+                                alpha=alpha2,
+                                color='grey'
+                                )
+                    else:
+                        ax.axvspan(
+                                gs[ 2 ][ 0 ],
+                                gs[ 2 ][ 1 ],
+                                facecolor='grey',
+                                alpha=alpha2,
+                                )
+                    # TODo improve spacing with x-axis
+                    # TODo add ps statistics to plot
+                    ax.annotate( 'GS',
+                                 xycoords='data',
+                                 xy=((gs[ 2 ][ 0 ] + gs[ 2 ][ 1 ]) / 2, 0),
+                                 xytext=(0, -15), textcoords='offset points',
+                                 horizontalalignment='right', verticalalignment='bottom',
+                                 color='grey' )
         
         for i, atr in enumerate( attractors ):
             x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr )
