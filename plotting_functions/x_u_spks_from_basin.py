@@ -143,9 +143,8 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         f_ax1.set_ylim( 0, 1 )
         f_ax1.set_xlim( 0, sim_t_array[ -1 ] )
         
-        # 2nd y axis: u's
+        # 2nd y axis: us
         f_ax2 = f_ax1.twinx()
-        globals()[ f'f{i}_ax2' ] = f_ax2
         
         f_ax2.plot(
                 sim_t_array,
@@ -171,9 +170,49 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         f_ax2.set_ylim( 0, 1 )
         f_ax2.set_xlim( 0, sim_t_array[ -1 ] )
         
+        # 3rd y axis: weights
+        def make_patch_spines_invisible( ax ):
+            ax.set_frame_on( True )
+            ax.patch.set_visible( False )
+            for sp in ax.spines.values():
+                sp.set_visible( False )
+        
+        f_ax3 = f_ax2.twinx()
+        
+        # Offset the right spine of par2.  The ticks and label have already been
+        # placed on the right by twinx above.
+        f_ax3.spines[ "right" ].set_position( ("axes", 1.02) )
+        # Having been created by twinx, par2 has its frame off, so the line of its
+        # detached spine is invisible.  First, activate the frame but make the patch
+        # and spines invisible.
+        make_patch_spines_invisible( f_ax3 )
+        # Second, show the right spine.
+        f_ax3.spines[ "right" ].set_visible( True )
+        
+        x_times_u = (x_mean * u_mean) / U
+        f_ax3.plot(
+                sim_t_array,
+                x_times_u,
+                zorder=0,
+                linewidth=linewidth2,
+                color=ux_color )
+        # f_ax3.fill_between(
+        #         sim_t_array,
+        #         u_mean + u_std,
+        #         u_mean - u_std,
+        #         color=ux_color,
+        #         alpha=alpha2 )
+        f_ax3.set_ylabel(
+                'x*u*1/U \n (a.u.)',
+                size=axis_label_size,
+                color=ux_color )
+        f_ax3.tick_params( axis='y', labelcolor=ux_color )
+        
         f_ax1.set_title( f'Attractor {atr[ 0 ]}', size=title_fontsize, color=color )
     
-    # -- Plot spikes
+    # -------------------------------------------------------------------------
+    # ------- Plot spikes
+    # -------------------------------------------------------------------------
     f2_ax1 = fig.add_subplot( spec2[ len( attractors ), 0 ] )
     
     # -- plot neuronal spikes with attractors in different colours
@@ -181,7 +220,7 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         spk_mon_ts = np.array( spk_mon_ts )
         spk_mon_ids = np.array( spk_mon_ids )
         
-        # color = next( f3_ax1._get_lines.prop_cycler )[ 'color' ]
+        # color = next( f2_ax1._get_lines.prop_cycler )[ 'color' ]
         color = colour_cycle[ i ]
         
         atr_indexes = np.argwhere(
@@ -202,33 +241,11 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
             size=axis_label_size,
             color='k' )
     
-    # f2_ax2 = f2_ax1.twinx()
-    
-    # TODO also make this specific for each attractor
-    # x_times_u = (x_mean * u_mean) / U
-    
-    # f1_ax2.plot(
-    #         sim_t_array,
-    #         x_times_u,
-    #         zorder=5,
-    #         linewidth=linewidth4,
-    #         color=ux_color,
-    #         alpha=alpha3 )
-    
-    # f2_ax2.set_ylabel(
-    #         'x*u*1/U \n (a.u.)',
-    #         size=axis_label_size,
-    #         color=ux_color )
-    #
-    # plt.yticks( np.arange(
-    #         0.0,
-    #         6.0,
-    #         step=1.0 ) )
-    
-    # f2_ax2.tick_params( axis='y', labelcolor=ux_color )
-    
     f2_ax1.set_title( f'Neural spikes', size=title_fontsize )
     
+    # -------------------------------------------------------------------------
+    # ------- Plot SPIKE-synchronisation profile
+    # -------------------------------------------------------------------------
     f3_ax1 = fig.add_subplot( spec2[ len( attractors ) + 1, 0 ] )
     
     # -- plot spike sync profile
@@ -247,24 +264,34 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
     
     f3_ax1.set_title( f'SPIKE-sync profile', size=title_fontsize )
     
-    # f2_ax1.legend( loc='upper right' )
+    # f3_ax1.legend( loc='upper right' )
     
     for ax in fig.get_axes():
         ax.set_prop_cycle( None )
         # -- add generic stimuli shading
         if generic_stimuli:
             for gs in generic_stimuli:
-                ax.axvspan(
-                        gs[ 1 ][ 0 ],
-                        gs[ 1 ][ 1 ],
-                        facecolor='grey',
-                        alpha=alpha2,
-                        )
+                
+                if gs[ 1 ] is not None:
+                    ax.fill_between(
+                            [ gs[ 2 ][ 0 ], gs[ 2 ][ 1 ] ],
+                            np.min( gs[ 1 ] ),
+                            np.max( gs[ 1 ] ),
+                            alpha=alpha2,
+                            color='grey'
+                            )
+                else:
+                    ax.axvspan(
+                            gs[ 2 ][ 0 ],
+                            gs[ 2 ][ 1 ],
+                            facecolor='grey',
+                            alpha=alpha2,
+                            )
                 # TODo improve spacing with x-axis
                 # TODo add ps statistics to plot
                 ax.annotate( 'GS',
                              xycoords='data',
-                             xy=((gs[ 1 ][ 0 ] + gs[ 1 ][ 1 ]) / 2, 0),
+                             xy=((gs[ 2 ][ 0 ] + gs[ 2 ][ 1 ]) / 2, 0),
                              xytext=(0, -15), textcoords='offset points',
                              horizontalalignment='right', verticalalignment='bottom',
                              color='grey' )

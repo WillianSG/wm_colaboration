@@ -128,7 +128,7 @@ def append_df_to_excel( df, excel_path, sheet_name, index=False ):
         result.to_excel( writer, index=index, sheet_name=sheet_name, engine='openpyxl' )
 
 
-def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, verbose=False ):
+def find_ps( path, sim_time, attractor, write_to_file=False, parameters=None, verbose=False ):
     import pyspike as spk
     from scipy.ndimage.filters import uniform_filter1d
     import pandas as pd
@@ -155,26 +155,28 @@ def find_ps( path, sim_time, attractor, write_to_file=False, ba=None, gs=None, v
         pss = contiguous_regions( y_smooth > 0.8 )
     
     if write_to_file:
-        assert ba is not None
-        assert gs is not None
+        assert parameters is not None
         
-        df = pd.DataFrame( columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
+        parameter_names = list( parameters.keys() )
+        parameter_values = list( parameters.values() )
+        
+        df = pd.DataFrame( columns=[ 'atr' ] +
+                                   list( parameter_names ) +
+                                   [ 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] )
         
         if pss.size:
             for ps in pss:
-                df = pd.concat( [ df, pd.DataFrame( [ [ attractor[ 0 ],
-                                                        ba,
-                                                        gs[ 0 ][ 0 ],
-                                                        x[ ps[ 0 ] ],
+                df = pd.concat( [ df, pd.DataFrame( [ [ attractor[ 0 ] ] +
+                                                      parameter_values +
+                                                      [ x[ ps[ 0 ] ],
                                                         x[ ps[ 1 ] ],
                                                         x[ ps[ 0 ] + np.argmax( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ],
                                                         np.max( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
                                                         np.mean( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ),
                                                         np.std( y_smooth[ ps[ 0 ]:ps[ 1 ] ] ) ] ],
-                                                    columns=[ 'atr', 'ba_Hz', 'gs_%', 'start_s', 'end_s', 'center',
-                                                              'max',
-                                                              'mean',
-                                                              'std' ] ) ] )
+                                                    columns=[ 'atr' ] +
+                                                            list( parameter_names ) +
+                                                            [ 'start_s', 'end_s', 'center', 'max', 'mean', 'std' ] ) ] )
         
         fn = os.path.join( path, "pss.xlsx" )
         
@@ -263,14 +265,16 @@ def ensure_excel_exists( fn ):
             # df_empty.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
 
 
-def compute_pss_statistics( timestamp_folder, write_to_file=True, verbose=True ):
+def compute_pss_statistics( timestamp_folder, parameters=None, write_to_file=True, verbose=True ):
     import pandas as pd
     
     fn = os.path.join( timestamp_folder, 'pss.xlsx' )
     df = pd.read_excel( fn, engine='openpyxl', sheet_name='PSs' )
     
     group_pss_by_attractor = pd.DataFrame( df.groupby( by='atr' ).size(), columns=[ 'Count' ] )
-    group_pss_by_experiment = pd.DataFrame( df.groupby( [ 'ba_Hz', 'gs_%', 'atr' ] ).size(), columns=[ 'Count' ] )
+    group_pss_by_experiment = pd.DataFrame( df.groupby( parameters ).size(), columns=[ 'Count' ] )
+    group_pss_by_experiment_and_attractor = pd.DataFrame( df.groupby( parameters + [ 'atr' ] ).size(),
+                                                          columns=[ 'Count' ] )
     
     if verbose:
         print( 'PSs per attractor across whole experiment\n', group_pss_by_attractor )
@@ -278,22 +282,29 @@ def compute_pss_statistics( timestamp_folder, write_to_file=True, verbose=True )
     
     if write_to_file:
         ensure_excel_exists( fn )
-        
-        append_df_to_excel( group_pss_by_attractor, fn, sheet_name='PSs_groupby_attractor', index=True )
-        append_df_to_excel( group_pss_by_experiment, fn, sheet_name='PSs_groupby_experiment', index=True )
+        # TODO include zero counts in Excel file
+        append_df_to_excel( group_pss_by_attractor, fn, sheet_name='PSs_groupby_atr', index=True )
+        append_df_to_excel( group_pss_by_experiment, fn, sheet_name='PSs_groupby_exp', index=True )
+        append_df_to_excel( group_pss_by_experiment_and_attractor, fn, sheet_name='PSs_groupby_exp_and_atr',
+                            index=True )
     
     return df
 
 
-def generate_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime ):
+def generate_gss( gs_percentage, gs_length, pre_runtime, gs_runtime, target=None ):
+    return [ (gs_percentage, target, (pre_runtime, pre_runtime + gs_length), gs_runtime - gs_length) ]
+
+
+def generate_periodic_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target=None ):
     free_time = 1 - gs_freq * gs_length
+    
     free_time /= (gs_freq - 1)
     
     gss_times = [ ]
     for t in np.arange( pre_runtime, pre_runtime + gs_runtime, free_time + gs_length ):
-        gss_times.append( (gs_percentage, (t, t + gs_length)) )
+        gss_times.append( (gs_percentage, target, (t, t + gs_length), free_time) )
     
-    return gss_times, free_time
+    return gss_times
 
 
 def compile_xlsx_from_folders( base_folder ):
@@ -321,3 +332,25 @@ def remove_pickles( base_folder ):
                 count += 1
     
     print( f'Removed {count} .pickle files' )
+
+
+def find_overlapping_gss( gss1, gss2 ):
+    """
+    For now we assume that gss2 always "wins" when there's an overlap
+    :param gss1:
+    :param gss2:
+    :return:
+    """
+    
+    def overlap( a, b ):
+        return a[ 0 ] <= b[ 0 ] <= a[ 1 ] or b[ 0 ] <= a[ 0 ] <= b[ 1 ]
+    
+    for i, gs1 in enumerate( gss1 ):
+        for j, gs2 in enumerate( gss2 ):
+            if overlap( gs1[ 2 ], gs2[ 2 ] ):
+                gs2 = list( gs2 )
+                gs2[ 3 ] = gs1[ 3 ]
+                gs2 = tuple( gs2 )
+                gss1[ i ] = gs2
+    
+    return gss1
