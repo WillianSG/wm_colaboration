@@ -195,6 +195,7 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
                 size=axis_label_size,
                 color=ux_color )
         f_ax3.tick_params( axis='y', labelcolor=ux_color )
+        f_ax3.set_ylim( 0, np.max( x_times_u ) )
         
         f_ax1.set_title( f'Attractor {atr[ 0 ]}', size=title_fontsize, color=color )
     

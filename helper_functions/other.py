@@ -291,8 +291,11 @@ def compute_pss_statistics( timestamp_folder, parameters=None, write_to_file=Tru
     return df
 
 
-def generate_gss( gs_percentage, gs_length, pre_runtime, gs_runtime, target=None ):
-    return [ (gs_percentage, target, (pre_runtime, pre_runtime + gs_length), gs_runtime - gs_length) ]
+def generate_gss( gs_percentage, gs_length, pre_runtime, gs_runtime, target=None, length=None ):
+    if length is None:
+        length = gs_runtime - gs_length
+    
+    return [ (gs_percentage, target, (pre_runtime, pre_runtime + gs_length), length) ]
 
 
 def generate_periodic_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target=None ):
@@ -352,7 +355,7 @@ def remove_pickles( base_folder ):
     print( f'Removed {count} .pickle files' )
 
 
-def find_overlapping_gss( gss1, gss2 ):
+def compile_overlapping_gss( gss1, gss2 ):
     """
     For now we assume that gss2 always "wins" when there's an overlap
     :param gss1:
@@ -370,5 +373,10 @@ def find_overlapping_gss( gss1, gss2 ):
                 gs2[ 3 ] = gs1[ 3 ]
                 gs2 = tuple( gs2 )
                 gss1[ i ] = gs2
+            elif gs2 not in gss1:
+                gs2 = list( gs2 )
+                gs2[ 3 ] = abs( gss1[ i ][ 2 ][ 0 ] - gs2[ 2 ][ 1 ] )
+                gs2 = tuple( gs2 )
+                gss1.insert( i, gs2 )
     
     return gss1

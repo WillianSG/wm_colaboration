@@ -176,13 +176,18 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         A3 = list( range( 180, 244 ) )
         attractors.append( ('A3', A3) )
     
-    # -- generic stimulus --
+    # -- generic stimuli --
     gss_periodic = generate_periodic_gss( gs_percentage, args.gs_freq, args.gs_length,
                                           args.pre_runtime,
                                           args.gs_runtime )
-    gss_A1 = generate_gss( 60, args.gs_length, args.pre_runtime, args.gs_runtime,
-                           target=stim1_ids )
-    gss = find_overlapping_gss( gss_periodic, gss_A1 )
+    # gss_A1 = generate_gss( 60, args.gs_length, args.pre_runtime, args.gs_runtime,
+    #                        target=stim1_ids, length= )
+    gss_A1 = (60, stim1_ids, (args.pre_runtime, args.pre_runtime + args.gs_length),
+              abs( args.pre_runtime + args.gs_length - gss_periodic[ 0 ][ 2 ][ 0 ] ))
+    gss_periodic.insert( 0, gss_A1 )
+    gss = gss_periodic
+    # gss[ 0 ][ 3 ] = abs( gss[ 0 ][ 2 ][ 1 ] - gss[ 1 ][ 2 ][ 0 ] )
+    # gss = compile_overlapping_gss( gss_periodic, gss_A1 )
     
     rcn.set_E_E_plastic( plastic=plastic_syn )
     rcn.set_E_E_ux_vars_plastic( plastic=plastic_ux )
