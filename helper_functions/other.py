@@ -313,7 +313,7 @@ def generate_periodic_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_ru
     switching_idx = np.where( np.abs( np.diff( signal ) ) > 0 )[ 0 ]
     gss_times = t[ switching_idx ]
     gss_times = np.delete( gss_times, 0 )
-    gss_times = np.round( gss_times, decimals=1 )
+    gss_times = np.round( gss_times, decimals=2 )
     
     gss = [ ]
     for i in range( 0, len( gss_times ), 2 ):

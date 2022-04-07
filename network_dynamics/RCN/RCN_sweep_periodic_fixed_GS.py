@@ -232,6 +232,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     title_addition = f'BA {ba} Hz, GS {gs_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
     filename_addition = f'_BA_{ba}_GS_{gs_percentage}_W_{i_e_w}_Hz_{i_freq}'
     
+    # TODO GSs not perfectly aligned with neuronal activity
     fig1 = plot_x_u_spks_from_basin( path=save_dir,
                                      filename='x_u_spks_from_basin' + filename_addition,
                                      title_addition=title_addition,

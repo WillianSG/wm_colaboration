@@ -143,6 +143,8 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         f_ax1.set_ylim( 0, 1 )
         f_ax1.set_xlim( 0, sim_t_array[ -1 ] )
         
+        f_ax1.tick_params( axis='y', labelcolor=u_color, left=False )
+        
         # 2nd y axis: us
         f_ax2 = f_ax1.twinx()
         
@@ -165,7 +167,7 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         #         size=axis_label_size,
         #         color=u_color )
         
-        f_ax2.tick_params( axis='y', labelcolor=u_color )
+        f_ax2.tick_params( axis='y', labelcolor=u_color, left=False )
         
         f_ax2.set_ylim( 0, 1 )
         f_ax2.set_xlim( 0, sim_t_array[ -1 ] )
