@@ -263,29 +263,21 @@ def plot_x_u_spks_from_basin( path, generic_stimuli=None, attractors=None,
         if generic_stimuli:
             for gs in generic_stimuli:
                 if gs[ 0 ] > 0:
-                    if gs[ 1 ] is not None:
+                    for g in gs[ 1 ]:
                         ax.fill_between(
                                 [ gs[ 2 ][ 0 ], gs[ 2 ][ 1 ] ],
-                                np.min( gs[ 1 ] ),
-                                np.max( gs[ 1 ] ),
+                                g, g,
                                 alpha=alpha2,
                                 color='grey'
                                 )
-                    else:
-                        ax.axvspan(
-                                gs[ 2 ][ 0 ],
-                                gs[ 2 ][ 1 ],
-                                facecolor='grey',
-                                alpha=alpha2,
-                                )
                     # TODo improve spacing with x-axis
                     # TODo add ps statistics to plot
-                    ax.annotate( 'GS',
-                                 xycoords='data',
-                                 xy=((gs[ 2 ][ 0 ] + gs[ 2 ][ 1 ]) / 2, 0),
-                                 xytext=(0, -15), textcoords='offset points',
-                                 horizontalalignment='right', verticalalignment='bottom',
-                                 color='grey' )
+                ax.annotate( 'GS',
+                             xycoords='data',
+                             xy=((gs[ 2 ][ 0 ] + gs[ 2 ][ 1 ]) / 2, 0),
+                             xytext=(0, -15), textcoords='offset points',
+                             horizontalalignment='right', verticalalignment='bottom',
+                             color='grey' )
         
         for i, atr in enumerate( attractors ):
             x, y, y_smooth, pss = find_ps( path, sim_t_array[ -1 ], atr )

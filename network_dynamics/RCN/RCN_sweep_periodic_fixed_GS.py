@@ -151,6 +151,8 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.w_e_i = 3 * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 1 mV default
     
+    rcn.U = 0.2  # 0.2 default
+    
     rcn.net_init()
     
     rcn.set_stimulus_i( stimulus='flat_to_I', frequency=i_freq * Hz )  # default: 15 Hz
@@ -179,7 +181,8 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # -- generic stimuli --
     gss_periodic = generate_periodic_gss( gs_percentage, args.gs_freq, args.gs_length,
                                           args.pre_runtime,
-                                          args.gs_runtime )
+                                          args.gs_runtime,
+                                          target=len( rcn.E ) )
     # gss_A1 = generate_gss( 60, args.gs_length, args.pre_runtime, args.gs_runtime,
     #                        target=stim1_ids, length= )
     gss_A1 = (60, stim1_ids, (args.pre_runtime, args.pre_runtime + args.gs_length),
@@ -201,9 +204,14 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     print( 'I input = ', i_freq, 'Hz', 'I-to-E weight', i_e_w, 'mV' )
     
     # run network, give generic pulses, run network again
+    stimulation_amount = [ ]
     rcn.run_net( duration=args.pre_runtime )
     for gs in gss:
         act_ids = rcn.generic_stimulus( frequency=rcn.stim_freq_e, stim_perc=gs[ 0 ], subset=gs[ 1 ] )
+        stimulation_amount.append(
+                (100 * np.intersect1d( act_ids, stim1_ids ).size / len( stim1_ids ),
+                 100 * np.intersect1d( act_ids, stim2_ids ).size / len( stim2_ids ))
+                )
         rcn.run_net( duration=gs[ 2 ][ 1 ] - gs[ 2 ][ 0 ] )
         rcn.generic_stimulus_off( act_ids )
         rcn.run_net( duration=gs[ 3 ] )
@@ -232,7 +240,6 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     title_addition = f'BA {ba} Hz, GS {gs_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
     filename_addition = f'_BA_{ba}_GS_{gs_percentage}_W_{i_e_w}_Hz_{i_freq}'
     
-    # TODO GSs not perfectly aligned with neuronal activity
     fig1 = plot_x_u_spks_from_basin( path=save_dir,
                                      filename='x_u_spks_from_basin' + filename_addition,
                                      title_addition=title_addition,
@@ -272,8 +279,10 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     print(
             f'Predicted time remaining in experiment: '
             f'{np.round( np.mean( running_times ) * len( list( itertools.product( background_activity, generic_stimuli, I_E_weights, I_input_freq ) ) ) ) - i} s' )
-
-# 5 ------ compute PS statistics for the whole experiment and write back to excel ------
-df_statistics = compute_pss_statistics( timestamp_folder,
-                                        parameters=[ 'ba_Hz', 'gs_%', 'I_to_E_weight_mV', 'I_input_freq_Hz' ] )
-# TODO am I just printing the attractor neurons in raster plot?
+    
+    print( 'DEBUG\n% neurons stimulated by GS in each attractor\n', stimulation_amount, '\n' )
+    
+    # 5 ------ compute PS statistics for the whole experiment and write back to excel ------
+    df_statistics = compute_pss_statistics( timestamp_folder,
+                                            parameters=[ 'ba_Hz', 'gs_%', 'I_to_E_weight_mV', 'I_input_freq_Hz' ] )
+    # TODO am I just printing the attractor neurons in raster plot?

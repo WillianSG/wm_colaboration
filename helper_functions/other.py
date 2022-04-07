@@ -298,7 +298,7 @@ def generate_gss( gs_percentage, gs_length, pre_runtime, gs_runtime, target=None
     return [ (gs_percentage, target, (pre_runtime, pre_runtime + gs_length), length) ]
 
 
-def generate_periodic_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target=None ):
+def generate_periodic_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target ):
     import numpy as np
     from scipy import signal as sg
     
@@ -317,9 +317,12 @@ def generate_periodic_gss( gs_percentage, gs_freq, gs_length, pre_runtime, gs_ru
     
     gss = [ ]
     for i in range( 0, len( gss_times ), 2 ):
+        if isinstance( target, int ):
+            n_act_ids = int( target * gs_percentage / 100 )
+            act_ids = np.random.choice( target, n_act_ids, replace=False )
         try:
             gss.append(
-                    (gs_percentage, target, (gss_times[ i ], gss_times[ i + 1 ]),
+                    (gs_percentage, act_ids, (gss_times[ i ], gss_times[ i + 1 ]),
                      gss_times[ i + 2 ] - gss_times[ i + 1 ])
                     )
         except IndexError:

@@ -527,17 +527,10 @@ class RecurrentCompetitiveNet:
     Stimulates % of excitatory neurons as in Mongillo.
     """
     
-    def generic_stimulus( self, frequency, stim_perc=15, subset=None ):
-        if subset is None:
-            n_act_ids = int( len( self.E ) * stim_perc / 100 )
-            act_ids = np.random.choice( len( self.E ), n_act_ids, replace=False )
-        else:
-            n_act_ids = int( len( subset ) * stim_perc / 100 )
-            act_ids = np.random.choice( subset, n_act_ids, replace=False )
+    def generic_stimulus( self, frequency, stim_perc, subset ):
+        self.Input_to_E.rates[ subset ] = frequency
         
-        self.Input_to_E.rates[ act_ids ] = frequency
-        
-        return act_ids
+        return subset
     
     def generic_stimulus_off( self, act_ids ):
         self.Input_to_E.rates[ act_ids ] = 0 * Hz
