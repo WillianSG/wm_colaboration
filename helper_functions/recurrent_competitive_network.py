@@ -182,7 +182,7 @@ class RecurrentCompetitiveNet:
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
-            dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',
+            dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',  # adaptation threshold
                                 Vr_e=self.Vr_e,
                                 taum_e=self.taum_e,
                                 tau_epsp=self.tau_epsp_e,
@@ -430,10 +430,10 @@ class RecurrentCompetitiveNet:
     provided to the network isn't set yet.
     """
     
-    def set_potentiated_synapses( self, stim_ids ):
+    def set_potentiated_synapses( self, stim_ids, weight=1.0 ):
         for x in range( 0, len( self.E_E ) ):
             if self.E_E.i[ x ] in stim_ids and self.E_E.j[ x ] in stim_ids:
-                self.E_E.rho[ self.E_E.i[ x ], self.E_E.j[ x ] ] = 1.0
+                self.E_E.rho[ self.E_E.i[ x ], self.E_E.j[ x ] ] = weight
     
     # 1.4 ------ network operation
     

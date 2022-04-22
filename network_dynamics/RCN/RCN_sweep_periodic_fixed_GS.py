@@ -185,7 +185,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
                                           target=len( rcn.E ) )
     # gss_A1 = generate_gss( 60, args.gs_length, args.pre_runtime, args.gs_runtime,
     #                        target=stim1_ids, length= )
-    gss_A1 = (60, stim1_ids, (args.pre_runtime, args.pre_runtime + args.gs_length),
+    gss_A1 = (100, stim1_ids, (args.pre_runtime, args.pre_runtime + args.gs_length),
               abs( args.pre_runtime + args.gs_length - gss_periodic[ 0 ][ 2 ][ 0 ] ))
     gss_periodic.insert( 0, gss_A1 )
     gss = gss_periodic
