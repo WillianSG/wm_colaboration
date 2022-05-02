@@ -16,6 +16,8 @@ Script output:
 import itertools
 import os, sys, pickle, shutil
 import os.path as path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import multiprocessing as mp
@@ -151,6 +153,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     rcn.U = 0.2  # 0.2 default
     rcn.Vth_e_incr = 0 * mV
+    rcn.tau_Vth_e = 2000000 * ms
 
     rcn.net_init()
 
@@ -178,32 +181,16 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         attractors.append(('A3', A3))
 
     # -- generic stimuli --
-    gss_periodic = generate_periodic_gss(gs_percentage, args.gs_freq, args.gs_length,
-                                         args.pre_runtime,
-                                         args.gs_runtime,
-                                         target=len(rcn.E))
-    # gss_A1 = generate_gss( 60, args.gs_length, args.pre_runtime, args.gs_runtime,
-    #                        target=stim1_ids, length= )
-    gss_A1 = (100, stim1_ids, (args.pre_runtime, args.pre_runtime + args.gs_length),
-              abs(args.pre_runtime + args.gs_length - gss_periodic[0][2][0]))
-    gss_periodic.insert(0, gss_A1)
-    gss = gss_periodic
+    # TODO experiment whith less strong GS
+    gs_A1 = (100, stim1_ids, (args.pre_runtime, args.pre_runtime + args.gs_length))
+    gs_A2 = (100, stim2_ids, (args.pre_runtime + 2, args.pre_runtime + 2 + args.gs_length))
+    gss = [gs_A1, gs_A2]
+
     # gss[ 0 ][ 3 ] = abs( gss[ 0 ][ 2 ][ 1 ] - gss[ 1 ][ 2 ][ 0 ] )
     # gss = compile_overlapping_gss( gss_periodic, gss_A1 )
 
     rcn.set_E_E_plastic(plastic=plastic_syn)
     rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
-
-    for i in attractors[0][1]:
-        # print(rcn.E[i].Vth_e)
-        rcn.E[i].Vth_e = -56 * mV
-        # rcn.E[i].Vth_e_init = -45 * mV
-
-    #     # print(rcn.E[i].Vth_e)
-    #     # neur.Vth_e = -45 * mV
-    #     # neur.Vth_e_incr = 0 * mV
-    for i in range(len(rcn.E)):
-        print(rcn.E[i].Vth_e)
 
     print('-------------------------------------------------------')
     print(
@@ -213,20 +200,37 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     print('gs = ', gs_percentage, '%', end=' , ')
     print('I input = ', i_freq, 'Hz', 'I-to-E weight', i_e_w, 'mV')
 
-    # run network, give generic pulses, run network again
+    # -- run network --
     stimulation_amount = []
-    rcn.run_net(duration=args.pre_runtime)
-    for gs in gss:
-        act_ids = rcn.generic_stimulus(frequency=rcn.stim_freq_e, stim_perc=gs[0], subset=gs[1])
-        stimulation_amount.append(
-            (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
-             100 * np.intersect1d(act_ids, stim2_ids).size / len(stim2_ids))
-        )
-        rcn.run_net(duration=gs[2][1] - gs[2][0])
-        rcn.generic_stimulus_off(act_ids)
-        rcn.run_net(duration=gs[3])
+    # simulate intrinsic adaptation on attractor 1
+    rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -56 * mV
+    # cue attractor 1
+    act_ids = rcn.generic_stimulus(frequency=rcn.stim_freq_e, stim_perc=gs_A1[0], subset=gs_A1[1])
+    stimulation_amount.append(
+        (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
+         100 * np.intersect1d(act_ids, stim2_ids).size / len(stim2_ids))
+    )
+    rcn.run_net(duration=gs_A1[2][1] - gs_A1[2][0])
+    rcn.generic_stimulus_off(act_ids)
 
-    rcn.run_net(duration=args.post_runtime)
+    # wait for 2 seconds before cueing second attractor
+    rcn.run_net(duration=2)
+
+    # reset adaptation on attractor 1
+    rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -52 * mV
+    # simulate intrinsic adaptation on attractor 2
+    rcn.E.Vth_e[attractors[1][1]] = np.ones(len(rcn.E.Vth_e[attractors[1][1]])) * -56 * mV
+    # cue attractor 2
+    act_ids = rcn.generic_stimulus(frequency=rcn.stim_freq_e, stim_perc=gs_A2[0], subset=gs_A2[1])
+    stimulation_amount.append(
+        (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
+         100 * np.intersect1d(act_ids, stim2_ids).size / len(stim2_ids))
+    )
+    rcn.run_net(duration=gs_A2[2][1] - gs_A2[2][0])
+    rcn.generic_stimulus_off(act_ids)
+
+    # wait for another 2 seconds before ending
+    rcn.run_net(duration=2)
 
     # 2 ------ exporting simulation data ------
 
@@ -279,8 +283,10 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         title_addition=title_addition,
         show=args.show)
 
+    # -- plot voltage thresholds --
     plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0), label=attractors[0][0])
     plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0), label=attractors[1][0])
+    plt.suptitle('Voltage thresholds')
     plt.legend()
     plt.show()
 

@@ -81,7 +81,7 @@ class RecurrentCompetitiveNet:
         self.Vrst_e = -65 * mV  # reset potential
         self.Vth_e_init = -52 * mV  # initial threshold voltage
         self.Vth_e_incr = 5 * mV  # post-spike threshold voltage increase
-        self.tau_Vth_e = 200000 * ms  # time constant of threshold decay
+        self.tau_Vth_e = 20 * ms  # time constant of threshold decay
         self.taum_e = 20 * ms  # membrane time constant
         self.tref_e = 2 * ms  # refractory period
         self.tau_epsp_e = 3.5 * ms  # time constant of EPSP
@@ -182,8 +182,7 @@ class RecurrentCompetitiveNet:
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
-            dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt
-            ''',  # adaptation threshold
+            dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',  # adaptation threshold
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
                                tau_epsp=self.tau_epsp_e,
@@ -443,6 +442,7 @@ class RecurrentCompetitiveNet:
 
     def run_net(self, duration=3 * second, gather_every=0 * second, pulse_ending=False, callback=None):
         from tqdm import tqdm
+        from helper_functions.other import clear_screen
 
         if not isinstance(duration, Quantity):
             duration *= second
@@ -484,6 +484,7 @@ class RecurrentCompetitiveNet:
                     f(self)
 
             self.net.stop()
+
             # self.tqdm_bar.update( duration / second )
         # self.tqdm_bar.close()
 
