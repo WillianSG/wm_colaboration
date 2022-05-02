@@ -150,6 +150,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.w_i_e = i_e_w * mV  # 1 mV default
 
     rcn.U = 0.2  # 0.2 default
+    rcn.Vth_e_incr = 0 * mV
 
     rcn.net_init()
 
@@ -192,6 +193,17 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     rcn.set_E_E_plastic(plastic=plastic_syn)
     rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
+
+    for i in attractors[0][1]:
+        # print(rcn.E[i].Vth_e)
+        rcn.E[i].Vth_e = -56 * mV
+        # rcn.E[i].Vth_e_init = -45 * mV
+
+    #     # print(rcn.E[i].Vth_e)
+    #     # neur.Vth_e = -45 * mV
+    #     # neur.Vth_e_incr = 0 * mV
+    for i in range(len(rcn.E)):
+        print(rcn.E[i].Vth_e)
 
     print('-------------------------------------------------------')
     print(
@@ -266,6 +278,11 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         filename='rcn_population_spiking' + filename_addition,
         title_addition=title_addition,
         show=args.show)
+
+    plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0), label=attractors[0][0])
+    plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0), label=attractors[1][0])
+    plt.legend()
+    plt.show()
 
     # 4 ------ saving PS statistics ------
     # -- append PS statistics for this iteration into one file for the whole experiment
