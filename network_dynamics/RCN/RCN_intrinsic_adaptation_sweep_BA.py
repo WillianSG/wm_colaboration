@@ -258,7 +258,6 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
                                     filename='x_u_spks_from_basin' + filename_addition,
                                     title_addition=title_addition,
                                     generic_stimuli=gss,
-                                    rcn=rcn,
                                     attractors=attractors,
                                     num_neurons=len(rcn.E),
                                     show=args.show)
@@ -283,6 +282,13 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         filename='rcn_population_spiking' + filename_addition,
         title_addition=title_addition,
         show=args.show)
+
+    # -- plot voltage thresholds --
+    plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0), label=attractors[0][0])
+    plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0), label=attractors[1][0])
+    plt.suptitle('Voltage thresholds')
+    plt.legend()
+    plt.show()
 
     # 4 ------ saving PS statistics ------
     # -- append PS statistics for this iteration into one file for the whole experiment
