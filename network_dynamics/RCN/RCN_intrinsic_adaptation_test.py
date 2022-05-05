@@ -26,7 +26,7 @@ from tqdm import TqdmWarning
 import timeit
 from itertools import product
 
-from brian2 import prefs, ms, Hz, mV
+from brian2 import prefs, ms, Hz, mV, second
 from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
 from helper_functions.other import *
 from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
@@ -115,6 +115,11 @@ assert args.gs_step > 0, 'Step size must be positive'
 assert args.i_step > 0, 'Step size must be positive'
 assert args.i_stim_step > 0, 'Step size must be positive'
 
+print('This experiment will run around 4 seconds of simulation.\n'
+      'In the first 2 seconds it will cue attractor 1 and see if it naturally reactivates.\n'
+      'In the last 2 seconds it will cue attractor 2 and see if it naturally reactivates.\n'
+      'This is to test if STSP and intrinsic plasticity can enable phasic cued recall.')
+
 timestamp_folder = make_timestamped_folder('../../results/RCN_engineering_reactivation/')
 
 plasticity_rule = 'LR4'
@@ -151,9 +156,10 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.w_e_i = 3 * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 1 mV default
 
+    # -- augmentation and intrinsic plasticity setup
     rcn.U = 0.2  # 0.2 default
-    rcn.Vth_e_incr = 0 * mV
-    rcn.tau_Vth_e = 2000000 * ms
+    rcn.Vth_e_incr = 0.15 * mV  # 5 mV default
+    rcn.tau_Vth_e = 2 * second
 
     rcn.net_init()
 
@@ -200,7 +206,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # -- run network --
     stimulation_amount = []
     # simulate intrinsic adaptation on attractor 1
-    rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -56 * mV
+    # rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -56 * mV
     # cue attractor 1
     gs_A1 = (100, stim1_ids, (0, 0.1))
     act_ids = rcn.generic_stimulus(frequency=rcn.stim_freq_e, stim_perc=gs_A1[0], subset=gs_A1[1])
@@ -217,7 +223,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # reset adaptation on attractor 1
     rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -52 * mV
     # simulate intrinsic adaptation on attractor 2
-    rcn.E.Vth_e[attractors[1][1]] = np.ones(len(rcn.E.Vth_e[attractors[1][1]])) * -56 * mV
+    # rcn.E.Vth_e[attractors[1][1]] = np.ones(len(rcn.E.Vth_e[attractors[1][1]])) * -56 * mV
     # cue attractor 2
     gs_A2 = (100, stim2_ids, (2.1, 2.2))
     act_ids = rcn.generic_stimulus(frequency=rcn.stim_freq_e, stim_perc=gs_A2[0], subset=gs_A2[1])

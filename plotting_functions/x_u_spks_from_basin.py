@@ -211,6 +211,7 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
     f_thresh.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0), label=attractors[0][0])
     f_thresh.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0), label=attractors[1][0])
     # f_thresh.set_ylim(np.min(rcn.E_rec.Vth_e), np.max(rcn.E_rec.Vth_e))
+    f_thresh.set_xlim(0, sim_t_array[-1])
     f_thresh.set_title('Voltage thresholds', size=title_fontsize)
     f_thresh.legend()
 

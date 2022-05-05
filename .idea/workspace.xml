@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- push to switch PC">
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test.xml" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- single attractor displaying cuable phasic firing">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,7 +28,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="attractor_competition" />
+        <entry key="$PROJECT_DIR$" value="intrinsic_plasticity" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -166,6 +165,9 @@
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -174,25 +176,6 @@
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" />
       <option name="PARAMETERS" value="--ba_amount 6 --ba_step 1 --gs_amount 0 --gs_step 6 --i_amount 1 --i_stim_amount 0 --gs_runtime 5 --show" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="RCN_intrinsic_adaptation_test" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="wm_colaboration" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/network_dynamics/RCN" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" />
-      <option name="PARAMETERS" value="--ba_amount 6 --ba_step 1 --gs_amount 0 --gs_step 6 --i_amount 0 --i_stim_amount 0 --gs_runtime 5 --show" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -438,7 +421,8 @@
       <workItem from="1650551073545" duration="129000" />
       <workItem from="1650551210272" duration="456000" />
       <workItem from="1650617560484" duration="2125000" />
-      <workItem from="1650980301293" duration="9044000" />
+      <workItem from="1650980301293" duration="10594000" />
+      <workItem from="1651745017576" duration="3405000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -755,7 +739,14 @@
       <option name="project" value="LOCAL" />
       <updated>1650618682143</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="- single attractor displaying cuable phasic firing">
+      <created>1651481221830</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1651481221830</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -772,7 +763,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="main" />
+                        <option value="intrinsic_plasticity_dynamic_test" />
                       </list>
                     </value>
                   </entry>
@@ -786,7 +777,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- removed u variable as I wanted to have displayed it for each attractor" />
     <MESSAGE value="- export_to_xlsx() function to save results between runs" />
     <MESSAGE value="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
     <MESSAGE value="- added run configurations" />
@@ -811,7 +801,8 @@
     <MESSAGE value="- fixed bug with GSs not being periodic" />
     <MESSAGE value="- updated GS visualisation to show exactly which neurons are being targeted" />
     <MESSAGE value="- push to switch PC" />
-    <option name="LAST_COMMIT_MESSAGE" value="- push to switch PC" />
+    <MESSAGE value="- single attractor displaying cuable phasic firing" />
+    <option name="LAST_COMMIT_MESSAGE" value="- single attractor displaying cuable phasic firing" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
