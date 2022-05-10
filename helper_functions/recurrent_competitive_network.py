@@ -80,7 +80,7 @@ class RecurrentCompetitiveNet:
         self.Vr_e = -65 * mV  # resting potential
         self.Vrst_e = -65 * mV  # reset potential
         self.Vth_e_init = -52 * mV  # initial threshold voltage
-        self.Vth_e_incr = 5 * mV  # post-spike threshold voltage increase
+        self.Vth_e_decr = 5 * mV  # post-spike threshold voltage increase
         self.tau_Vth_e = 20 * ms  # time constant of threshold decay
         self.taum_e = 20 * ms  # membrane time constant
         self.tref_e = 2 * ms  # refractory period
@@ -153,7 +153,7 @@ class RecurrentCompetitiveNet:
 
         self.Input_E_rec_attributes = ('w')
         self.Input_I_rec_attributes = ('w')
-        self.E_rec_attributes = ('Vm', 'Vepsp', 'Vipsp', 'Vth_e')
+        self.E_rec_attributes = ['Vm', 'Vepsp', 'Vipsp', 'Vth_e']
         self.I_rec_attributes = ('Vm', 'Vepsp', 'Vipsp')
         self.E_E_rec_attributes = ['w']
         self.E_I_rec_attributes = ('w')
@@ -161,8 +161,8 @@ class RecurrentCompetitiveNet:
 
         if self.plasticity_rule == 'LR4':
             self.E_E_rec_attributes.append('x_')
-            self.E_E_rec_attributes.append('u')
-
+            # self.E_E_rec_attributes.append('u')
+            self.E_rec_attributes.append('u')
         # ------ misc operation variables
         self.stimulus_neurons_e_ids = []
         self.stimulus_neurons_i_ids = []
@@ -182,6 +182,7 @@ class RecurrentCompetitiveNet:
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
+            du/dt = ((U - u) / tau_f) : 1
             dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',  # adaptation threshold
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
@@ -201,8 +202,11 @@ class RecurrentCompetitiveNet:
 
         # populations
         self.E = NeuronGroup(N=self.N_e, model=self.eqs_e,
-                             reset='''Vm = Vrst_e
-                    Vth_e -= Vth_e_incr''',
+                             reset='''
+                                    Vm = Vrst_e
+                                    Vth_e -= Vth_e_decr
+                                    u = u + U * (1 - u)
+                                    ''',
                              threshold='Vm > Vth_e',
                              refractory=self.tref_e,
                              method=self.int_meth_neur,
@@ -352,14 +356,14 @@ class RecurrentCompetitiveNet:
             method=self.int_meth_syn,
             name='E_E')
 
-        self.I_I = Synapses(  # I-I plastic synapses
-            source=self.I,
-            target=self.I,
-            model=self.model_E_E,
-            on_pre=self.pre_E_E,
-            on_post=self.post_E_E,
-            method=self.int_meth_syn,
-            name='I_I')
+        # self.I_I = Synapses(  # I-I plastic synapses
+        #     source=self.I,
+        #     target=self.I,
+        #     # model=self.model_E_E,
+        #     # on_pre=self.pre_E_E,
+        #     # on_post=self.post_E_E,
+        #     method=self.int_meth_syn,
+        #     name='I_I')
 
         # connecting synapses
         self.Input_E.connect(j='i')
@@ -369,7 +373,7 @@ class RecurrentCompetitiveNet:
         self.E_I.connect(True, p=self.p_e_i)
         self.I_E.connect(True, p=self.p_i_e)
         self.E_E.connect('i!=j', p=self.p_e_e)
-        self.I_I.connect('i!=j', p=self.p_i_i)
+        # self.I_I.connect('i!=j', p=self.p_i_i)
 
         # init synaptic variables
         self.Input_E.w = self.w_input_e
@@ -378,7 +382,7 @@ class RecurrentCompetitiveNet:
         self.E_I.w = self.w_e_i
         self.I_E.w = self.w_i_e
         # self.E_E.w = self.w_e_e
-        self.I_I.w = self.w_i_i
+        # self.I_I.w = self.w_i_i
 
         if self.plasticity_rule == 'LR4':
             self.E_E.x_ = 1.0
@@ -731,7 +735,7 @@ class RecurrentCompetitiveNet:
             self.E_I,
             self.I_E,
             self.E_E,
-            self.I_I,
+            # self.I_I,
             self.Input_to_E_mon,
             self.Input_to_I_mon,
             self.E_mon,
@@ -756,7 +760,7 @@ class RecurrentCompetitiveNet:
             'Vth_e_init': self.Vth_e_init,
             'Vrst_i': self.Vrst_i,
             'Vth_i': self.Vth_i,
-            'Vth_e_incr': self.Vth_e_incr,
+            'Vth_e_decr': self.Vth_e_decr,
             'tau_xpre': self.tau_xpre,
             'tau_xpost': self.tau_xpost,
             'xpre_jump': self.xpre_jump,
@@ -908,7 +912,7 @@ class RecurrentCompetitiveNet:
     len(self.E_E.j) -> post neurons
     """
 
-    def get_spks_from_pattern_neurons(self):
+    def get_spks_from_pattern_neurons(self, export=False):
         spk_mon_ids = []
         spk_mon_ts = []
 
@@ -917,15 +921,18 @@ class RecurrentCompetitiveNet:
                 spk_mon_ids.append(self.E_mon.i[x])
                 spk_mon_ts.append(self.E_mon.t[x] / second)
 
-        fn = os.path.join(
-            self.net_sim_data_path,
-            'spks_neurs_with_input.pickle')
+        if export:
+            fn = os.path.join(
+                self.net_sim_data_path,
+                'spks_neurs_with_input.pickle')
 
-        with open(fn, 'wb') as f:
-            pickle.dump((
-                spk_mon_ids,
-                spk_mon_ts,
-                self.t_run), f)
+            with open(fn, 'wb') as f:
+                pickle.dump((
+                    spk_mon_ids,
+                    spk_mon_ts,
+                    self.t_run), f)
+
+        return spk_mon_ids, spk_mon_ts
 
     # 2.3 ------ synapses
 
@@ -1007,7 +1014,7 @@ class RecurrentCompetitiveNet:
                 x_,
                 self.E_E_rec.t / ms), f)
 
-    def get_spikes_pyspike(self):
+    def get_spikes_pyspike(self, export=False):
         """
         Retrieves the spikes recorded during simulation and saves them in the format expected by PySpike.
         """
@@ -1096,7 +1103,7 @@ class RecurrentCompetitiveNet:
     self.E_E_rec[self.E_E[0]] -> 1st synapse
     """
 
-    def get_x_traces_from_pattern_neurons(self):
+    def get_x_traces_from_pattern_neurons(self, export=False):
         xs_neurs_with_input = []
 
         for x in range(0, len(self.E_E)):
@@ -1109,17 +1116,20 @@ class RecurrentCompetitiveNet:
 
                 xs_neurs_with_input.append(temp_dict)
 
-        fn = os.path.join(
-            self.net_sim_data_path,
-            'xs_neurs_with_input.pickle')
+        if export:
+            fn = os.path.join(
+                self.net_sim_data_path,
+                'xs_neurs_with_input.pickle')
 
-        with open(fn, 'wb') as f:
-            pickle.dump((
-                xs_neurs_with_input,
-                self.E_E_rec.t / second,
-                self.tau_d,
-                # self.stimulus_pulse_duration
-            ), f)
+            with open(fn, 'wb') as f:
+                pickle.dump((
+                    xs_neurs_with_input,
+                    self.E_E_rec.t / second,
+                    self.tau_d,
+                    # self.stimulus_pulse_duration
+                ), f)
+
+        return xs_neurs_with_input, self.E_E_rec.t / second, self.tau_d
 
     """
     Retrieves the utilization traces (u) recorded during simulation only from synapses connecting (both) neurons part
@@ -1129,28 +1139,30 @@ class RecurrentCompetitiveNet:
     self.E_E_rec[self.E_E[0]] -> 1st synapse
     """
 
-    def get_u_traces_from_pattern_neurons(self):
+    def get_u_traces_from_pattern_neurons(self, export=False):
         us_neurs_with_input = []
 
-        for x in range(0, len(self.E_E)):
-            if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
+        for x in range(0, len(self.E)):
+            if x in self.stimulus_neurons_e_ids:
                 temp_dict = {
-                    'pre': self.E_E.i[x],
-                    'post': self.E_E.j[x],
-                    'u': self.E_E_rec[self.E_E[x]].u
+                    'pre': x,
+                    'u': self.E_rec[x].u
                 }
 
                 us_neurs_with_input.append(temp_dict)
 
-        fn = os.path.join(
-            self.net_sim_data_path,
-            'us_neurs_with_input.pickle')
+        if export:
+            fn = os.path.join(
+                self.net_sim_data_path,
+                'us_neurs_with_input.pickle')
 
-        with open(fn, 'wb') as f:
-            pickle.dump((
-                us_neurs_with_input,
-                self.E_E_rec.t / second,
-                self.U,
-                self.tau_f,
-                # self.stimulus_pulse_duration
-            ), f)
+            with open(fn, 'wb') as f:
+                pickle.dump((
+                    us_neurs_with_input,
+                    self.E_E_rec.t / second,
+                    self.U,
+                    self.tau_f,
+                    # self.stimulus_pulse_duration
+                ), f)
+
+        return us_neurs_with_input, self.E_rec.t / second, self.U, self.tau_f

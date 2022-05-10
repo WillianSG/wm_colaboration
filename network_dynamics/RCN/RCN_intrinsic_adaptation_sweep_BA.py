@@ -152,7 +152,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.w_i_e = i_e_w * mV  # 1 mV default
 
     rcn.U = 0.2  # 0.2 default
-    rcn.Vth_e_incr = 0 * mV
+    rcn.Vth_e_decr = 0 * mV
     rcn.tau_Vth_e = 2000000 * ms
 
     rcn.net_init()

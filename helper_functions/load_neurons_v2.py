@@ -27,18 +27,18 @@ import numpy as np
 from check_spikes_isi import *
 
 
-def load_neurons( spikes_t_Pre=[ i / 1000.0 for i in [ 20, 120, 340, 540 ] ] ):
-    spikes_t_Pre = check_spikes_isi( spikes_t_Pre, 0.0001 )
-    spikes_t_Pre = np.array( spikes_t_Pre.flatten() ) * second
-    
-    inds_PRE = np.zeros( len( spikes_t_Pre ) )
-    
+def load_neurons(spikes_t_Pre=[i / 1000.0 for i in [20, 120, 340, 540]]):
+    spikes_t_Pre = check_spikes_isi(spikes_t_Pre, 0.0001)
+    spikes_t_Pre = np.array(spikes_t_Pre.flatten()) * second
+
+    inds_PRE = np.zeros(len(spikes_t_Pre))
+
     Pre = SpikeGeneratorGroup(
-            N=1,
-            indices=inds_PRE,
-            times=spikes_t_Pre,
-            name='Pre' )
-    
+        N=1,
+        indices=inds_PRE,
+        times=spikes_t_Pre,
+        name='Pre')
+
     Vr_e = -65 * mV  # resting potential
     taum_e = 20 * ms  # membrane time constant
     tau_epsp_e = 3.5 * ms  # time constant of EPSP
@@ -47,29 +47,29 @@ def load_neurons( spikes_t_Pre=[ i / 1000.0 for i in [ 20, 120, 340, 540 ] ] ):
     tau_Vth_e = 20 * ms  # time constant of threshold decay
     Vrst_e = -65 * mV  # reset potential
     Vth_e_incr = 5 * mV  # post-spike threshold voltage increase
-    
-    eqs_e = Equations( '''
+
+    eqs_e = Equations('''
 		dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
 		dVepsp/dt = -Vepsp / tau_epsp : volt
 		dVipsp/dt = -Vipsp / tau_ipsp : volt
 		dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',
-                       Vr_e=Vr_e,
-                       taum_e=taum_e,
-                       tau_epsp=tau_epsp_e,
-                       tau_ipsp=tau_ipsp_e,
-                       Vth_e_init=Vth_e_init,
-                       tau_Vth_e=tau_Vth_e )
-    
+                      Vr_e=Vr_e,
+                      taum_e=taum_e,
+                      tau_epsp=tau_epsp_e,
+                      tau_ipsp=tau_ipsp_e,
+                      Vth_e_init=Vth_e_init,
+                      tau_Vth_e=tau_Vth_e)
+
     Post = NeuronGroup(
-            N=1,
-            model=eqs_e,
-            reset='''Vm = Vrst_e
-				Vth_e += Vth_e_incr''',
-            threshold='Vm > Vth_e',
-            refractory=2 * ms,
-            method='linear',
-            name='Post' )
-    
-    Post.Vm = (Vrst_e + rand( 1 ) * (Vth_e_init - Vr_e))
-    
+        N=1,
+        model=eqs_e,
+        reset='''Vm = Vrst_e
+				Vth_e += Vth_e_decr''',
+        threshold='Vm > Vth_e',
+        refractory=2 * ms,
+        method='linear',
+        name='Post')
+
+    Post.Vm = (Vrst_e + rand(1) * (Vth_e_init - Vr_e))
+
     return Pre, Post

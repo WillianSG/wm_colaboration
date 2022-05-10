@@ -59,16 +59,16 @@ warnings.filterwarnings('ignore', category=TqdmWarning)
 # from plotting_functions.plot_x_u_spks_from_basin import plot_x_u_spks_from_basin
 
 parser = argparse.ArgumentParser(description='RCN_item_reactivation_gs_attractors')
-parser.add_argument('--ba_amount', type=int, default=[10, 10], nargs='+',
+parser.add_argument('--ba_amount', type=float, default=[10, 10], nargs='+',
                     help='Bounds for background activity in Hz')
 parser.add_argument('--ba_step', type=int, default=5, help='Step size for background activity')
-parser.add_argument('--gs_amount', type=int, default=[15, 15], nargs='+',
+parser.add_argument('--gs_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for generic stimulus in % of stimulated neurons')
 parser.add_argument('--gs_step', type=int, default=5, help='Step size for generic stimulus')
-parser.add_argument('--i_amount', type=int, default=[15, 15], nargs='+',
+parser.add_argument('--i_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for I-to-E inhibition weight')
 parser.add_argument('--i_step', type=int, default=2, help='Step size for I-to-E inhibition weight')
-parser.add_argument('--i_stim_amount', type=int, default=[15, 15], nargs='+',
+parser.add_argument('--i_stim_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for I inhibition input in Hz')
 parser.add_argument('--i_stim_step', type=int, default=10, help='Step size for I inhibition')
 parser.add_argument('--gs_freq', type=float, default=4, help='Frequency of generic stimulus Hz')
@@ -158,8 +158,8 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     # -- augmentation and intrinsic plasticity setup
     rcn.U = 0.2  # 0.2 default
-    rcn.Vth_e_incr = 0.15 * mV  # 5 mV default
-    rcn.tau_Vth_e = 2 * second
+    rcn.Vth_e_decr = 0.15 * mV  # 5 mV default
+    rcn.tau_Vth_e = 1.8 * second
 
     rcn.net_init()
 
@@ -221,7 +221,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.run_net(duration=2)
 
     # reset adaptation on attractor 1
-    rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -52 * mV
+    # rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -52 * mV
     # simulate intrinsic adaptation on attractor 2
     # rcn.E.Vth_e[attractors[1][1]] = np.ones(len(rcn.E.Vth_e[attractors[1][1]])) * -56 * mV
     # cue attractor 2
@@ -238,22 +238,13 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.run_net(duration=2)
 
     # 2 ------ exporting simulation data ------
-
-    rcn.pickle_E_E_syn_matrix_state()
-    rcn.get_x_traces_from_pattern_neurons()
-    rcn.get_u_traces_from_pattern_neurons()
-    rcn.get_spks_from_pattern_neurons()
-    rcn.get_spikes_pyspike()
-
-    # -- save the PS statistics for this iteration
-    for atr in attractors:
-        find_ps(save_dir, rcn.net.t, atr, write_to_file=True,
-                parameters={'ba_Hz': ba,
-                            'gs_%': gs_percentage,
-                            'I_to_E_weight_mV': i_e_w,
-                            'I_input_freq_Hz': i_freq
-                            })
-    # count_pss_in_gss( save_dir, num_gss=len( gss ), write_to_file=True, ba=ba, gss=gss )
+    export = False
+    if export:
+        rcn.get_spikes_pyspike()
+        rcn.pickle_E_E_syn_matrix_state()
+        rcn.get_x_traces_from_pattern_neurons()
+        # rcn.get_u_traces_from_pattern_neurons()
+        rcn.get_spks_from_pattern_neurons()
 
     # 3 ------ plotting simulation data ------
     title_addition = f'BA {ba} Hz, GS {gs_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
@@ -290,7 +281,20 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         title_addition=title_addition,
         show=args.show)
 
+    # plot u from synapses and neurons
+    plt.plot()
+
     # 4 ------ saving PS statistics ------
+    # -- save the PS statistics for this iteration
+    for atr in attractors:
+        find_ps(save_dir, rcn.net.t, atr, write_to_file=True,
+                parameters={'ba_Hz': ba,
+                            'gs_%': gs_percentage,
+                            'I_to_E_weight_mV': i_e_w,
+                            'I_input_freq_Hz': i_freq
+                            })
+        # count_pss_in_gss( save_dir, num_gss=len( gss ), write_to_file=True, ba=ba, gss=gss )
+
     # -- append PS statistics for this iteration into one file for the whole experiment
     append_pss_to_xlsx(timestamp_folder, save_dir)
     # -- delete .pickle files as they're just too large to store

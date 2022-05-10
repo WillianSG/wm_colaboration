@@ -26,40 +26,40 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
                              filename=None, num_neurons=None, title_addition='', show=True):
     # TODO just use rcn for everything
     # Load data
-    us_pickled_data = os.path.join(
-        path,
-        'us_neurs_with_input.pickle')
-
-    with open(us_pickled_data, 'rb') as f:
-        (
-            us_neurs_with_input,
-            sim_t_array,
-            U,
-            tau_f,
-            # stim_pulse_duration
-        ) = pickle.load(f)
-
-    xs_pickled_data = os.path.join(
-        path,
-        'xs_neurs_with_input.pickle')
-
-    with open(xs_pickled_data, 'rb') as f:
-        (
-            xs_neurs_with_input,
-            sim_t_array,
-            tau_d,
-            # stim_pulse_duration
-        ) = pickle.load(f)
-
-    spks_pickled_data = os.path.join(
-        path,
-        'spks_neurs_with_input.pickle')
-
-    with open(spks_pickled_data, 'rb') as f:
-        (
-            spk_mon_ids,
-            spk_mon_ts,
-            t_run) = pickle.load(f)
+    # us_pickled_data = os.path.join(
+    #     path,
+    #     'us_neurs_with_input.pickle')
+    #
+    # with open(us_pickled_data, 'rb') as f:
+    #     (
+    #         us_neurs_with_input,
+    #         sim_t_array,
+    #         U,
+    #         tau_f,
+    #         # stim_pulse_duration
+    #     ) = pickle.load(f)
+    #
+    # xs_pickled_data = os.path.join(
+    #     path,
+    #     'xs_neurs_with_input.pickle')
+    #
+    # with open(xs_pickled_data, 'rb') as f:
+    #     (
+    #         xs_neurs_with_input,
+    #         sim_t_array,
+    #         tau_d,
+    #         # stim_pulse_duration
+    #     ) = pickle.load(f)
+    #
+    # spks_pickled_data = os.path.join(
+    #     path,
+    #     'spks_neurs_with_input.pickle')
+    #
+    # with open(spks_pickled_data, 'rb') as f:
+    #     (
+    #         spk_mon_ids,
+    #         spk_mon_ts,
+    #         t_run) = pickle.load(f)
 
     # Plot settings
     plt.close('all')
@@ -100,6 +100,9 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
         height_ratios=heights,
         figure=fig)
 
+    # -- Read x and u from synapses and neurons
+    xs_neurs_with_input, sim_t_array, tau_d = rcn.get_x_traces_from_pattern_neurons()
+    us_neurs_with_input, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
     for i, atr in enumerate(attractors):
         f_ax1 = fig.add_subplot(spec2[i, 0])
 
@@ -218,8 +221,9 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
     # -------------------------------------------------------------------------
     # ------- Plot spikes
     # -------------------------------------------------------------------------
-    ax_spikes = fig.add_subplot(spec2[len(attractors) + 1, 0])
+    spk_mon_ids, spk_mon_ts = rcn.get_spks_from_pattern_neurons()
 
+    ax_spikes = fig.add_subplot(spec2[len(attractors) + 1, 0])
     # -- plot neuronal spikes with attractors in different colours
     for i, atr in enumerate(attractors):
         spk_mon_ts = np.array(spk_mon_ts)
@@ -251,8 +255,10 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
     # -------------------------------------------------------------------------
     # ------- Plot SPIKE-synchronisation profile
     # -------------------------------------------------------------------------
-    f3_ax1 = fig.add_subplot(spec2[len(attractors) + 2, 0])
+    # TODO make this self-contained so I don't need an external file
+    rcn.get_spikes_pyspike()
 
+    f3_ax1 = fig.add_subplot(spec2[len(attractors) + 2, 0])
     # -- plot spike sync profile
     for i, atr in enumerate(attractors):
         x, y, y_smooth, pss = find_ps(path, sim_t_array[-1], atr)
