@@ -48,8 +48,8 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
             model_E_E_plastic = ''' 
             w : volt
             plastic : boolean (shared)
-            plastic_2 : boolean (shared)
-            dx_/dt = ((1 - x_)/tau_d)*int(plastic_2) : 1 (clock-driven)
+            plastic_x : boolean (shared)
+            dx_/dt = ((1 - x_)/tau_d)*int(plastic_x) : 1 (clock-driven)
             dxpre/dt = (-xpre / tau_xpre)*int(plastic) : 1 (clock-driven)
             dxpost/dt = (-xpost / tau_xpost)*int(plastic) : 1 (clock-driven)
             drho/dt = (int(rho > thr_b_rho)*int(rho < rho_max)  * alpha*int(plastic) -
@@ -130,7 +130,7 @@ def load_synapse_model(plasticity_rule, neuron_type, bistability, stoplearning=F
 
     # - On pre (1) spike (LR4)
     xpre_update_LR4 = {'xpre_update': '''xpre = xpre + xpre_jump * (xpre_max - xpre) * int(plastic)'''}
-    x_update_LR4 = {'x_update': '''x_ = x_ - u*x_*int(plastic_2)'''}
+    x_update_LR4 = {'x_update': '''x_ = x_ - u*x_*int(plastic_x)'''}
     # u_update_LR4 = {'u_update': '''u = u + U*(1 - u)*int(plastic_2)'''}
 
     # - On pre (2) spike (both LR1/LR2/LR3)

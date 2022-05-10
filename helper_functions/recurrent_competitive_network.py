@@ -179,10 +179,11 @@ class RecurrentCompetitiveNet:
     def set_neuron_pop(self):
         # equations (voltage based neuron model)
         self.eqs_e = Equations('''
+            plastic_u : boolean (shared)
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
-            du/dt = ((U - u) / tau_f) : 1
+            du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
             dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',  # adaptation threshold
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
@@ -205,7 +206,7 @@ class RecurrentCompetitiveNet:
                              reset='''
                                     Vm = Vrst_e
                                     Vth_e -= Vth_e_decr
-                                    u = u + U * (1 - u)
+                                    u = u + U * (1 - u) * int(plastic_u)
                                     ''',
                              threshold='Vm > Vth_e',
                              refractory=self.tref_e,
@@ -402,7 +403,8 @@ class RecurrentCompetitiveNet:
     """
 
     def set_E_E_ux_vars_plastic(self, plastic=False):
-        self.E_E.plastic_2 = plastic
+        self.E_E.plastic_x = plastic
+        self.E.plastic_u = plastic
 
     """
     Creates matrix spikemon_P from E to E connections.

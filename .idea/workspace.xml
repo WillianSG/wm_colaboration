@@ -4,16 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- both attractors have dynamic threshold and display cuable phasic firing!">
-      <change afterPath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test_inh.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/load_neurons_v2.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/load_neurons_v2.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files">
       <change beforePath="$PROJECT_DIR$/helper_functions/load_synapse_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/load_synapse_model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_sweep_BA.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_sweep_BA.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/synapse_dynamics/testing_resources_v2.py" beforeDir="false" afterPath="$PROJECT_DIR$/synapse_dynamics/testing_resources_v2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -451,7 +444,7 @@
       <workItem from="1650617560484" duration="2125000" />
       <workItem from="1650980301293" duration="10594000" />
       <workItem from="1651745017576" duration="3405000" />
-      <workItem from="1652112560487" duration="10068000" />
+      <workItem from="1652112560487" duration="10485000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -775,7 +768,14 @@
       <option name="project" value="LOCAL" />
       <updated>1651481221830</updated>
     </task>
-    <option name="localTasksCounter" value="47" />
+    <task id="LOCAL-00047" summary="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files">
+      <created>1652183938535</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1652183938535</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -806,7 +806,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- export_to_xlsx() function to save results between runs" />
     <MESSAGE value="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
     <MESSAGE value="- added run configurations" />
     <MESSAGE value="- moved all PSs export workflow to xlsx" />
@@ -831,7 +830,8 @@
     <MESSAGE value="- updated GS visualisation to show exactly which neurons are being targeted" />
     <MESSAGE value="- push to switch PC" />
     <MESSAGE value="- single attractor displaying cuable phasic firing" />
-    <option name="LAST_COMMIT_MESSAGE" value="- single attractor displaying cuable phasic firing" />
+    <MESSAGE value="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files" />
+    <option name="LAST_COMMIT_MESSAGE" value="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
