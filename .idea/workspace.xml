@@ -4,14 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files">
-      <change beforePath="$PROJECT_DIR$/helper_functions/load_synapse_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/load_synapse_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added 'plastic_u' toggle back into u equations">
+      <change afterPath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="FlaskConsoleOptions" custom-start-script="import sys&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;from flask.cli import ScriptInfo&#10;locals().update(ScriptInfo(create_app=None).load_app().make_shell_context())&#10;print(&quot;Python %s on %s\nApp: %s [%s]\nInstance: %s&quot; % (sys.version, sys.platform, app.import_name, app.env, app.instance_path))">
     <envs>
@@ -72,7 +81,7 @@
       <recent name="$PROJECT_DIR$/graph_analysis" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RCN_intrinsic_adaptation_test">
+  <component name="RunManager" selected="Python.calcium_intrinsic_plasticity_test">
     <configuration name="One attractor ba full experiment" type="PythonConfigurationType" factoryName="Python">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -359,6 +368,25 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="calcium_intrinsic_plasticity_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="wm_colaboration" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/synapse_dynamics" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="testing_resources_v2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -394,12 +422,14 @@
       <item itemvalue="Python.One attractor reactivation full BA sweep" />
       <item itemvalue="Python.RCN_intrinsic_adaptation_test inh" />
       <item itemvalue="Python.RCN_intrinsic_adaptation_test" />
+      <item itemvalue="Python.calcium_intrinsic_plasticity_test" />
       <item itemvalue="Python.testing_resources_v2" />
       <item itemvalue="Python.RCN inhibition sweep " />
       <item itemvalue="Python.RCN_sweep_periodic_fixed_GS" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.calcium_intrinsic_plasticity_test" />
         <item itemvalue="Python.testing_resources_v2" />
         <item itemvalue="Python.RCN_sweep_periodic_fixed_GS" />
         <item itemvalue="Python.RCN inhibition sweep " />
@@ -444,7 +474,7 @@
       <workItem from="1650617560484" duration="2125000" />
       <workItem from="1650980301293" duration="10594000" />
       <workItem from="1651745017576" duration="3405000" />
-      <workItem from="1652112560487" duration="10485000" />
+      <workItem from="1652112560487" duration="24083000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -775,7 +805,14 @@
       <option name="project" value="LOCAL" />
       <updated>1652183938535</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="- added 'plastic_u' toggle back into u equations">
+      <created>1652184344740</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1652184344740</updated>
+    </task>
+    <option name="localTasksCounter" value="49" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -806,7 +843,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors" />
     <MESSAGE value="- added run configurations" />
     <MESSAGE value="- moved all PSs export workflow to xlsx" />
     <MESSAGE value="- added possibility of having multiple periodic generic stimuli" />
@@ -831,7 +867,8 @@
     <MESSAGE value="- push to switch PC" />
     <MESSAGE value="- single attractor displaying cuable phasic firing" />
     <MESSAGE value="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files" />
-    <option name="LAST_COMMIT_MESSAGE" value="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files" />
+    <MESSAGE value="- added 'plastic_u' toggle back into u equations" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added 'plastic_u' toggle back into u equations" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

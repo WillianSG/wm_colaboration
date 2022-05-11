@@ -128,6 +128,7 @@ def append_df_to_excel(df, excel_path, sheet_name, index=False):
         result.to_excel(writer, index=index, sheet_name=sheet_name, engine='openpyxl')
 
 
+# TODO add temporal filter s.t. spikes too close don't get found
 def find_ps(path, sim_time, attractor, write_to_file=False, parameters=None, verbose=False):
     import pyspike as spk
     from scipy.ndimage.filters import uniform_filter1d

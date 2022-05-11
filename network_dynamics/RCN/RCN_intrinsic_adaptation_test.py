@@ -158,8 +158,8 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     # -- augmentation and intrinsic plasticity setup
     rcn.U = 0.2  # 0.2 default
-    rcn.Vth_e_decr = 0.15 * mV  # 5 mV default
-    rcn.tau_Vth_e = 1.8 * second
+    rcn.Vth_e_decr = 0.14 * mV  # 0.15 mV default
+    rcn.tau_Vth_e = 1.8 * second  # 1.8 s default
 
     rcn.net_init()
 
