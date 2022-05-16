@@ -396,3 +396,31 @@ def clear_screen():
     # for mac and linux(here, os.name is 'posix')
     else:
         _ = system('clear')
+
+
+def firing_rates(rcn, neurons=None, time_window=None, mean=False):
+    if neurons is None:
+        neurons = rcn.E.i
+    if time_window is None:
+        time_window = (0, rcn.net.t)
+    elif isinstance(time_window, brian2.Quantity):
+        time_window = (0, time_window)
+
+    spikes = {k: rcn.E_mon.spike_trains()[k][
+        (rcn.E_mon.spike_trains()[k] > time_window[0]) & (rcn.E_mon.spike_trains()[k] < time_window[1])
+        ] for k in neurons}
+
+    spike_rates = {k: len(spikes[k]) / (time_window[1] - time_window[0]) for k in spikes}
+
+    if mean:
+        return sum(spike_rates.values()) / len(spike_rates)
+
+    return spike_rates
+
+
+def hz2sec(hz):
+    from brian2 import second
+
+    if isinstance(hz, int) or isinstance(hz, float):
+        return 1 / hz * second
+    return (1 / hz)

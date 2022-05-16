@@ -635,6 +635,8 @@ class RecurrentCompetitiveNet:
             record=self.I_mon_record,
             name='I_mon')
 
+        self.E_rate_mon = PopulationRateMonitor(source=self.E, name='E_rate_mon')
+
     """
     """
 

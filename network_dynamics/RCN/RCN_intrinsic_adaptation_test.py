@@ -310,4 +310,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # 5 ------ compute PS statistics for the whole experiment and write back to excel ------
     df_statistics = compute_pss_statistics(timestamp_folder,
                                            parameters=['ba_Hz', 'gs_%', 'I_to_E_weight_mV', 'I_input_freq_Hz'])
-    # TODO am I just printing the attractor neurons in raster plot?
+
+    rates = firing_rates(rcn)
+    rates_atr1_gs = firing_rates(rcn, attractors[0][1], 0.1 * second)
+    rates_atr1_after_gs = firing_rates(rcn, attractors[0][1], (0.15 * second, 0.6 * second))
