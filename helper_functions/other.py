@@ -186,13 +186,14 @@ def find_ps(path, sim_time, attractor, write_to_file=False, parameters=None, ver
         append_df_to_excel(df, fn, sheet_name="PSs")
 
     if verbose:
-        print(f'Found PS in {attractor[0]} '
-              f'between {x[ps[0]]} s and {x[ps[1]]} s '
-              f'centered at {x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]} s '
-              f'with max value {np.max(y_smooth[ps[0]:ps[1]])} '
-              f'(mean={np.mean(y_smooth[ps[0]:ps[1]])}, '
-              f'std={np.std(y_smooth[ps[0]:ps[1]])}'
-              )
+        for ps in pss:
+            print(f'Found PS in {attractor[0]} '
+                  f'between {x[ps[0]]} s and {x[ps[1]]} s '
+                  f'centered at {x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]} s '
+                  f'with max value {np.max(y_smooth[ps[0]:ps[1]])} '
+                  f'(mean={np.mean(y_smooth[ps[0]:ps[1]])}, '
+                  f'std={np.std(y_smooth[ps[0]:ps[1]])}'
+                  )
 
     return x, y, y_smooth, pss
 

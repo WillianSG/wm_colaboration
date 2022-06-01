@@ -156,12 +156,15 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.w_e_i = 3 * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 1 mV default
 
-    # -- augmentation and intrinsic plasticity setup
-    rcn.U = 0.2  # 0.2 default
+    # -- intrinsic plasticity setup
     rcn.Vth_e_decr = 0.14 * mV  # 0.15 mV default
-    rcn.tau_Vth_e = 1.8 * second  # 1.8 s default
+    rcn.tau_Vth_e = 0.1 * second  # 1.8 s default
+    # rcn.Vth_e_init = -51.6 * mV  # -52 mV default
 
     rcn.net_init()
+
+    # -- synaptic augmentation setup
+    rcn.U = 0.2  # 0.2 default
 
     rcn.set_stimulus_i(stimulus='flat_to_I', frequency=i_freq * Hz)  # default: 15 Hz
 
@@ -259,6 +262,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
                                     attractors=attractors,
                                     num_neurons=len(rcn.E),
                                     show=args.show)
+    fig1.plot()
 
     # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
 
@@ -282,7 +286,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         show=args.show)
 
     # plot u from synapses and neurons
-    plt.plot()
+    # fig2.plot()
 
     # 4 ------ saving PS statistics ------
     # -- save the PS statistics for this iteration
@@ -314,3 +318,42 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rates = firing_rates(rcn)
     rates_atr1_gs = firing_rates(rcn, attractors[0][1], 0.1 * second)
     rates_atr1_after_gs = firing_rates(rcn, attractors[0][1], (0.15 * second, 0.6 * second))
+
+    # plot asymptotyc value of threshold
+    from brian2 import volt
+
+    fig, (ax11, ax21) = plt.subplots(2, figsize=(10, 5))
+
+    Vth_e_init = rcn.Vth_e_init
+    u = np.mean(rcn.E_rec.u[attractors[0][1], :], axis=0)
+    Vth = np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0)
+    f_u = (Vth_e_init - 0.002 * u * volt)
+    l11 = ax11.plot(rcn.E_rec.t / second, f_u, c='y', label='f(u)')
+    ax11.tick_params(axis='y', labelcolor='y')
+    ax12 = ax11.twinx()
+    l12 = ax12.plot(rcn.E_rec.t / second, Vth, c='g', label='u')
+    ax12.tick_params(axis='y', labelcolor='g')
+    ax11.set_ylim([-60, -52] * mV)
+    ax12.set_ylim(ax11.get_ylim())
+    # ax11.set_ylim(ax12.get_ylim())
+    ax11.set_title('Attractor 1')
+
+    u = np.mean(rcn.E_rec.u[attractors[1][1], :], axis=0)
+    Vth = np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0)
+    f_u = (Vth_e_init - 0.002 * u * volt)
+    l21 = ax21.plot(rcn.E_rec.t / second, f_u, c='y', label='f(u)')
+    ax21.tick_params(axis='y', labelcolor='y')
+    ax22 = ax21.twinx()
+    l22 = ax22.plot(rcn.E_rec.t / second, Vth, c='g', label='u')
+    ax22.tick_params(axis='y', labelcolor='g')
+    ax21.set_ylim(ax11.get_ylim())
+    ax22.set_ylim(ax11.get_ylim())
+    # ax21.set_ylim(ax12.get_ylim())
+    # ax22.set_ylim(ax12.get_ylim())
+    ax21.set_title('Attractor 2')
+
+    fig.legend((l11[0], l12[0]), ('f(u)', 'u'), loc='upper right')
+    fig.suptitle('Asymptotic value of thresholds')
+
+    fig.tight_layout()
+    fig.show()

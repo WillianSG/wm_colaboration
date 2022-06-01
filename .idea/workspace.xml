@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- made testing file which for now reproduces STSP and threshold adaptation behaviour">
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test_inh.xml" beforeDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
@@ -393,6 +392,9 @@
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/synapse_dynamics" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -475,7 +477,8 @@
       <workItem from="1650617560484" duration="2125000" />
       <workItem from="1650980301293" duration="10594000" />
       <workItem from="1651745017576" duration="3405000" />
-      <workItem from="1652112560487" duration="47017000" />
+      <workItem from="1652112560487" duration="47058000" />
+      <workItem from="1653894014261" duration="32807000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -483,13 +486,6 @@
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
       <updated>1644338507666</updated>
-    </task>
-    <task id="LOCAL-00002" summary="- fixed bug in plot_SPIKE_profile where only two neurons were considered&#10;- updated plot layout">
-      <created>1643906876866</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1643906876866</updated>
     </task>
     <task id="LOCAL-00003" summary="- added moving averages to plots">
       <created>1643912109291</created>
@@ -820,7 +816,14 @@
       <option name="project" value="LOCAL" />
       <updated>1652284294976</updated>
     </task>
-    <option name="localTasksCounter" value="50" />
+    <task id="LOCAL-00050" summary="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour">
+      <created>1652713440447</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1652713440448</updated>
+    </task>
+    <option name="localTasksCounter" value="51" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -837,7 +840,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="intrinsic_plasticity" />
+                        <option value="intrinsic_plasticity_calcium_based" />
                       </list>
                     </value>
                   </entry>
@@ -851,7 +854,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- moved all PSs export workflow to xlsx" />
     <MESSAGE value="- added possibility of having multiple periodic generic stimuli" />
     <MESSAGE value="- fixed small bug in run_net() that gave extra iterations sometimes" />
     <MESSAGE value="- Excel output works!!!!!!" />
@@ -876,7 +878,8 @@
     <MESSAGE value="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files" />
     <MESSAGE value="- added 'plastic_u' toggle back into u equations" />
     <MESSAGE value="- made testing file which for now reproduces STSP and threshold adaptation behaviour" />
-    <option name="LAST_COMMIT_MESSAGE" value="- made testing file which for now reproduces STSP and threshold adaptation behaviour" />
+    <MESSAGE value="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour" />
+    <option name="LAST_COMMIT_MESSAGE" value="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -911,7 +914,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast.coverage" NAME="One attractor reactivation fast Coverage Results" MODIFIED="1647443654690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast_BA_GS_sweep.coverage" NAME="One attractor reactivation fast BA GS sweep Coverage Results" MODIFIED="1647859456656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_inhibition_sweep.coverage" NAME="RCN inhibition sweep fast Coverage Results" MODIFIED="1647876738724" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$calcium_intrinsic_plasticity_test.coverage" NAME="calcium_intrinsic_plasticity_test Coverage Results" MODIFIED="1652712525846" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$calcium_intrinsic_plasticity_test.coverage" NAME="calcium_intrinsic_plasticity_test Coverage Results" MODIFIED="1654094431296" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
     <SUITE FILE_PATH="coverage/wm_colaboration$recurrent_competitive_network.coverage" NAME="recurrent_competitive_network Coverage Results" MODIFIED="1646148885484" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/helper_functions" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_ba.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646331179889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs_attractors.coverage" NAME="One attractor reactivation full experiment Coverage Results" MODIFIED="1646939769841" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />

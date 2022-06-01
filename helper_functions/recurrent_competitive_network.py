@@ -184,7 +184,8 @@ class RecurrentCompetitiveNet:
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
             du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = (Vth_e_init - Vth_e) / tau_Vth_e : volt''',  # adaptation threshold
+            dVth_e/dt = ((Vth_e_init - 0.002 * u * volt) - Vth_e) / tau_Vth_e : volt
+            ''',
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
                                tau_epsp=self.tau_epsp_e,
