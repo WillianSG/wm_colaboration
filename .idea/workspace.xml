@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value">
-      <change beforePath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added tau to logistic to move function">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -372,6 +372,9 @@
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/synapse_dynamics" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -478,14 +481,7 @@
       <workItem from="1651745017576" duration="3405000" />
       <workItem from="1652112560487" duration="47058000" />
       <workItem from="1653894014261" duration="37112000" />
-      <workItem from="1654245190696" duration="7824000" />
-    </task>
-    <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
-      <created>1644338507666</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1644338507666</updated>
+      <workItem from="1654245190696" duration="8174000" />
     </task>
     <task id="LOCAL-00005" summary="- finished adding algebraic connectivity to plot">
       <created>1644394714137</created>
@@ -823,7 +819,14 @@
       <option name="project" value="LOCAL" />
       <updated>1654263378599</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="- added tau to logistic to move function">
+      <created>1654263626979</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1654263626979</updated>
+    </task>
+    <option name="localTasksCounter" value="54" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -854,7 +857,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- Excel output works!!!!!!" />
     <MESSAGE value="- fixed bug in count_pss_in_gss() saving to Excel" />
     <MESSAGE value="- added handling of case where there are no PSs" />
     <MESSAGE value="- added exporeting of overall statistics to Excel" />
@@ -879,7 +881,8 @@
     <MESSAGE value="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour" />
     <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot" />
     <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value" />
-    <option name="LAST_COMMIT_MESSAGE" value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value" />
+    <MESSAGE value="- added tau to logistic to move function" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added tau to logistic to move function" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
