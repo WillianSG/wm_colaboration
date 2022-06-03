@@ -53,7 +53,7 @@ class RecurrentCompetitiveNet:
 
         self.tqdm_bar = None
 
-        self.int_meth_neur = 'linear'
+        self.int_meth_neur = 'euler'
         self.int_meth_syn = 'euler'
 
         # ------ network parameters
@@ -86,6 +86,8 @@ class RecurrentCompetitiveNet:
         self.tref_e = 2 * ms  # refractory period
         self.tau_epsp_e = 3.5 * ms  # time constant of EPSP
         self.tau_ipsp_e = 5.5 * ms  # time constant of IPSP
+
+        self.k = 2  # shape of f(u) function for calcium-threshold
 
         # inhibitory population
 
@@ -184,7 +186,7 @@ class RecurrentCompetitiveNet:
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
             du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = ((Vth_e_init - 0.002 * u * volt) - Vth_e) / tau_Vth_e : volt
+            dVth_e/dt = (Vth_e_init - (0.002 * (1 + ((u * (1 - 0.5)) / (0.5 * (1 - u)))**-k )**-1 * volt) - Vth_e) / tau_Vth_e  : volt
             ''',
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
@@ -795,7 +797,8 @@ class RecurrentCompetitiveNet:
             'thr_stop_l': self.thr_stop_l,
             'U': self.U,
             'tau_d': self.tau_d,
-            'tau_f': self.tau_f}
+            'tau_f': self.tau_f,
+            'k': self.k}
 
         return self.namespace
 

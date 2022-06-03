@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot">
+      <change afterPath="$PROJECT_DIR$/plotting_functions/plot_thresholds.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" afterDir="false" />
@@ -80,6 +81,9 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/network_dynamics/RCN" />
       <recent name="$PROJECT_DIR$/graph_analysis" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/plotting_functions" />
     </key>
   </component>
   <component name="RunManager" selected="Python.calcium_intrinsic_plasticity_test">
@@ -478,7 +482,8 @@
       <workItem from="1650980301293" duration="10594000" />
       <workItem from="1651745017576" duration="3405000" />
       <workItem from="1652112560487" duration="47058000" />
-      <workItem from="1653894014261" duration="32807000" />
+      <workItem from="1653894014261" duration="37112000" />
+      <workItem from="1654245190696" duration="7488000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -486,13 +491,6 @@
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
       <updated>1644338507666</updated>
-    </task>
-    <task id="LOCAL-00003" summary="- added moving averages to plots">
-      <created>1643912109291</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1643912109291</updated>
     </task>
     <task id="LOCAL-00004" summary="- finished rewriting run_net() with:&#10;* new progress bar&#10;* pulse presentation end setting&#10;* quantisation of running">
       <created>1644308741309</created>
@@ -823,7 +821,14 @@
       <option name="project" value="LOCAL" />
       <updated>1652713440448</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot">
+      <created>1654094905913</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1654094905913</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -854,7 +859,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- added possibility of having multiple periodic generic stimuli" />
     <MESSAGE value="- fixed small bug in run_net() that gave extra iterations sometimes" />
     <MESSAGE value="- Excel output works!!!!!!" />
     <MESSAGE value="- fixed bug in count_pss_in_gss() saving to Excel" />
@@ -879,7 +883,8 @@
     <MESSAGE value="- added 'plastic_u' toggle back into u equations" />
     <MESSAGE value="- made testing file which for now reproduces STSP and threshold adaptation behaviour" />
     <MESSAGE value="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour" />
-    <option name="LAST_COMMIT_MESSAGE" value="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour" />
+    <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot" />
+    <option name="LAST_COMMIT_MESSAGE" value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -924,7 +929,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_graph.coverage" NAME="RCN_item_reactivation_graph Coverage Results" MODIFIED="1646330990910" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_fixed_ba_full_experiment.coverage" NAME="One attractor fixed ba full experiment Coverage Results" MODIFIED="1647273463933" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_sweep_periodic_fixed_GS.coverage" NAME="RCN_sweep_periodic_fixed_GS Coverage Results" MODIFIED="1649338503686" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_test.coverage" NAME="RCN_intrinsic_adaptation_test Coverage Results" MODIFIED="1652113055045" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_test.coverage" NAME="RCN_intrinsic_adaptation_test Coverage Results" MODIFIED="1654249305893" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_experiment_BA_sweep.coverage" NAME="One attractor reactivation full experiment BA sweep Coverage Results" MODIFIED="1647339436277" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs.coverage" NAME="RCN_item_reactivation_gs Coverage Results" MODIFIED="1646243957580" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN.coverage" NAME="RCN Coverage Results" MODIFIED="1646048705953" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
