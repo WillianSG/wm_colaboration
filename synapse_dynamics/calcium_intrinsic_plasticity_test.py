@@ -18,9 +18,10 @@ tau_d = 90 * ms
 Vth_e_decr = 0.14 * mV
 tau_Vth_e = 0.1 * second
 k = 10
+tau = 0.7
 
 th_linear = 'dVth_e/dt = ((Vth_e_init - 0.002 * u * volt) - Vth_e) / tau_Vth_e : volt'
-th_logistic = f'dVth_e/dt = (Vth_e_init - (0.002 / (1 + exp(-{k}*(u-U))) * volt) - Vth_e) / tau_Vth_e : volt'
+th_logistic = f'dVth_e/dt = (Vth_e_init - (0.002 / (1 + exp(-{k}*(u-{tau}))) * volt) - Vth_e) / tau_Vth_e : volt'
 th_sigmoid_logit = f'dVth_e/dt = (Vth_e_init - (0.002 * (1 + ((u * (1 - 0.5)) / (0.5 * (1 - u)))**-{k} )**-1 * volt) - Vth_e) / tau_Vth_e  : volt'
 
 # -- choose which calcium-threshold function to use

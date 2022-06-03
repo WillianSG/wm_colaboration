@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot">
-      <change afterPath="$PROJECT_DIR$/plotting_functions/plot_thresholds.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/RCN_intrinsic_adaptation_test.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value">
       <change beforePath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -483,7 +478,7 @@
       <workItem from="1651745017576" duration="3405000" />
       <workItem from="1652112560487" duration="47058000" />
       <workItem from="1653894014261" duration="37112000" />
-      <workItem from="1654245190696" duration="7488000" />
+      <workItem from="1654245190696" duration="7824000" />
     </task>
     <task id="LOCAL-00001" summary="- hardcoded_algebraic_connectivity function that prints to a_conn.csv">
       <created>1644338507666</created>
@@ -491,13 +486,6 @@
       <option name="presentableId" value="LOCAL-00001" />
       <option name="project" value="LOCAL" />
       <updated>1644338507666</updated>
-    </task>
-    <task id="LOCAL-00004" summary="- finished rewriting run_net() with:&#10;* new progress bar&#10;* pulse presentation end setting&#10;* quantisation of running">
-      <created>1644308741309</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1644308741309</updated>
     </task>
     <task id="LOCAL-00005" summary="- finished adding algebraic connectivity to plot">
       <created>1644394714137</created>
@@ -828,7 +816,14 @@
       <option name="project" value="LOCAL" />
       <updated>1654094905913</updated>
     </task>
-    <option name="localTasksCounter" value="52" />
+    <task id="LOCAL-00052" summary="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value">
+      <created>1654263378599</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1654263378599</updated>
+    </task>
+    <option name="localTasksCounter" value="53" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -859,7 +854,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- fixed small bug in run_net() that gave extra iterations sometimes" />
     <MESSAGE value="- Excel output works!!!!!!" />
     <MESSAGE value="- fixed bug in count_pss_in_gss() saving to Excel" />
     <MESSAGE value="- added handling of case where there are no PSs" />
@@ -884,7 +878,8 @@
     <MESSAGE value="- made testing file which for now reproduces STSP and threshold adaptation behaviour" />
     <MESSAGE value="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour" />
     <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot" />
-    <option name="LAST_COMMIT_MESSAGE" value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot" />
+    <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value" />
+    <option name="LAST_COMMIT_MESSAGE" value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
