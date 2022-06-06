@@ -241,7 +241,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     # -- save the PS statistics for this iteration
     for atr in attractors:
-        find_ps(save_dir, rcn.net.t, atr, write_to_file=True,
+        find_ps(save_dir, rcn.net.x, atr, write_to_file=True,
                 parameters={'ba_Hz': ba,
                             'gs_%': gs_percentage,
                             'I_to_E_weight_mV': i_e_w,
@@ -277,15 +277,15 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         E_ids=rcn.get_E_spks()[1],
         I_spks=rcn.get_I_spks()[0],
         I_ids=rcn.get_I_spks()[1],
-        t_run=rcn.net.t,
+        t_run=rcn.net.x,
         path=save_dir,
         filename='rcn_population_spiking' + filename_addition,
         title_addition=title_addition,
         show=args.show)
 
     # -- plot voltage thresholds --
-    plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0), label=attractors[0][0])
-    plt.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0), label=attractors[1][0])
+    plt.plot(rcn.E_rec.x, np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0), label=attractors[0][0])
+    plt.plot(rcn.E_rec.x, np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0), label=attractors[1][0])
     plt.suptitle('Voltage thresholds')
     plt.legend()
     plt.show()

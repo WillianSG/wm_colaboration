@@ -718,7 +718,7 @@ class RecurrentCompetitiveNet:
 
                 fn = os.path.join(
                     self.E_E_syn_matrix_path,
-                    str(int(round(defaultclock.t / ms, 0))) + '_ms_E_E_syn_matrix.pickle')
+                    str(int(round(defaultclock.x / ms, 0))) + '_ms_E_E_syn_matrix.pickle')
 
                 with open(fn, 'wb') as f:
                     pickle.dump((
@@ -812,7 +812,7 @@ class RecurrentCompetitiveNet:
     # 2.2 ------ neurons
 
     def get_E_rates(self):
-        return [self.E_rec_rate.t[:], self.E_rec_rate.rate[:]]
+        return [self.E_rec_rate.x[:], self.E_rec_rate.rate[:]]
 
     """
     Returns a 2D array containing recorded spikes from E population:

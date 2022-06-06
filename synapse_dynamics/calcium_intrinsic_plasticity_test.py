@@ -12,22 +12,30 @@ taum_e = 20 * ms
 tau_epsp = 3.5 * ms
 Vrst_e = -65 * mV
 
+# -- augmentation and inherent plasticity setup
 U = 0.2
 tau_f = 0.7 * second
 tau_d = 90 * ms
 Vth_e_decr = 0.14 * mV
 tau_Vth_e = 0.1 * second
-k = 10
-mu = 0.7
 
-th_linear = 'dVth_e/dt = ((Vth_e_init - 0.002 * u * volt) - Vth_e) / tau_Vth_e : volt'
-th_logistic = f'dVth_e/dt = (Vth_e_init - (0.002 / (1 + exp(-{k}*(u-{mu}))) * volt) - Vth_e) / tau_Vth_e : volt'
-th_sigmoid_logit = f'dVth_e/dt = (Vth_e_init - (0.002 * (1 + ((u * (1 - 0.5)) / (0.5 * (1 - u)))**-{k} )**-1 * volt) - Vth_e) / tau_Vth_e  : volt'
+f_linear = 'Vth_e_init - 0.002 * u * volt)'
+# -- f(u) setup
+k = 10
+mu = 0.8
+f_logistic = f'Vth_e_init - (0.002 / (1 + exp(-{k}*(u-{mu}))) * volt)'
+f_sigmoid_logit = f'Vth_e_init - (0.002 * (1 + ((u * (1 - {mu})) / ({mu} * (1 - u)))**-{k} )**-1 * volt)'
+
+a = 1
+b = 5.29093166
+c = 8.96366854
+f_gompertz = f'Vth_e_init - (0.002 * ({a} * exp(-exp({b} - {c} * u))) * volt)'
 
 # -- choose which calcium-threshold function to use
-f_u = th_logistic
+f_u = f_gompertz
 
-f_string = f_u.replace(' : ', ' = ').split(' = ')[1].replace('- Vth_e', '').replace('exp', 'np.exp')
+f_th = f'dVth_e/dt = ({f_u} - Vth_e) / tau_Vth_e : volt'
+f_string = f_th.replace(' : ', ' = ').split(' = ')[1].replace('- Vth_e', '').replace('exp', 'np.exp')
 f_string_latex = sympy.latex(sympy.sympify(f_string.replace('* volt', '').replace('np.exp', 'exp')))
 
 E_model_old = '''
@@ -45,7 +53,7 @@ E_model_new = '''
                 dVepsp/dt = -Vepsp / tau_epsp : volt
                 dVm/dt = (Vepsp - (Vm - Vr_e)) / taum_e : volt
                 du/dt = ((U - u) / tau_f) : 1
-                ''' + f_u
+                ''' + f_th
 E_reset_new = '''
                 Vm = Vrst_e 
                 u = u + U * (1 - u)
@@ -136,7 +144,7 @@ f = eval(f_string) * 100
 plt.plot(u, f, c='y')
 plt.ylabel('f(u) (mV)')
 plt.title('f(u) function')
-plt.text(1, np.mean(f), fr'${f_string_latex}$', color="y", fontsize=24, horizontalalignment="right",
+plt.text(1, np.mean(f), fr'$f(u)={f_string_latex}$', color="y", fontsize=24, horizontalalignment="right",
          verticalalignment="top")
 plt.tight_layout()
 plt.show()

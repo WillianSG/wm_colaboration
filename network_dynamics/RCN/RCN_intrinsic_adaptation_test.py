@@ -293,7 +293,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # 4 ------ saving PS statistics ------
     # -- save the PS statistics for this iteration
     for atr in attractors:
-        find_ps(save_dir, rcn.net.t, atr, write_to_file=True,
+        find_ps(save_dir, rcn.net.x, atr, write_to_file=True,
                 parameters={'ba_Hz': ba,
                             'gs_%': gs_percentage,
                             'I_to_E_weight_mV': i_e_w,
