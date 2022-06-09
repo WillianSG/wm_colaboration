@@ -4,26 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added mu to logistic to move function">
-      <change afterPath="$PROJECT_DIR$/synapse_dynamics/f(u)_fitting.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/synapse_dynamics/f_u_curves.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added new Gompertz f(u) function to calcium_intrinsic_plasticity_test.py&#10;- fitted Gompertz f(u) using f(u)_fitting.py">
+      <change afterPath="$PROJECT_DIR$/synapse_dynamics/gompertz_vs_linear.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_sweep_BA.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_sweep_BA.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_intrinsic_adaptation_test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_ba.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_ba.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_ba_gs.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_ba_gs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_item_reactivation_gs_attractors.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_fixed_GS.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_fixed_GS.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_GS.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_GS.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_fixed_GS.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/RCN_sweep_periodic_fixed_GS.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/graphing.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/graphing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/plot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/plot_thresholds.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/plot_thresholds.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/synapse_dynamics/calcium_intrinsic_plasticity_test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/synapse_dynamics/f(u)_fitting.py" beforeDir="false" afterPath="$PROJECT_DIR$/synapse_dynamics/f(u)_fitting.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,6 +75,13 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
   }
 }</component>
+  <component name="PyConsoleOptionsProvider">
+    <option name="myPythonConsoleState">
+      <console-settings>
+        <option name="useSoftWraps" value="true" />
+      </console-settings>
+    </option>
+  </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/network_dynamics/RCN" />
@@ -99,7 +91,7 @@
       <recent name="$PROJECT_DIR$/plotting_functions" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.calcium_intrinsic_plasticity_test">
+  <component name="RunManager" selected="Python.f(u)_fitting">
     <configuration name="One attractor ba full experiment" type="PythonConfigurationType" factoryName="Python">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -346,6 +338,9 @@
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/synapse_dynamics" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -384,6 +379,9 @@
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/synapse_dynamics" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -399,26 +397,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="richards_curve_fitting" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="wm_colaboration" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/synapse_dynamics" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/synapse_dynamics/richards_curve_fitting.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="true" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="testing_resources_v2" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="gompertz_vs_linear" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -431,7 +410,29 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/synapse_dynamics/testing_resources_v2.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/synapse_dynamics/gompertz_vs_linear.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="richards_curve_fitting" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="wm_colaboration" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/synapse_dynamics" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/synapse_dynamics/richards_curve_fitting.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -457,17 +458,17 @@
       <item itemvalue="Python.RCN_intrinsic_adaptation_test" />
       <item itemvalue="Python.f(u)_fitting" />
       <item itemvalue="Python.f_u_curves" />
+      <item itemvalue="Python.gompertz_vs_linear" />
       <item itemvalue="Python.richards_curve_fitting" />
       <item itemvalue="Python.calcium_intrinsic_plasticity_test" />
-      <item itemvalue="Python.testing_resources_v2" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.f(u)_fitting" />
+        <item itemvalue="Python.gompertz_vs_linear" />
         <item itemvalue="Python.calcium_intrinsic_plasticity_test" />
         <item itemvalue="Python.f_u_curves" />
-        <item itemvalue="Python.f(u)_fitting" />
         <item itemvalue="Python.richards_curve_fitting" />
-        <item itemvalue="Python.testing_resources_v2" />
       </list>
     </recent_temporary>
   </component>
@@ -512,14 +513,9 @@
       <workItem from="1652112560487" duration="47058000" />
       <workItem from="1653894014261" duration="37112000" />
       <workItem from="1654245190696" duration="8174000" />
-      <workItem from="1654264974808" duration="15506000" />
-    </task>
-    <task id="LOCAL-00006" summary="- fixed extra iteration in run_net">
-      <created>1644430915012</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1644430915012</updated>
+      <workItem from="1654264974808" duration="28389000" />
+      <workItem from="1654701208824" duration="6379000" />
+      <workItem from="1654762428023" duration="12348000" />
     </task>
     <task id="LOCAL-00007" summary="- video generation&#10;- ton of fixes in plot">
       <created>1644432564989</created>
@@ -857,7 +853,14 @@
       <option name="project" value="LOCAL" />
       <updated>1654265047565</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="- added new Gompertz f(u) function to calcium_intrinsic_plasticity_test.py&#10;- fitted Gompertz f(u) using f(u)_fitting.py">
+      <created>1654506898888</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1654506898888</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -888,7 +891,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- added handling of case where there are no PSs" />
     <MESSAGE value="- added exporeting of overall statistics to Excel" />
     <MESSAGE value="- suppressed runtime warnings" />
     <MESSAGE value="- run_net() should be a bit faster now" />
@@ -913,7 +915,8 @@
     <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value" />
     <MESSAGE value="- added tau to logistic to move function" />
     <MESSAGE value="- added mu to logistic to move function" />
-    <option name="LAST_COMMIT_MESSAGE" value="- added mu to logistic to move function" />
+    <MESSAGE value="- added new Gompertz f(u) function to calcium_intrinsic_plasticity_test.py&#10;- fitted Gompertz f(u) using f(u)_fitting.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added new Gompertz f(u) function to calcium_intrinsic_plasticity_test.py&#10;- fitted Gompertz f(u) using f(u)_fitting.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -951,6 +954,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$calcium_intrinsic_plasticity_test.coverage" NAME="calcium_intrinsic_plasticity_test Coverage Results" MODIFIED="1654506585210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
     <SUITE FILE_PATH="coverage/wm_colaboration$recurrent_competitive_network.coverage" NAME="recurrent_competitive_network Coverage Results" MODIFIED="1646148885484" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/helper_functions" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_ba.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646331179889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$gompertz_vs_linear.coverage" NAME="gompertz_vs_linear Coverage Results" MODIFIED="1654696855937" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs_attractors.coverage" NAME="One attractor reactivation full experiment Coverage Results" MODIFIED="1646939769841" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646235910231" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_experiment_BA_fixed.coverage" NAME="One attractor reactivation full experiment BA fixed Coverage Results" MODIFIED="1647374725012" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
@@ -962,8 +966,9 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_experiment_BA_sweep.coverage" NAME="One attractor reactivation full experiment BA sweep Coverage Results" MODIFIED="1647339436277" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs.coverage" NAME="RCN_item_reactivation_gs Coverage Results" MODIFIED="1646243957580" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN.coverage" NAME="RCN Coverage Results" MODIFIED="1646048705953" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$f_u__fitting.coverage" NAME="f(u)_fitting Coverage Results" MODIFIED="1654789801101" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
     <SUITE FILE_PATH="coverage/wm_colaboration$Three_attractor_reactivation_fast.coverage" NAME="Three attractor reactivation fast Coverage Results" MODIFIED="1647272565998" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$gompertz_fit.coverage" NAME="gompertz_fit Coverage Results" MODIFIED="1654504285150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$gompertz_fit.coverage" NAME="f(u)_fitting Coverage Results" MODIFIED="1654700280403" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
     <SUITE FILE_PATH="coverage/wm_colaboration$Two_attractor_reactivation.coverage" NAME="Two attractor reactivation fast Coverage Results" MODIFIED="1647872435803" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
   </component>
 </project>

@@ -19,20 +19,26 @@ tau_d = 90 * ms
 Vth_e_decr = 0.14 * mV
 tau_Vth_e = 0.1 * second
 
-f_linear = 'Vth_e_init - 0.002 * u * volt)'
+f_linear = 'Vth_e_init - 0.002 * u * volt'
 # -- f(u) setup
 k = 10
-mu = 0.8
+mu = 0.5
 f_logistic = f'Vth_e_init - (0.002 / (1 + exp(-{k}*(u-{mu}))) * volt)'
 f_sigmoid_logit = f'Vth_e_init - (0.002 * (1 + ((u * (1 - {mu})) / ({mu} * (1 - u)))**-{k} )**-1 * volt)'
 
+# -- parameters fitted to pass through (0,0), (0.5,0.1), (0.7,0.7), (0.9,0.9), (1,1)
 a = 1
 b = 5.29093166
 c = 8.96366854
 f_gompertz = f'Vth_e_init - (0.002 * ({a} * exp(-exp({b} - {c} * u))) * volt)'
+# -- parameters fitted to pass through (0,0), (0.3,0.1), (0.7,0.7), (0.9,0.9), (1,1)
+a = 1
+b = 2.45609419
+c = 5.17866656
+f_gompertz_2 = f'Vth_e_init - (0.002 * ({a} * exp(-exp({b} - {c} * u))) * volt)'
 
 # -- choose which calcium-threshold function to use
-f_u = f_gompertz
+f_u = f_gompertz_2
 
 f_th = f'dVth_e/dt = ({f_u} - Vth_e) / tau_Vth_e : volt'
 f_string = f_th.replace(' : ', ' = ').split(' = ')[1].replace('- Vth_e', '').replace('exp', 'np.exp')
@@ -133,7 +139,8 @@ ax_twin.set_ylim(0, 1)
 for t in spikemon.t:
     plt.axvline(t / second, c='C1', alpha=0.2)
 ax1.legend([ax1.lines[0], ax_twin.lines[0], ax_twin.lines[1]], ['Vth_e', 'u', 'spikes'])
-# ax1.set_ylim([-60 * mV, -50 * mV])
+ax1.set_ylim([-55.1 * mV, -51.9 * mV])
+ax1.autoscale_view()
 ax1.set_xlabel('Time (s)')
 fig.suptitle('Simulated firing pattern of attractor with STSP')
 plt.show()
