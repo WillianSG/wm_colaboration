@@ -1,13 +1,18 @@
 from lmfit import Minimizer, Parameters, report_fit
 import numpy as np
 import matplotlib.pylab as plt
-from matplotlib.colors import ListedColormap
+import matplotlib as mpl
+
+# mpl.use('macosx')
 
 x = np.array([0, 0.2, 0.3, 0.5, 0.7, 0.9, 1])
 y = np.array([0, 0, 0.1, 0.5, 0.7, 0.9, 1])
 
-fig, ((ax11, ax21)) = plt.subplots(2, 1, figsize=(25, 25))
-ax11.plot(x, y, 'r+', markersize=15, markeredgewidth=2, label='Data')
+fig = plt.figure(figsize=(25, 25))
+gs = fig.add_gridspec(nrows=2, ncols=2, width_ratios=[1.5, 1])
+ax11 = fig.add_subplot(gs[0, 0])
+ax12 = fig.add_subplot(gs[0, 1], projection='3d')
+ax2 = fig.add_subplot(gs[1, :])
 
 # Create object for parameter storing
 params_gompertz = Parameters()
@@ -62,27 +67,41 @@ def gompertz_derivative(params, x):
 
 
 def penalty(model, func, x):
+    from sklearn import preprocessing
+
     # calculate distance from f(x)=x as penalty term
     penalty1 = np.abs(model - x)
     # calculate distance from f'(x)=1 as penalty term
     penalty2 = np.abs(eval(func.__name__ + '_derivative')(params, x) - 1)
 
-    return (penalty1, penalty2)
+    penalty1_norm = preprocessing.minmax_scale(penalty1)
+    penalty2_norm = preprocessing.minmax_scale(penalty2)
+
+    return (penalty1_norm, penalty2_norm)
 
 
-functions = [(gompertz, params_gompertz)]
+def error(params, func, x):
+    from sklearn import preprocessing
+
+    model = func(params, x)
+
+    penalty1, penalty2 = penalty(model, func, x)
+
+    penalty1_norm = preprocessing.minmax_scale(penalty1)
+    penalty2_norm = preprocessing.minmax_scale(penalty2)
+
+    score = np.mean(penalty1_norm + penalty2_norm)
+
+    return score
 
 
 # Write down the objective function that we want to minimize, i.e., the residuals
-def residuals(params, func, x, data, lam1=0, lam2=0, exclude=[0, 1, 2, 3]):
-    '''Model a logistic growth and subtract data'''
-    # Logistic model
+def residuals(params, func, x, data, lam1=0, lam2=0, exclude=[0, 1, 2]):
     model = func(params, x)
 
     penalty1, penalty2 = penalty(model, func, x)
 
     # exclude first points from being penalised
-
     penalty1[exclude] = 0
     penalty2[exclude] = 0
 
@@ -99,13 +118,16 @@ Z = np.zeros_like(X)
 colors1 = plt.cm.copper_r(np.linspace(0, 2, lambdas))
 colors2 = plt.cm.summer_r(np.linspace(0, 2, lambdas))
 
+functions = [(gompertz, params_gompertz)]
+points_to_exclude = [0, 1, 2]
+
 for f, params in functions:
     for i, lam1 in enumerate(X[0]):
         for j, lam2 in enumerate(Y[:, 0]):
             print(f'Fitting {f.__name__} with lambda1 = {lam1}, lambda2 = {lam2}')
             try:
                 # Create a Minimizer object
-                minner = Minimizer(residuals, params_gompertz, fcn_args=(f, x, y, lam1, lam2))
+                minner = Minimizer(residuals, params_gompertz, fcn_args=(f, x, y, lam1, lam2, points_to_exclude))
                 # Perform the minimization
                 fit = minner.minimize()
                 # Summarize results
@@ -118,58 +140,87 @@ for f, params in functions:
                 smooth_x_vec = np.linspace(0, 1, 1000)
                 smooth_y_vec = f(fit.params, smooth_x_vec)
                 ax11.plot(smooth_x_vec, smooth_y_vec, color=colors1[i] * colors2[j], linestyle='--', linewidth=1,
+                          alpha=0.4,
                           label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
 
                 # Plot derivative
                 deriv = eval(f.__name__ + '_derivative')(fit.params, smooth_x_vec)
-                ax21.plot(smooth_x_vec, deriv, color=colors1[i] * colors2[j], linestyle='--', linewidth=1)
+                ax2.plot(smooth_x_vec, deriv, color=colors1[i] * colors2[j], linestyle='--', linewidth=1,
+                         alpha=0.4,
+                         label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
 
                 # Save the fit parameters and score
-                scores[f'{f.__name__},{lam1},{lam2}'] = (fit.params.valuesdict(),
-                                                         np.mean(penalty(smooth_y_vec, f, smooth_x_vec)))
-                Z[i, j] = np.mean(penalty(smooth_y_vec, f, smooth_x_vec))
+                scores[f'{f.__name__},{lam1},{lam2}'] = (fit.params.valuesdict(), error(fit.params, f, smooth_x_vec))
+                Z[i, j] = error(fit.params, f, smooth_x_vec)
             except:
                 print(f'Fitting failed for lambda1 = {lam1}, lambda2 = {lam2}')
 
-# plot y=x
-ax11.plot(smooth_x_vec, smooth_x_vec, color='black', linestyle='--', linewidth=1, label=r'$y=x$')
-ax21.plot(smooth_x_vec, np.ones_like(smooth_x_vec), color='black', linestyle='--', linewidth=1)
-
-# Shrink current axis's height by 10% on the bottom
-box = ax21.get_position()
-ax21.set_position([box.x0, box.y0 + box.height * 0.1,
-                   box.width, box.height * 0.9])
-# Put a legend below current axis
-ax11.legend(loc='upper center', bbox_to_anchor=(0.5, -1.15), fancybox=True, shadow=True, ncol=10)
-
-ax21.set_xlabel(r'Calcium $u$')
-
-ax11.set_title('Fitted Gompertz')
-ax21.set_title('Gompertz derivatives')
-
-fig.suptitle(r'Gompertz and Richard logistic growth equation fitting for $f(u)$', fontsize=20)
-# fig.tight_layout()
-fig.show()
-
-# plot error surface
-fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-surf = ax.plot_surface(X, Y, Z, cmap=plt.cm.coolwarm, linewidth=0, antialiased=False)
-ax.set_xlabel(r'$\lambda_1$')
-ax.set_ylabel(r'$\lambda_2$')
-fig.colorbar(surf, shrink=0.5, aspect=5)
-plt.show()
-
 # find optimal model
 optimal_model = min(scores.items(), key=lambda x: x[1][1])
+opt_l1 = round(float(optimal_model[0].split(",")[1]), 2)
+opt_l2 = round(float(optimal_model[0].split(",")[2]), 2)
 print(
     f'Optimal model:\n\tlambda1 {optimal_model[0].split(",")[1]}, lambda2 {optimal_model[0].split(",")[2]}\n\tparameters {optimal_model[1][0]}\n\tscore {optimal_model[1][1]}')
+
+# highlight optimal model
+ax11.plot(smooth_x_vec, f(optimal_model[1][0], smooth_x_vec), color='blue', linestyle='--', linewidth=4,
+          alpha=0.7,
+          label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
+ax2.plot(smooth_x_vec, eval(f.__name__ + '_derivative')(optimal_model[1][0], smooth_x_vec), color='blue',
+         linestyle='--', linewidth=4,
+         alpha=0.7,
+         label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
+
+# plot y=x
+ax11.plot(smooth_x_vec, smooth_x_vec, color='black', linestyle='--', linewidth=1, label=r'$y=x$')
+ax2.plot(smooth_x_vec, np.ones_like(smooth_x_vec), color='black', linestyle='--', linewidth=1)
+# Plot data points
+ax11.plot(x, y, 'r+', markersize=15, markeredgewidth=2, label='Data')
+
+# Shrink current axis's height by 10% on the bottom
+box = ax2.get_position()
+ax2.set_position([box.x0, box.y0 + box.height * 0.1,
+                  box.width, box.height * 0.9])
+# Put a legend below current axis
+ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=10)
+
+ax11.set_xlabel(r'Calcium $u$')
+ax2.set_xlabel(r'Calcium $u$')
+
+ax11.set_title('Fitted Gompertz', fontsize=20)
+ax2.set_title('Gompertz derivatives', fontsize=20)
+
+# plot error surface
+surf = ax12.plot_surface(X, Y, Z, cmap=plt.cm.coolwarm, alpha=0.5)
+# ax12.scatter(opt_l1, opt_l2, optimal_model[1][1], color='blue', s=150, marker='*')
+ax12.text(opt_l1, opt_l2, optimal_model[1][1], fr'e={round(float(optimal_model[1][1]), 2)}', (1, 1, 0), fontsize=15,
+          color='blue')
+ax12.text(opt_l1, ax12.get_ylim()[0], ax12.get_zlim()[0], rf'$\lambda_1={opt_l1}$', 'x', fontsize=15, color='blue')
+ax12.text(ax12.get_xlim()[0], opt_l2, ax12.get_zlim()[0], rf'$\lambda_2={opt_l2}$', 'y', fontsize=15, color='blue')
+ax12.stem([opt_l1], [opt_l2], [optimal_model[1][1]], orientation='y')
+ax12.stem([opt_l1], [opt_l2], [optimal_model[1][1]], orientation='x')
+
+ax12.set_xlabel(r'$\lambda_1$')
+ax12.set_ylabel(r'$\lambda_2$')
+ax12.set_title('Distance from desiderata', fontsize=20)
+
+fig.suptitle(
+    'Fits to Gompertz model\n' + f'Optimal model: $\lambda_1={opt_l1}, \lambda_2={opt_l2}$' + f'\nParameters {optimal_model[1][0]}\nError {optimal_model[1][1]}',
+    fontsize=30)
+fig.show()
+
 # display optimal model
-fig, (ax11, ax21) = plt.subplots(2, 1)
+fig2, (ax11, ax2) = plt.subplots(2, 1)
 smooth_y_vec = f(optimal_model[1][0], smooth_x_vec)
-ax11.plot(smooth_x_vec, smooth_y_vec, color='orange', linestyle='--', linewidth=1)
+ax11.plot(smooth_x_vec, smooth_y_vec, color='blue', linestyle='--', linewidth=1)
 ax11.plot(smooth_x_vec, smooth_x_vec, color='black', linestyle='--', linewidth=1)
 
 deriv = eval(f.__name__ + '_derivative')(optimal_model[1][0], smooth_x_vec)
-ax21.plot(smooth_x_vec, deriv, color='orange', linestyle='--', linewidth=1)
-ax21.plot(smooth_x_vec, np.ones_like(smooth_x_vec), color='black', linestyle='--', linewidth=1)
-fig.show()
+ax2.plot(smooth_x_vec, deriv, color='blue', linestyle='--', linewidth=1)
+ax2.plot(smooth_x_vec, np.ones_like(smooth_x_vec), color='black', linestyle='--', linewidth=1)
+
+ax11.plot(x, y, 'r+', markersize=15, markeredgewidth=2, label='Data')
+fig2.suptitle(
+    f'Optimal model: $\lambda_1={opt_l1}, \lambda_2={opt_l2}$' + f'\nParameters {optimal_model[1][0]}\nError {optimal_model[1][1]}')
+fig2.tight_layout()
+fig2.show()
