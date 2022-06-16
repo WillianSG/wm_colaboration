@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- finding optimal Gompertz f(u) using f(u)_fitting.py">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- finished finding optimal Gompertz f(u) using f(u)_fitting.py but still needs validating">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/synapse_dynamics/f(u)_fitting.py" beforeDir="false" afterPath="$PROJECT_DIR$/synapse_dynamics/f(u)_fitting.py" afterDir="false" />
     </list>
@@ -514,14 +514,7 @@
       <workItem from="1654264974808" duration="28389000" />
       <workItem from="1654701208824" duration="6379000" />
       <workItem from="1654762428023" duration="26956000" />
-      <workItem from="1654876385479" duration="117000" />
-    </task>
-    <task id="LOCAL-00008" summary="- post-merge fixes">
-      <created>1646317021823</created>
-      <option name="number" value="00008" />
-      <option name="presentableId" value="LOCAL-00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1646317021823</updated>
+      <workItem from="1654876385479" duration="9228000" />
     </task>
     <task id="LOCAL-00009" summary="- fixed attractors being connected together">
       <created>1646330422760</created>
@@ -859,7 +852,14 @@
       <option name="project" value="LOCAL" />
       <updated>1654790266354</updated>
     </task>
-    <option name="localTasksCounter" value="57" />
+    <task id="LOCAL-00057" summary="- finished finding optimal Gompertz f(u) using f(u)_fitting.py but still needs validating">
+      <created>1654876518767</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1654876518767</updated>
+    </task>
+    <option name="localTasksCounter" value="58" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -890,7 +890,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- suppressed runtime warnings" />
     <MESSAGE value="- run_net() should be a bit faster now" />
     <MESSAGE value="- added remove_pickles() function as they're too large to store" />
     <MESSAGE value="- added ability to normalise the number of PSs by the number of GSs, which should make it independent of BA and total number of PSs" />
@@ -915,7 +914,8 @@
     <MESSAGE value="- added mu to logistic to move function" />
     <MESSAGE value="- added new Gompertz f(u) function to calcium_intrinsic_plasticity_test.py&#10;- fitted Gompertz f(u) using f(u)_fitting.py" />
     <MESSAGE value="- finding optimal Gompertz f(u) using f(u)_fitting.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="- finding optimal Gompertz f(u) using f(u)_fitting.py" />
+    <MESSAGE value="- finished finding optimal Gompertz f(u) using f(u)_fitting.py but still needs validating" />
+    <option name="LAST_COMMIT_MESSAGE" value="- finished finding optimal Gompertz f(u) using f(u)_fitting.py but still needs validating" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

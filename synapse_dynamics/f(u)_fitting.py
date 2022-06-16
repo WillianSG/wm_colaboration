@@ -1,9 +1,8 @@
 from lmfit import Minimizer, Parameters, report_fit
 import numpy as np
 import matplotlib.pylab as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
-
-# mpl.use('macosx')
 
 x = np.array([0, 0.2, 0.3, 0.5, 0.7, 0.9, 1])
 y = np.array([0, 0, 0.1, 0.5, 0.7, 0.9, 1])
@@ -34,6 +33,20 @@ params_genlogistic.add_many(
     ('mu', 0.1, True, None, None, None, None),
     ('T', 0.8, True, None, None, None, None)
 )
+
+
+def ca_over_cb(ca, cb):
+    ca[3] = 0.5
+    cb[3] = 0.5
+    out = np.zeros(4)
+
+    out[3] = ca[3] + cb[3] * (1 - ca[3])
+    for i in range(0, 3):
+        out[i] = (ca[i] * ca[3] + cb[i] * cb[3] * (1 - ca[3])) / out[3]
+
+    out[3] = 1
+
+    return out
 
 
 def genlogistic(params, x):
@@ -115,8 +128,9 @@ X = np.linspace(0, 1, lambdas)
 Y = np.linspace(0, 1, lambdas)
 X, Y = np.meshgrid(X, Y)
 Z = np.zeros_like(X)
-colors1 = plt.cm.copper_r(np.linspace(0, 2, lambdas))
-colors2 = plt.cm.summer_r(np.linspace(0, 2, lambdas))
+# TODO make colors mix better
+colors1 = plt.cm.autumn_r(np.linspace(0, 1, lambdas))
+colors2 = plt.cm.summer_r(np.linspace(0, 1, lambdas))
 
 functions = [(gompertz, params_gompertz)]
 points_to_exclude = [0, 1, 2]
@@ -139,15 +153,16 @@ for f, params in functions:
                 # Get a smooth curve by plugging a time vector to the fitted logistic model
                 smooth_x_vec = np.linspace(0, 1, 1000)
                 smooth_y_vec = f(fit.params, smooth_x_vec)
-                ax11.plot(smooth_x_vec, smooth_y_vec, color=colors1[i] * colors2[j], linestyle='--', linewidth=1,
-                          alpha=0.4,
-                          label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
+                ax2.plot(smooth_x_vec, smooth_y_vec, color=ca_over_cb(colors1[i], colors2[j]), linestyle='--',
+                         linewidth=1,
+                         alpha=0.4,
+                         label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
 
                 # Plot derivative
                 deriv = eval(f.__name__ + '_derivative')(fit.params, smooth_x_vec)
-                ax2.plot(smooth_x_vec, deriv, color=colors1[i] * colors2[j], linestyle='--', linewidth=1,
-                         alpha=0.4,
-                         label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
+                ax11.plot(smooth_x_vec, deriv, color=ca_over_cb(colors1[i], colors2[j]), linestyle='--', linewidth=1,
+                          alpha=0.4,
+                          label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
 
                 # Save the fit parameters and score
                 scores[f'{f.__name__},{lam1},{lam2}'] = (fit.params.valuesdict(), error(fit.params, f, smooth_x_vec))
@@ -163,32 +178,47 @@ print(
     f'Optimal model:\n\tlambda1 {optimal_model[0].split(",")[1]}, lambda2 {optimal_model[0].split(",")[2]}\n\tparameters {optimal_model[1][0]}\n\tscore {optimal_model[1][1]}')
 
 # highlight optimal model
-ax11.plot(smooth_x_vec, f(optimal_model[1][0], smooth_x_vec), color='blue', linestyle='--', linewidth=4,
-          alpha=0.7,
-          label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
-ax2.plot(smooth_x_vec, eval(f.__name__ + '_derivative')(optimal_model[1][0], smooth_x_vec), color='blue',
-         linestyle='--', linewidth=4,
+ax2.plot(smooth_x_vec, f(optimal_model[1][0], smooth_x_vec), color='blue', linestyle='--', linewidth=4,
          alpha=0.7,
-         label=rf'$\lambda_1={lam1:.2f}$, $\lambda_2={lam2:.2f}$')
+         label='Optimal')
+ax11.plot(smooth_x_vec, eval(f.__name__ + '_derivative')(optimal_model[1][0], smooth_x_vec), color='blue',
+          linestyle='--', linewidth=4,
+          alpha=0.7,
+          label='Optimal')
+optimal_pars = {k: round(v, 2) for k, v in optimal_model[1][0].items()}
 
 # plot y=x
-ax11.plot(smooth_x_vec, smooth_x_vec, color='black', linestyle='--', linewidth=1, label=r'$y=x$')
-ax2.plot(smooth_x_vec, np.ones_like(smooth_x_vec), color='black', linestyle='--', linewidth=1)
+ax2.plot(smooth_x_vec, smooth_x_vec, color='black', linestyle='--', linewidth=1, label=r'$y=x$')
+ax11.plot(smooth_x_vec, np.ones_like(smooth_x_vec), color='black', linestyle='--', linewidth=1)
 # Plot data points
-ax11.plot(x, y, 'r+', markersize=15, markeredgewidth=2, label='Data')
+ax2.plot(x, y, 'r+', markersize=15, markeredgewidth=2, label='Data')
+
+# colorbars
+divider = make_axes_locatable(ax2)
+cax1 = divider.append_axes("right", size="5%", pad=0.05)
+cb1 = mpl.colorbar.ColorbarBase(cax1, cmap=plt.cm.autumn_r,
+                                orientation='vertical')
+cb1.set_ticks([])
+cb1.ax.text(0.5, 0.5, r'$\lambda_1$', ha='center', va='center', fontsize=20)
+cax2 = divider.append_axes("right", size="5%", pad=0.15)
+cb2 = mpl.colorbar.ColorbarBase(cax2, cmap=plt.cm.summer_r,
+                                orientation='vertical')
+cb2.ax.text(0.5, 0.5, r'$\lambda_2$', ha='center', va='center', fontsize=20)
 
 # Shrink current axis's height by 10% on the bottom
 box = ax2.get_position()
 ax2.set_position([box.x0, box.y0 + box.height * 0.1,
                   box.width, box.height * 0.9])
 # Put a legend below current axis
-ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=10)
+leg = ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=10)
+for lh in leg.legendHandles:
+    lh.set_alpha(1)
 
-ax11.set_xlabel(r'Calcium $u$')
 ax2.set_xlabel(r'Calcium $u$')
+ax11.set_xlabel(r'Calcium $u$')
 
-ax11.set_title('Fitted Gompertz', fontsize=20)
-ax2.set_title('Gompertz derivatives', fontsize=20)
+ax2.set_title('Fitted Gompertz', fontsize=20)
+ax11.set_title('Gompertz derivatives', fontsize=20)
 
 # plot error surface
 surf = ax12.plot_surface(X, Y, Z, cmap=plt.cm.coolwarm, alpha=0.5)
@@ -197,15 +227,22 @@ ax12.text(opt_l1, opt_l2, optimal_model[1][1], fr'e={round(float(optimal_model[1
           color='blue')
 ax12.text(opt_l1, ax12.get_ylim()[0], ax12.get_zlim()[0], rf'$\lambda_1={opt_l1}$', 'x', fontsize=15, color='blue')
 ax12.text(ax12.get_xlim()[0], opt_l2, ax12.get_zlim()[0], rf'$\lambda_2={opt_l2}$', 'y', fontsize=15, color='blue')
-ax12.stem([opt_l1], [opt_l2], [optimal_model[1][1]], orientation='y')
-ax12.stem([opt_l1], [opt_l2], [optimal_model[1][1]], orientation='x')
+markerline, stemline, _ = ax12.stem([opt_l1], [opt_l2], [optimal_model[1][1]], orientation='y')
+plt.setp(markerline, 'markerfacecolor', 'b')
+plt.setp(stemline, 'color', 'b')
+markerline, stemline, _ = ax12.stem([opt_l1], [opt_l2], [optimal_model[1][1]], orientation='x')
+plt.setp(markerline, 'markerfacecolor', 'b')
+plt.setp(stemline, 'color', 'b')
+# invert x-axis and remove padding
+ax12.set_xlim(1, 0)
+ax12.set_ylim(0, 1)
 
 ax12.set_xlabel(r'$\lambda_1$')
 ax12.set_ylabel(r'$\lambda_2$')
 ax12.set_title('Distance from desiderata', fontsize=20)
 
 fig.suptitle(
-    'Fits to Gompertz model\n' + f'Optimal model: $\lambda_1={opt_l1}, \lambda_2={opt_l2}$' + f'\nParameters {optimal_model[1][0]}\nError {optimal_model[1][1]}',
+    'Fits to Gompertz model\n' + f'Optimal model: $\lambda_1={opt_l1}, \lambda_2={opt_l2}$' + f'\nParameters {optimal_pars}\nError {round(optimal_model[1][1], 2)}',
     fontsize=30)
 fig.show()
 
@@ -221,6 +258,6 @@ ax2.plot(smooth_x_vec, np.ones_like(smooth_x_vec), color='black', linestyle='--'
 
 ax11.plot(x, y, 'r+', markersize=15, markeredgewidth=2, label='Data')
 fig2.suptitle(
-    f'Optimal model: $\lambda_1={opt_l1}, \lambda_2={opt_l2}$' + f'\nParameters {optimal_model[1][0]}\nError {optimal_model[1][1]}')
+    f'Optimal model: $\lambda_1={opt_l1}, \lambda_2={opt_l2}$' + f'\nParameters {optimal_pars}\nError {round(optimal_model[1][1], 2)}')
 fig2.tight_layout()
 fig2.show()
