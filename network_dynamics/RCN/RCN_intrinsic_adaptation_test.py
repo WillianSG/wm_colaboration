@@ -62,13 +62,13 @@ warnings.filterwarnings('ignore', category=TqdmWarning)
 parser = argparse.ArgumentParser(description='RCN_item_reactivation_gs_attractors')
 parser.add_argument('--ba_amount', type=float, default=[10, 10], nargs='+',
                     help='Bounds for background activity in Hz')
-parser.add_argument('--ba_step', type=int, default=5, help='Step size for background activity')
+parser.add_argument('--ba_step', type=float, default=5, help='Step size for background activity')
 parser.add_argument('--gs_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for generic stimulus in % of stimulated neurons')
-parser.add_argument('--gs_step', type=int, default=5, help='Step size for generic stimulus')
+parser.add_argument('--gs_step', type=float, default=5, help='Step size for generic stimulus')
 parser.add_argument('--i_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for I-to-E inhibition weight')
-parser.add_argument('--i_step', type=int, default=2, help='Step size for I-to-E inhibition weight')
+parser.add_argument('--i_step', type=float, default=2, help='Step size for I-to-E inhibition weight')
 parser.add_argument('--i_stim_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for I inhibition input in Hz')
 parser.add_argument('--i_stim_step', type=int, default=10, help='Step size for I inhibition')
@@ -157,9 +157,8 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.w_e_i = 3 * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 1 mV default
 
-    # -- intrinsic plasticity setup
-    rcn.Vth_e_decr = 0.14 * mV  # 0.15 mV default
-    rcn.tau_Vth_e = 0.05 * second  # 0.1 s default
+    # -- intrinsic plasticity setup (Vth_e_decr for naive / tau_Vth_e for calcium-based)
+    rcn.tau_Vth_e = 0.1 * second  # 0.1 s default
     # rcn.Vth_e_init = -51.6 * mV  # -52 mV default
     rcn.k = 4  # 2 default
 
@@ -210,10 +209,11 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     # -- run network --
     stimulation_amount = []
+    cue_percentage = 50
     # simulate intrinsic adaptation on attractor 1
     # rcn.E.Vth_e[attractors[0][1]] = np.ones(len(rcn.E.Vth_e[attractors[0][1]])) * -56 * mV
     # cue attractor 1
-    gs_A1 = (100, stim1_ids, (0, 0.1))
+    gs_A1 = (cue_percentage, stim1_ids, (0, 0.1))
     act_ids = rcn.generic_stimulus(frequency=rcn.stim_freq_e, stim_perc=gs_A1[0], subset=gs_A1[1])
     stimulation_amount.append(
         (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
@@ -230,7 +230,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # simulate intrinsic adaptation on attractor 2
     # rcn.E.Vth_e[attractors[1][1]] = np.ones(len(rcn.E.Vth_e[attractors[1][1]])) * -56 * mV
     # cue attractor 2
-    gs_A2 = (100, stim2_ids, (2.1, 2.2))
+    gs_A2 = (cue_percentage, stim2_ids, (2.1, 2.2))
     act_ids = rcn.generic_stimulus(frequency=rcn.stim_freq_e, stim_perc=gs_A2[0], subset=gs_A2[1])
     stimulation_amount.append(
         (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
@@ -293,7 +293,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # 4 ------ saving PS statistics ------
     # -- save the PS statistics for this iteration
     for atr in attractors:
-        find_ps(save_dir, rcn.net.x, atr, write_to_file=True,
+        find_ps(save_dir, rcn.net.t, atr, write_to_file=True,
                 parameters={'ba_Hz': ba,
                             'gs_%': gs_percentage,
                             'I_to_E_weight_mV': i_e_w,
@@ -313,9 +313,10 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     print('DEBUG\n% neurons stimulated by GS in each attractor\n', stimulation_amount, '\n')
 
+    # TODO somehow this is broken now
     # 5 ------ compute PS statistics for the whole experiment and write back to excel ------
-    df_statistics = compute_pss_statistics(timestamp_folder,
-                                           parameters=['ba_Hz', 'gs_%', 'I_to_E_weight_mV', 'I_input_freq_Hz'])
+    # df_statistics = compute_pss_statistics(timestamp_folder,
+    #                                        parameters=['ba_Hz', 'gs_%', 'I_to_E_weight_mV', 'I_input_freq_Hz'])
 
     rates = firing_rates(rcn)
     rates_atr1_gs = firing_rates(rcn, attractors[0][1], 0.1 * second)

@@ -26,19 +26,14 @@ mu = 0.5
 f_logistic = f'Vth_e_init - (0.002 / (1 + exp(-{k}*(u-{mu}))) * volt)'
 f_sigmoid_logit = f'Vth_e_init - (0.002 * (1 + ((u * (1 - {mu})) / ({mu} * (1 - u)))**-{k} )**-1 * volt)'
 
-# -- parameters fitted to pass through (0,0), (0.5,0.1), (0.7,0.7), (0.9,0.9), (1,1)
+# -- parameters fitted to pass through (0,0), (0.3,0.1), (0.7,0.7), (0.9,0.9), (1,1) with f(u)_fitting.py
 a = 1
-b = 5.29093166
-c = 8.96366854
+b = 2.7083893552094156
+c = 5.509734056519429
 f_gompertz = f'Vth_e_init - (0.002 * ({a} * exp(-exp({b} - {c} * u))) * volt)'
-# -- parameters fitted to pass through (0,0), (0.3,0.1), (0.7,0.7), (0.9,0.9), (1,1)
-a = 1
-b = 2.45609419
-c = 5.17866656
-f_gompertz_2 = f'Vth_e_init - (0.002 * ({a} * exp(-exp({b} - {c} * u))) * volt)'
 
 # -- choose which calcium-threshold function to use
-f_u = f_gompertz_2
+f_u = f_gompertz
 
 f_th = f'dVth_e/dt = ({f_u} - Vth_e) / tau_Vth_e : volt'
 f_string = f_th.replace(' : ', ' = ').split(' = ')[1].replace('- Vth_e', '').replace('exp', 'np.exp')
@@ -126,7 +121,7 @@ cyclic_pss(4.1, 8.1)
 run(4 * second)
 
 # plot results of simulation
-fig, ax1 = plt.subplots(figsize=(10, 5))
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10))
 ax_twin = ax1.twinx()
 ax1.plot(E_mon.t / second, E_mon.Vth_e[0, :], color='g', label='Vth_e')
 ax1.set_ylabel('Vth_e (V)', c='g')
@@ -142,16 +137,16 @@ ax1.legend([ax1.lines[0], ax_twin.lines[0], ax_twin.lines[1]], ['Vth_e', 'u', 's
 ax1.set_ylim([-55.1 * mV, -51.9 * mV])
 ax1.autoscale_view()
 ax1.set_xlabel('Time (s)')
-fig.suptitle('Simulated firing pattern of attractor with STSP')
-plt.show()
+ax1.set_title('Simulated firing pattern of attractor with STSP')
 
 # plot f(u) function used
 u = np.arange(0, 1, 0.01)
 f = eval(f_string) * 100
-plt.plot(u, f, c='y')
-plt.ylabel('f(u) (mV)')
-plt.title('f(u) function')
-plt.text(1, np.mean(f), fr'$f(u)={f_string_latex}$', color="y", fontsize=24, horizontalalignment="right",
+ax2.plot(u, f, c='y')
+ax2.set_ylabel('f(u) (mV)')
+ax2.set_title('f(u) function')
+ax2.text(1, np.mean(f), fr'$f(u)={f_string_latex}$', color="y", fontsize=24, horizontalalignment="right",
          verticalalignment="top")
-plt.tight_layout()
-plt.show()
+fig.tight_layout()
+
+fig.show()

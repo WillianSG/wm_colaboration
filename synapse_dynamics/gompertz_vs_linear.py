@@ -17,16 +17,16 @@ f1_y2 = a * c * np.exp(b - np.exp(b - c * x) - c * x)
 ax2.plot(x, f1_y2)
 
 a = 1
-b = 2.59781067
-c = 5.36852741
+b = 2.7083893552094156
+c = 5.509734056519429
 y3 = a * np.exp(-np.exp(b - c * x))
 ax1.plot(x, y3)
 f1_y3 = a * c * np.exp(b - np.exp(b - c * x) - c * x)
 ax2.plot(x, f1_y3)
 ax2.set_title('Derivatives')
 
-ax1.legend(['Linear', 'Gompertz 0.5', 'Gompertz 0.3'])
-plt.suptitle('Gompertzian vs linear')
+ax1.legend(['Linear', 'Gompertz hand-fitted', 'Gompertz optimal'])
+plt.suptitle('Gompertz vs linear')
 plt.tight_layout()
 
 plt.show()

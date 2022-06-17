@@ -180,13 +180,17 @@ class RecurrentCompetitiveNet:
 
     def set_neuron_pop(self):
         # equations (voltage based neuron model)
+        # Gompertz:
+        # a = 1
+        # b = 2.7083893552094156
+        # c = 5.509734056519429
         self.eqs_e = Equations('''
             plastic_u : boolean (shared)
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
             du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = (Vth_e_init - (0.002 * (1 + ((u * (1 - 0.5)) / (0.5 * (1 - u)))**-k )**-1 * volt) - Vth_e) / tau_Vth_e  : volt
+            dVth_e/dt = (Vth_e_init - (0.002 * (1 * exp(-exp(3.4578085977515953 - 6.480427880222709 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
             ''',
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
@@ -208,7 +212,6 @@ class RecurrentCompetitiveNet:
         self.E = NeuronGroup(N=self.N_e, model=self.eqs_e,
                              reset='''
                                     Vm = Vrst_e
-                                    Vth_e -= Vth_e_decr
                                     u = u + U * (1 - u) * int(plastic_u)
                                     ''',
                              threshold='Vm > Vth_e',
@@ -539,6 +542,8 @@ class RecurrentCompetitiveNet:
     """
 
     def generic_stimulus(self, frequency, stim_perc, subset):
+        subset = np.random.choice(subset, int((len(subset) * stim_perc) / 100), replace=False)
+
         self.Input_to_E.rates[subset] = frequency
 
         return subset

@@ -4,9 +4,14 @@ import matplotlib.pylab as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib as mpl
 
-x = np.array([0, 0.2, 0.3, 0.5, 0.7, 0.9, 1])
-y = np.array([0, 0, 0.1, 0.5, 0.7, 0.9, 1])
+x = np.array([0, 0.2, 0.7, 0.9, 1])
+y = np.array([0, 0, 0.7, 0.9, 1])
 
+plt.rcParams['xtick.labelsize'] = 13
+plt.rcParams['ytick.labelsize'] = 13
+plt.rcParams['axes.labelsize'] = 16
+plt.rcParams['axes.titlesize'] = 18
+plt.rcParams['figure.titlesize'] = 20
 fig = plt.figure(figsize=(25, 25))
 gs = fig.add_gridspec(nrows=2, ncols=2, width_ratios=[1.5, 1])
 ax11 = fig.add_subplot(gs[0, 0])
@@ -109,7 +114,7 @@ def error(params, func, x):
 
 
 # Write down the objective function that we want to minimize, i.e., the residuals
-def residuals(params, func, x, data, lam1=0, lam2=0, exclude=[0, 1, 2]):
+def residuals(params, func, x, data, lam1=0, lam2=0, exclude=[0, 1]):
     model = func(params, x)
 
     penalty1, penalty2 = penalty(model, func, x)
@@ -128,7 +133,6 @@ X = np.linspace(0, 1, lambdas)
 Y = np.linspace(0, 1, lambdas)
 X, Y = np.meshgrid(X, Y)
 Z = np.zeros_like(X)
-# TODO make colors mix better
 colors1 = plt.cm.autumn_r(np.linspace(0, 1, lambdas))
 colors2 = plt.cm.summer_r(np.linspace(0, 1, lambdas))
 
@@ -200,7 +204,7 @@ cb1 = mpl.colorbar.ColorbarBase(cax1, cmap=plt.cm.autumn_r,
                                 orientation='vertical')
 cb1.set_ticks([])
 cb1.ax.text(0.5, 0.5, r'$\lambda_1$', ha='center', va='center', fontsize=20)
-cax2 = divider.append_axes("right", size="5%", pad=0.15)
+cax2 = divider.append_axes("right", size="5%", pad=0.05)
 cb2 = mpl.colorbar.ColorbarBase(cax2, cmap=plt.cm.summer_r,
                                 orientation='vertical')
 cb2.ax.text(0.5, 0.5, r'$\lambda_2$', ha='center', va='center', fontsize=20)
@@ -210,7 +214,7 @@ box = ax2.get_position()
 ax2.set_position([box.x0, box.y0 + box.height * 0.1,
                   box.width, box.height * 0.9])
 # Put a legend below current axis
-leg = ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=10)
+leg = ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), fancybox=True, shadow=True, ncol=11)
 for lh in leg.legendHandles:
     lh.set_alpha(1)
 

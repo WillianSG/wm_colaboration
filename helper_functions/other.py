@@ -403,7 +403,7 @@ def firing_rates(rcn, neurons=None, time_window=None, mean=False):
     if neurons is None:
         neurons = rcn.E.i
     if time_window is None:
-        time_window = (0, rcn.net.x)
+        time_window = (0, rcn.net.t)
     elif isinstance(time_window, brian2.Quantity):
         time_window = (0, time_window)
 
