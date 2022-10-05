@@ -15,8 +15,6 @@ Script output:
 """
 import itertools
 import os, sys, pickle, shutil
-import os.path as path
-
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
@@ -25,30 +23,37 @@ import warnings
 from tqdm import TqdmWarning
 import timeit
 from itertools import product
-
 from brian2 import prefs, ms, Hz, mV, second
-from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
-from helper_functions.other import *
-from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
-from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
-from plotting_functions.spike_synchronisation import *
-from plotting_functions.plot_thresholds import *
+
+if sys.platform == 'linux':
+
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../..')))
+
+    sys.path.append(os.path.join(root, 'helper_functions'))
+    sys.path.append(os.path.join(root, 'plotting_functions'))
+
+    from recurrent_competitive_network import RecurrentCompetitiveNet
+    from other import *
+    from x_u_spks_from_basin import plot_x_u_spks_from_basin
+    from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+    from spike_synchronisation import *
+    from plot_thresholds import *
+
+else:
+
+    from brian2 import prefs, ms, Hz, mV, second
+    from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+    from helper_functions.other import *
+    from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
+    from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+    from plotting_functions.spike_synchronisation import *
+    from plotting_functions.plot_thresholds import *
 
 prefs.codegen.target = 'numpy'
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 warnings.filterwarnings('ignore', category=TqdmWarning)
 
-# helper_dir = 'helper_functions'
-# plotting_funcs_dir = 'plotting_functions'
-
-# Parent directory
-# parent_dir = os.path.dirname( path.abspath( path.join( __file__, '../..' ) ) )
-#
-# # Adding parent dir to list of dirs that the interpreter will search in
-# sys.path.append( os.path.join( parent_dir, 'helper_functions' ) )
-# sys.path.append( os.path.join( parent_dir, 'plotting_functions' ) )
-#
 # # Helper modules
 # from helper_functions.other import *
 # from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet

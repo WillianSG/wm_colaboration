@@ -3,15 +3,6 @@
 @author: w.soares.girao@rug.nl
 @university: University of Groningen
 @group: Bio-Inspired Circuits and System
-
-Function:
--
-
-Script arguments:
--
-
-Script output:
--
 """
 
 import os, sys
@@ -20,8 +11,20 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
 from brian2 import mV, Hz, second, ms, mean, std
-from helper_functions.firing_rate_histograms import firing_rate_histograms
-from helper_functions.other import make_folders
+
+if sys.platform == 'linux':
+
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
+
+    sys.path.append(os.path.join(root, 'helper_functions'))
+
+    from firing_rate_histograms import firing_rate_histograms
+    from other import make_folders
+
+else:
+
+    from helper_functions.firing_rate_histograms import firing_rate_histograms
+    from helper_functions.other import make_folders
 
 
 def plot_rcn_spiketrains_histograms(
