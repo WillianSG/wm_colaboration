@@ -189,7 +189,7 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
         make_patch_spines_invisible(f_ax3)
         f_ax3.spines["right"].set_visible(True)
 
-        x_times_u = (x_mean * u_mean) / U
+        x_times_u = ((x_mean * u_mean) / U)
         f_ax3.plot(
             sim_t_array,
             x_times_u,

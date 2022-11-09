@@ -166,7 +166,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     attractors = []
     if args.attractors >= 1:
         stim1_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=0)
-        rcn.set_potentiated_synapses(stim1_ids, weight=2.0)
+        rcn.set_potentiated_synapses(stim1_ids)
         A1 = list(range(0, 64))
         attractors.append(('A1', A1))
     if args.attractors >= 2:

@@ -203,19 +203,34 @@ def nx2pyvis(input, notebook=False, output_filename='graph',
     from pyvis import network as net
     import pathlib
     from collections import defaultdict
-    from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+    try:
+        from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+    except ImportError:
+        pass
 
     if neuron_types is None:
         neuron_types = {'e', 'i'}
     if synapse_types is None:
         synapse_types = {'e_e', 'i_e', 'e_i', 'i_i'}
 
-    if isinstance(input, nx.Graph):
-        nx_graph = input
-    elif isinstance(input, RecurrentCompetitiveNet):
-        nx_graph = rcn2nx(input)
-    elif isinstance(input, str) and pathlib.Path(input).suffix == '.graphml':
-        nx_graph = nx.read_graphml(input)
+    try:
+        if isinstance(input, nx.Graph):
+            nx_graph = input
+        elif isinstance(input, RecurrentCompetitiveNet):
+            nx_graph = rcn2nx(input)
+        elif isinstance(input, str) and pathlib.Path(input).suffix == '.graphml':
+            nx_graph = nx.read_graphml(input)
+        else:
+            raise ValueError(
+                f'{input} is not a valid input for nx2pyvis.  Expecting nx.Graph, RecurrentCompetitiveNet, or path to GraphML file.')
+    except NameError:
+        if isinstance(input, nx.Graph):
+            nx_graph = input
+        elif isinstance(input, str) and pathlib.Path(input).suffix == '.graphml':
+            nx_graph = nx.read_graphml(input)
+        else:
+            raise ValueError(
+                f'{input} is not a valid input for nx2pyvis.  Expecting nx.Graph, RecurrentCompetitiveNet, or path to GraphML file.')
 
     # make a pyvis network
     pyvis_graph = net.Network(notebook=notebook, directed=True)

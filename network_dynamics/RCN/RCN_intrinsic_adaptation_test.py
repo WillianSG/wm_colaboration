@@ -150,9 +150,6 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     plastic_syn = False
     plastic_ux = True
     rcn.E_E_syn_matrix_snapshot = False
-    rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
-    rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
-    rcn.spont_rate = ba * Hz
 
     rcn.w_e_i = 3 * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 1 mV default
@@ -164,8 +161,13 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     rcn.net_init()
 
+    rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
+    rcn.w_max = 0.5 * 10 * mV  # for param. 2.1: 10*mV
+    rcn.spont_rate = ba * Hz
+
     # -- synaptic augmentation setup
     rcn.U = 0.2  # 0.2 default
+    rcn.tau_f = 0.7 * second  # 0.7 s default
 
     rcn.set_stimulus_i(stimulus='flat_to_I', frequency=i_freq * Hz)  # default: 15 Hz
 
@@ -176,7 +178,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     attractors = []
     if args.attractors >= 1:
         stim1_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=0)
-        rcn.set_potentiated_synapses(stim1_ids, weight=2.0)
+        rcn.set_potentiated_synapses(stim1_ids)
         A1 = list(range(0, 64))
         attractors.append(('A1', A1))
     if args.attractors >= 2:

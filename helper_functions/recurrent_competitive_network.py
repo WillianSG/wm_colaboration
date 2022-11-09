@@ -120,16 +120,16 @@ class RecurrentCompetitiveNet:
         self.E_I_delay = 0 * ms
 
         # weights
-        self.w_e_e_max = 7.5 * mV
-        self.w_i_i_max = 7.5 * mV
+        # self.w_e_e_max = 7.5 * mV
+        # self.w_i_i_max = 7.5 * mV
 
         self.w_input_e = 1 * mV
         self.w_input_e_spont = 70 * mV
         self.w_input_i = 60 * mV
         self.w_e_i = 1 * mV
         self.w_i_e = 1 * mV
-        self.w_e_e = 0.5 * mV
-        self.w_i_i = 0.5 * mV
+        # self.w_e_e = 0.5 * mV
+        # self.w_i_i = 0.5 * mV
 
         # data save
         self.M_ee = []
@@ -245,8 +245,10 @@ class RecurrentCompetitiveNet:
         self.E.Vth_e = self.Vth_e_init
 
         # rand init membrane voltages
-        self.E.Vm = (self.Vrst_e + rand(self.N_e) * (self.Vth_e_init - self.Vr_e))
-        self.I.Vm = (self.Vrst_i + rand(self.N_i) * (self.Vth_i - self.Vr_i))
+        # self.E.Vm = (self.Vrst_e + rand(self.N_e) * (self.Vth_e_init - self.Vr_e))
+        self.E.Vm = np.random.normal(self.Vrst_e, 0.005, self.N_e) * volt
+        # self.I.Vm = (self.Vrst_i + rand(self.N_i) * (self.Vth_i - self.Vr_i))
+        self.I.Vm = np.random.normal(self.Vrst_i, 0.005, self.N_i) * volt
 
     """
     Sets the ids of the active neurons on the input before actually loading the stimulus.
@@ -442,10 +444,11 @@ class RecurrentCompetitiveNet:
     provided to the network isn't set yet.
     """
 
-    def set_potentiated_synapses(self, stim_ids, weight=1.0):
+    def set_potentiated_synapses(self, stim_ids, rho=1.0):
         for x in range(0, len(self.E_E)):
             if self.E_E.i[x] in stim_ids and self.E_E.j[x] in stim_ids:
-                self.E_E.rho[self.E_E.i[x], self.E_E.j[x]] = weight
+                self.E_E.rho[self.E_E.i[x], self.E_E.j[x]] = rho
+                # self.E_E.w[self.E_E.i[x], self.E_E.j[x]] = self.w_max
 
     # 1.4 ------ network operation
 
