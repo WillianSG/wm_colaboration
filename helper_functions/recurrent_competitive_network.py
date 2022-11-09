@@ -3,22 +3,6 @@
 @author: w.soares.girao@rug.nl
 @university: University of Groningen
 @group: Bio-Inspired Circuits and System
-
-Function:
-- 
-
-Script arguments:
--
-
-Script output:
--
-
-TO DO:
-- [X] save connection matrices method.
-- [X] snapshots of syn. matrix during simulation method.
-- [] load simulation parameters from file (?).
-- [X] make 'get_E_E_conn_matrix' general purpose.
-- [] method to save network configuration (param. set, pop. params., etc)
 """
 import setuptools
 from time import localtime, strftime
@@ -27,15 +11,23 @@ import os, pickle, random
 from brian2 import *
 import numpy as np
 
-# import os, sys, pickle, shutil
-# import random
-# from time import localtime
-
 prefs.codegen.target = 'numpy'
 
-from helper_functions.load_rule_parameters import *
-from helper_functions.load_synapse_model import *
-from helper_functions.load_stimulus import *
+if sys.platform == 'linux':
+
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
+
+    sys.path.append(os.path.join(root, 'helper_functions'))
+
+    from load_rule_parameters import *
+    from load_synapse_model import *
+    from load_stimulus import *
+
+else:
+
+    from helper_functions.load_rule_parameters import *
+    from helper_functions.load_synapse_model import *
+    from helper_functions.load_stimulus import *
 
 
 class RecurrentCompetitiveNet:
@@ -457,7 +449,14 @@ class RecurrentCompetitiveNet:
 
     def run_net(self, duration=3 * second, gather_every=0 * second, pulse_ending=False, callback=None):
         from tqdm import tqdm
-        from helper_functions.other import clear_screen
+
+        if sys.platform == 'linux':
+
+            from other import clear_screen
+
+        else:
+
+            from helper_functions.other import clear_screen
 
         if not isinstance(duration, Quantity):
             duration *= second

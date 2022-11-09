@@ -25,6 +25,23 @@ import warnings
 from tqdm import TqdmWarning
 import timeit
 from itertools import product
+from brian2 import prefs, ms, Hz, mV, second
+
+if sys.platform == 'linux':
+
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../..')))
+
+    sys.path.append(os.path.join(root, 'helper_functions'))
+    sys.path.append(os.path.join(root, 'plotting_functions'))
+
+    from recurrent_competitive_network import RecurrentCompetitiveNet
+    from other import *
+    from x_u_spks_from_basin import plot_x_u_spks_from_basin
+    from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
+    from spike_synchronisation import *
+    from plot_thresholds import *
+
+else:
 
 from brian2 import prefs, ms, Hz, mV, second
 from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
@@ -150,6 +167,9 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     plastic_syn = False
     plastic_ux = True
     rcn.E_E_syn_matrix_snapshot = False
+    rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
+    rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
+    rcn.spont_rate = ba * Hz
 
     rcn.w_e_i = 3 * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 1 mV default

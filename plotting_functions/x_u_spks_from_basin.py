@@ -19,7 +19,18 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from brian2 import second, ms, units
 import numpy as np
-from helper_functions.other import *
+
+if sys.platform == 'linux':
+
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
+
+    sys.path.append(os.path.join(root, 'helper_functions'))
+
+    from other import *
+
+else:
+
+    from helper_functions.other import *
 
 
 def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=None,
