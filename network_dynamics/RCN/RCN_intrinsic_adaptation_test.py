@@ -286,44 +286,31 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         num_neurons = len(rcn.E),
         show = args.show)
 
-    # plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
-
-    # fig2 = plot_rcn_spiketrains_histograms(
-    #     Einp_spks=rcn.get_Einp_spks()[0],
-    #     Einp_ids=rcn.get_Einp_spks()[1],
-    #     stim_E_size=rcn.stim_size_e,
-    #     E_pop_size=rcn.N_input_e,
-    #     Iinp_spks=rcn.get_Iinp_spks()[0],
-    #     Iinp_ids=rcn.get_Iinp_spks()[1],
-    #     stim_I_size=rcn.stim_size_i,
-    #     I_pop_size=rcn.N_input_i,
-    #     E_spks=rcn.get_E_spks()[0],
-    #     E_ids=rcn.get_E_spks()[1],
-    #     I_spks=rcn.get_I_spks()[0],
-    #     I_ids=rcn.get_I_spks()[1],
-    #     t_run=rcn.net.t,
-    #     path=save_dir,
-    #     filename='rcn_population_spiking' + filename_addition,
-    #     title_addition=title_addition,
-    #     show=args.show)
-
-    fig3 = plot_thresholds(rcn, attractors, show = args.show)
+    fig3 = plot_thresholds(
+        path = save_dir,
+        file_name = 'thresholds' + filename_addition,
+        rcn = rcn, 
+        attractors = attractors, 
+        show = args.show)
 
     # plot u from synapses and neurons
 
-    # 4 ------ saving PS statistics ------
-    # -- save the PS statistics for this iteration
-    for atr in attractors:
-        find_ps(save_dir, rcn.net.t, atr, write_to_file=True,
-                parameters={'ba_Hz': ba,
-                            'gs_%': gs_percentage,
-                            'I_to_E_weight_mV': i_e_w,
-                            'I_input_freq_Hz': i_freq
-                            })
-        # count_pss_in_gss( save_dir, num_gss=len( gss ), write_to_file=True, ba=ba, gss=gss )
+    # @Willian: find_ps() is giving an error - up to line 312.
+
+    # # 4 ------ saving PS statistics ------
+    # # -- save the PS statistics for this iteration
+    # for atr in attractors:
+    #     find_ps(save_dir, rcn.net.t, atr, write_to_file=True,
+    #             parameters={'ba_Hz': ba,
+    #                         'gs_%': gs_percentage,
+    #                         'I_to_E_weight_mV': i_e_w,
+    #                         'I_input_freq_Hz': i_freq
+    #                         })
+    #     # count_pss_in_gss( save_dir, num_gss=len( gss ), write_to_file=True, ba=ba, gss=gss )
 
     # -- append PS statistics for this iteration into one file for the whole experiment
-    append_pss_to_xlsx(timestamp_folder, save_dir)
+    # append_pss_to_xlsx(timestamp_folder, save_dir)
+    
     # -- delete .pickle files as they're just too large to store
     remove_pickles(timestamp_folder)
 

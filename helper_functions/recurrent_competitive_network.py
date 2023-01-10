@@ -126,7 +126,7 @@ class RecurrentCompetitiveNet:
         # data save
         self.M_ee = []
 
-        self.E_E_syn_matrix_snapshot = True
+        self.E_E_syn_matrix_snapshot = False
         self.E_E_syn_matrix_snapshot_dt = 100 * ms
         self.E_E_syn_matrix_path = ''
 
@@ -155,8 +155,8 @@ class RecurrentCompetitiveNet:
 
         if self.plasticity_rule == 'LR4':
             self.E_E_rec_attributes.append('x_')
-            # self.E_E_rec_attributes.append('u')
             self.E_rec_attributes.append('u')
+
         # ------ misc operation variables
         self.stimulus_neurons_e_ids = []
         self.stimulus_neurons_i_ids = []
@@ -182,7 +182,7 @@ class RecurrentCompetitiveNet:
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
             du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = (Vth_e_init - (0.002 * (1 * exp(-exp(3.4578085977515953 - 6.480427880222709 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
+            dVth_e/dt = (Vth_e_init - (0.002 * (1 * exp(-exp(3.4 - 6.48 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
             ''',
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
@@ -190,6 +190,21 @@ class RecurrentCompetitiveNet:
                                tau_ipsp=self.tau_ipsp_e,
                                Vth_e_init=self.Vth_e_init,
                                tau_Vth_e=self.tau_Vth_e)
+
+        # self.eqs_e = Equations('''
+        #     plastic_u : boolean (shared)
+        #     dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
+        #     dVepsp/dt = -Vepsp / tau_epsp : volt
+        #     dVipsp/dt = -Vipsp / tau_ipsp : volt
+        #     du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
+        #     dVth_e/dt = (Vth_e_init - (0.02*(1/(1+exp(u*2.5))) * volt) - Vth_e) / tau_Vth_e  : volt
+        #     ''',
+        #                        Vr_e=self.Vr_e,
+        #                        taum_e=self.taum_e,
+        #                        tau_epsp=self.tau_epsp_e,
+        #                        tau_ipsp=self.tau_ipsp_e,
+        #                        Vth_e_init=self.Vth_e_init,
+        #                        tau_Vth_e=self.tau_Vth_e)
 
         self.eqs_i = Equations('''
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)
@@ -237,8 +252,11 @@ class RecurrentCompetitiveNet:
         self.E.Vth_e = self.Vth_e_init
 
         # rand init membrane voltages
-        self.E.Vm = (self.Vrst_e + rand(self.N_e) * (self.Vth_e_init - self.Vr_e))
-        self.I.Vm = (self.Vrst_i + rand(self.N_i) * (self.Vth_i - self.Vr_i))
+        # self.E.Vm = (self.Vrst_e + rand(self.N_e) * (self.Vth_e_init - self.Vr_e))
+        # self.I.Vm = (self.Vrst_i + rand(self.N_i) * (self.Vth_i - self.Vr_i))
+
+        self.E.Vm = self.Vrst_e
+        self.I.Vm = self.Vrst_i
 
     """
     Sets the ids of the active neurons on the input before actually loading the stimulus.
@@ -434,10 +452,11 @@ class RecurrentCompetitiveNet:
     provided to the network isn't set yet.
     """
 
-    def set_potentiated_synapses(self, stim_ids, weight=1.0):
+    def set_potentiated_synapses(self, stim_ids):
         for x in range(0, len(self.E_E)):
             if self.E_E.i[x] in stim_ids and self.E_E.j[x] in stim_ids:
-                self.E_E.rho[self.E_E.i[x], self.E_E.j[x]] = weight
+                self.E_E.rho[self.E_E.i[x], self.E_E.j[x]] = 1.0
+                self.E_E.w[self.E_E.i[x], self.E_E.j[x]] = self.w_max
 
     # 1.4 ------ network operation
 
@@ -473,26 +492,26 @@ class RecurrentCompetitiveNet:
             num_runs = int(round(duration / gather_every))
             duration = gather_every
 
-        if not self.tqdm_bar:
-            self.tqdm_bar = tqdm(total=(self.net.t + duration) / second, desc='RCN', unit='sim s',
-                                 bar_format='{n:.1f}/{total:.1f} sim s in {elapsed} s, {rate_fmt} {postfix}]',
-                                 leave=False, dynamic_ncols=True)
+        # if not self.tqdm_bar:
+        #     self.tqdm_bar = tqdm(total=(self.net.t + duration) / second, desc='RCN', unit='sim s',
+        #                          bar_format='{n:.1f}/{total:.1f} sim s in {elapsed} s, {rate_fmt} {postfix}]',
+        #                          leave=False, dynamic_ncols=True)
         for i in range(num_runs):
-            self.tqdm_bar.total = (self.net.t + duration) / second
-            self.tqdm_bar.update(duration / second)
+            # self.tqdm_bar.total = (self.net.t + duration) / second
+            # self.tqdm_bar.update(duration / second)
 
-            self.tqdm_bar.set_description(
-                f'Running RCN in [{self.net.t:.1f}-{self.net.t + duration:.1f}] s, '
-                # f'input ending at {self.stimulus_pulse_duration:.1f} s'
-            )
+            # self.tqdm_bar.set_description(
+            #     f'Running RCN in [{self.net.t:.1f}-{self.net.t + duration:.1f}] s, '
+            #     # f'input ending at {self.stimulus_pulse_duration:.1f} s'
+            # )
             self.net.run(
                 duration=duration,
                 report=None,
                 namespace=self.set_net_namespace())
 
-            if gather_every > 0 * second:
-                for f in callback:
-                    f(self)
+            # if gather_every > 0 * second:
+            #     for f in callback:
+            #         f(self)
 
             self.net.stop()
 
@@ -529,12 +548,6 @@ class RecurrentCompetitiveNet:
             self.Input_to_I.rates[self.stimulus_neurons_i_ids] = frequency
         else:
             self.Input_to_I.rates[self.stimulus_neurons_i_ids] = frequency
-
-    """
-    """
-
-    # def set_stimulus_pulse_duration( self, duration=1 * second ):
-    #     self.stimulus_pulse_duration = duration
 
     """
     Stimulates % of excitatory neurons as in Mongillo.

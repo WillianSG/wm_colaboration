@@ -197,7 +197,6 @@ def find_ps(path, sim_time, attractor, write_to_file=False, parameters=None, ver
 
     return x, y, y_smooth, pss
 
-
 def count_pss_in_gss(pss_path, normalise_by_PS=False, num_gss=None, write_to_file=False, ba=None, gss=None,
                      verbose=True):
     import pandas as pd

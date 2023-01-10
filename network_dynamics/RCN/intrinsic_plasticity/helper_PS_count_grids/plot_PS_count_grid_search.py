@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../../../../')))
 
-_simf_path = os.path.join(root, 'results/RCN_controlled_PS_grid_search')
+_simf_path = os.path.join(root, 'results/RCN_controlled_PS_grid_search_2')
 
 _gs_sim_folders = os.listdir(_simf_path)
 
@@ -106,7 +106,7 @@ spec2 = gridspec.GridSpec(
 
 ax1 = fig.add_subplot(spec2[0, 0], projection = '3d')
 
-plt.title('attractor A2 \n trg reactivation \n average of 10 simlations')
+plt.title('attractor A1 \n trg reactivation \n average of 10 simlations')
 
 x = []
 y = []
@@ -118,9 +118,9 @@ for key, val in _ba_iew_dict.items():
 
 	x.append(key[0])
 	y.append(key[1])
-	z.append(val['A2']['trg']['mean'])
+	z.append(val['A1']['trg']['mean'])
 
-	c.append(val['A2']['trg']['std'])
+	c.append(val['A1']['trg']['std'])
 
 sc = ax1.scatter(x, y, z, c = c, marker = '^')
 
@@ -132,7 +132,7 @@ fig.colorbar(sc, label = 'SD')
 
 ax2 = fig.add_subplot(spec2[0, 1], projection = '3d')
 
-plt.title('attractor A2 \n spont reactivation \n average of 10 simlations')
+plt.title('attractor A1 \n spont reactivation \n average of 10 simlations')
 
 x = []
 y = []
@@ -144,9 +144,9 @@ for key, val in _ba_iew_dict.items():
 
 	x.append(key[0])
 	y.append(key[1])
-	z.append(val['A2']['spt']['mean'])
+	z.append(val['A1']['spt']['mean'])
 
-	c.append(val['A2']['spt']['std'])
+	c.append(val['A1']['spt']['std'])
 
 sc = ax2.scatter(x, y, z, c = c, marker = 'v')
 

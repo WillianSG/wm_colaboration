@@ -1,17 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-@author: w.soares.girao@rug.nl
+@author: w.soares.girao@rug.nl / t.f.tiotto@rug.nl
 @university: University of Groningen
-@group: Bio-Inspired Circuits and System
-
-Function:
-- Plots synaptic traces recorded during simulation only for pair of neurons that are part of the input stimulus.
-
-Script arguments:
--
-
-Script output:
--
+@group: Bio-Inspired Circuits and System / Artificial Intelligence
 """
 import os, sys, pickle
 import matplotlib as mpl
@@ -270,7 +261,9 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
     rcn.get_spikes_pyspike()
 
     f3_ax1 = fig.add_subplot(spec2[len(attractors) + 2, 0])
+    
     # -- plot spike sync profile
+    
     for i, atr in enumerate(attractors):
         x, y, y_smooth, pss = find_ps(path, sim_t_array[-1], atr)
 

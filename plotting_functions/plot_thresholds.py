@@ -1,9 +1,10 @@
 from brian2 import volt, second, mV
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 
-def plot_thresholds(rcn, attractors, show=True):
+def plot_thresholds(path, file_name, rcn, attractors, show=True):
     fig, axes = plt.subplots(3, 2, figsize=(20, 10), gridspec_kw={'height_ratios': [1, 1, 0.2]})
 
     Vth_e_init = rcn.Vth_e_init
@@ -15,6 +16,7 @@ def plot_thresholds(rcn, attractors, show=True):
         f_u_min = np.min(f_u, axis=0)
         f_u_max = np.max(f_u, axis=0)
         l11 = ax[0].plot(rcn.E_rec.t / second, f_u_mean, c='y', label='f(u)')
+        
         ax[0].fill_between(
             rcn.E_rec.t / second,
             f_u_mean + f_u_std,
@@ -27,14 +29,18 @@ def plot_thresholds(rcn, attractors, show=True):
             f_u_min,
             color='y',
             alpha=0.2)
+        
         ax[0].tick_params(axis='y', labelcolor='y')
+        
         ax0twin = ax[0].twinx()
+        
         Vth = rcn.E_rec.Vth_e[atr[1], :]
         Vth_mean = np.mean(Vth, axis=0)
         Vth_std = np.std(Vth, axis=0)
         Vth_min = np.min(Vth, axis=0)
         Vth_max = np.max(Vth, axis=0)
         l11twin = ax0twin.plot(rcn.E_rec.t / second, Vth_mean, c='g', label='u')
+        
         ax0twin.fill_between(
             rcn.E_rec.t / second,
             Vth_mean + Vth_std,
@@ -47,7 +53,9 @@ def plot_thresholds(rcn, attractors, show=True):
             Vth_max,
             color='g',
             alpha=0.2)
+        
         ax0twin.tick_params(axis='y', labelcolor='g')
+        
         ax[0].set_title(f'Attractor {atr[0]}')
 
         Vm = rcn.E_rec.Vm[atr[1], :]
@@ -55,7 +63,9 @@ def plot_thresholds(rcn, attractors, show=True):
         Vm_std = np.std(Vm, axis=0)
         Vm_min = np.min(Vm, axis=0)
         Vm_max = np.max(Vm, axis=0)
+        
         l12 = ax[1].plot(rcn.E_rec.t / second, Vm_mean, c='r', label='Vm')
+        
         ax[1].fill_between(
             rcn.E_rec.t / second,
             Vm_mean + Vm_std,
@@ -68,9 +78,13 @@ def plot_thresholds(rcn, attractors, show=True):
             Vm_max,
             color='r',
             alpha=0.2)
+        
         ax[1].tick_params(axis='y', labelcolor='r')
+        
         ax1twin = ax[1].twinx()
+        
         l12twin = ax1twin.plot(rcn.E_rec.t / second, Vth_mean, c='g', label='u')
+        
         ax1twin.fill_between(
             rcn.E_rec.t / second,
             Vth_mean + Vth_std,
@@ -83,6 +97,7 @@ def plot_thresholds(rcn, attractors, show=True):
             Vth_max,
             color='g',
             alpha=0.2)
+        
         ax1twin.tick_params(axis='y', labelcolor='g')
         ax[1].set_title(f'Attractor {atr[0]}')
 
@@ -108,5 +123,7 @@ def plot_thresholds(rcn, attractors, show=True):
 
     if show:
         fig.show()
+
+    fig.savefig(os.path.join(path, file_name + '.png'))
 
     return fig
