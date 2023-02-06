@@ -71,7 +71,7 @@ class RecurrentCompetitiveNet:
         self.N_e = 256  # num. of neurons
         self.Vr_e = -65 * mV  # resting potential
         self.Vrst_e = -65 * mV  # reset potential
-        self.Vth_e_init = -52 * mV  # initial threshold voltage
+        self.Vth_e_init = -45 * mV  # initial threshold voltage
         self.Vth_e_decr = 5 * mV  # post-spike threshold voltage increase
         self.tau_Vth_e = 20 * ms  # time constant of threshold decay
         self.taum_e = 20 * ms  # membrane time constant
@@ -182,7 +182,7 @@ class RecurrentCompetitiveNet:
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
             du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = (Vth_e_init - (0.002 * (1 * exp(-exp(3.4 - 6.48 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
+            dVth_e/dt = (Vth_e_init - (0.002 * (3 * exp(-exp(3.4 - 12.48 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
             ''',
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
@@ -197,7 +197,7 @@ class RecurrentCompetitiveNet:
         #     dVepsp/dt = -Vepsp / tau_epsp : volt
         #     dVipsp/dt = -Vipsp / tau_ipsp : volt
         #     du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-        #     dVth_e/dt = (Vth_e_init - (0.02*(1/(1+exp(u*2.5))) * volt) - Vth_e) / tau_Vth_e  : volt
+        #     dVth_e/dt = (Vth_e_init - (0.02*(1/(1+exp(u*6))) * volt) - Vth_e) / tau_Vth_e  : volt
         #     ''',
         #                        Vr_e=self.Vr_e,
         #                        taum_e=self.taum_e,
@@ -1191,3 +1191,41 @@ class RecurrentCompetitiveNet:
                 ), f)
 
         return us_neurs_with_input, self.E_rec.t / second, self.U, self.tau_f
+
+    def get_u_traces_from_pattern_neurons_in_range(self, t_window):
+        uTracesValues = []
+
+        for x in range(0, len(self.E)):
+            if x in self.stimulus_neurons_e_ids:
+
+                for i in range(len(self.E_rec[x].u)):
+
+                    if self.E_rec.t[i]/second >= t_window[0] and self.E_rec.t[i]/second <= t_window[1]:
+
+                        uTracesValues.append(self.E_rec[x].u[i])
+
+        fn = os.path.join(
+            self.net_sim_data_path,
+            'attractor_uTraceValues.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump((uTracesValues), f)
+
+    def get_x_traces_from_pattern_neurons_in_range(self, t_window):
+        uTracesValues = []
+
+        for x in range(0, len(self.E)):
+            if x in self.stimulus_neurons_e_ids:
+
+                for i in range(len(self.E_rec[x].x_)):
+
+                    if self.E_rec.t[i]/second >= t_window[0] and self.E_rec.t[i]/second <= t_window[1]:
+
+                        uTracesValues.append(self.E_rec[x].x_[i])
+
+        fn = os.path.join(
+            self.net_sim_data_path,
+            'attractor_xTraceValues.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump((uTracesValues), f)

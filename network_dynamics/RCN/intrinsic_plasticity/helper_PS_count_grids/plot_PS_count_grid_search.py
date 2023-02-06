@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../../../../')))
 
-_simf_path = os.path.join(root, 'results/RCN_controlled_PS_grid_search_2')
+_simf_path = os.path.join(root, 'results/RCN_controlled_PS_grid_search_4')
 
 _gs_sim_folders = os.listdir(_simf_path)
 
@@ -37,6 +37,10 @@ for _simf in _gs_sim_folders:
 					
 					_ba = float(_l.split(': ')[-1])
 
+				elif _l.find('cueing time (s):') != -1:
+					
+					_ct = float(_l.split(': ')[-1])
+
 				elif _l.find('inh. to exc. weight (mV):') != -1:
 					
 					_ie_w = float(_l.split(': ')[-1])
@@ -57,23 +61,23 @@ for _simf in _gs_sim_folders:
 					_tgr_A2 = int(_A2[0].split(': ')[-1])
 					_spt_A2 = int(_A2[-1].split(': ')[-1].replace('}', ''))
 
-			if (_ba, _ie_w) not in _ba_iew_dict:
+			if _ct not in _ba_iew_dict:
 
-				_ba_iew_dict[(_ba, _ie_w)] = {'A1': {'trg': [], 'spt': []}, 'A2': {'trg': [], 'spt': []}}
+				_ba_iew_dict[_ct] = {'A1': {'trg': [], 'spt': []}, 'A2': {'trg': [], 'spt': []}}
 
-				_ba_iew_dict[(_ba, _ie_w)]['A1']['trg'].append(_tgr_A1)
-				_ba_iew_dict[(_ba, _ie_w)]['A1']['spt'].append(_spt_A1)
+				_ba_iew_dict[_ct]['A1']['trg'].append(_tgr_A1)
+				_ba_iew_dict[_ct]['A1']['spt'].append(_spt_A1)
 
-				_ba_iew_dict[(_ba, _ie_w)]['A2']['trg'].append(_tgr_A2)
-				_ba_iew_dict[(_ba, _ie_w)]['A2']['spt'].append(_spt_A2)
+				_ba_iew_dict[_ct]['A2']['trg'].append(_tgr_A2)
+				_ba_iew_dict[_ct]['A2']['spt'].append(_spt_A2)
 
 			else:
 
-				_ba_iew_dict[(_ba, _ie_w)]['A1']['trg'].append(_tgr_A1)
-				_ba_iew_dict[(_ba, _ie_w)]['A1']['spt'].append(_spt_A1)
+				_ba_iew_dict[_ct]['A1']['trg'].append(_tgr_A1)
+				_ba_iew_dict[_ct]['A1']['spt'].append(_spt_A1)
 
-				_ba_iew_dict[(_ba, _ie_w)]['A2']['trg'].append(_tgr_A2)
-				_ba_iew_dict[(_ba, _ie_w)]['A2']['spt'].append(_spt_A2)
+				_ba_iew_dict[_ct]['A2']['trg'].append(_tgr_A2)
+				_ba_iew_dict[_ct]['A2']['spt'].append(_spt_A2)
 
 for key, val in _ba_iew_dict.items():
 
@@ -94,6 +98,54 @@ for key, val in _ba_iew_dict.items():
 		'mean': np.round(np.mean(_ba_iew_dict[key]['A2']['spt']), 2), 
 		'std': np.round(np.std(_ba_iew_dict[key]['A2']['spt']), 2)
 		}
+
+# for key, val in _ba_iew_dict.items():
+
+# 	print(key, val['A2']['trg'])
+
+# _ = np.arange(0.1, 1.1, 0.1)
+
+# x_ = []
+# y_ = []
+# err_ = []
+
+# for i in _:
+
+# 	i = np.round(i, 1)
+
+# 	x_.append(i)
+# 	y_.append(_ba_iew_dict[i]['A1']['spt']['mean'])
+# 	err_.append(_ba_iew_dict[i]['A1']['spt']['std'])
+
+# x_A2 = []
+# y_A2 = []
+# err_A2 = []
+
+# for i in _:
+
+# 	i = np.round(i, 1)
+
+# 	x_A2.append(i)
+# 	y_A2.append(_ba_iew_dict[i]['A2']['trg']['mean'])
+# 	err_A2.append(_ba_iew_dict[i]['A2']['trg']['std'])
+
+# fig, ax = plt.subplots()
+
+# ax.errorbar(x_, y_, yerr=err_)
+
+# plt.xlabel('cueing time [s]')
+# plt.ylabel('A1 spt spike [a.u.]')
+
+# ax.set_xticks(_)
+# ax.set_yticks(np.arange(0, 7, 1))
+
+# ax2 = ax.twinx() 
+
+# ax2.errorbar(x_A2, y_A2, yerr=err_A2, color = 'r')
+
+# plt.show()
+
+
 
 fig = plt.figure(constrained_layout = True, figsize = (10, 4))
 
@@ -118,9 +170,9 @@ for key, val in _ba_iew_dict.items():
 
 	x.append(key[0])
 	y.append(key[1])
-	z.append(val['A1']['trg']['mean'])
+	z.append(val['A2']['trg']['mean'])
 
-	c.append(val['A1']['trg']['std'])
+	c.append(val['A2']['trg']['std'])
 
 sc = ax1.scatter(x, y, z, c = c, marker = '^')
 

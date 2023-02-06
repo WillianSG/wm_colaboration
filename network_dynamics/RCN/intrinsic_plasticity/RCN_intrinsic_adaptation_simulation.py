@@ -32,7 +32,7 @@ if sys.platform == 'linux':
     from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
     from spike_synchronisation import *
     from plot_thresholds import *
-    from population_spikes import count_ps, count_ps_v2
+    from population_spikes import count_ps
 
 else:
 
@@ -72,6 +72,8 @@ parser.add_argument('--gs_runtime', type=float, default=15, help='Runtime for sh
 parser.add_argument('--post_runtime', type=float, default=0.0, help='Runtime after showing generic stimulus')
 parser.add_argument('--attractors', type=int, default=2, choices=[1, 2, 3], help='Number of attractors')
 parser.add_argument('--show', default=False, action=argparse.BooleanOptionalAction)
+
+parser.add_argument('--A2_cue_time', type=float, default=0.1, help='Duration of cueing')
 
 args = parser.parse_args()
 
@@ -118,7 +120,7 @@ if print_report:
           'In the last 2 seconds it will cue attractor 2 and see if it naturally reactivates.\n'
           'This is to test if STSP and intrinsic plasticity can enable phasic cued recall.')
 
-timestamp_folder = make_timestamped_folder('../../../results/RCN_controlled_PS_grid_search_2/')
+timestamp_folder = make_timestamped_folder('../../../results/RCN_controlled_PS_grid_search_4/')
 
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
@@ -192,7 +194,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     if args.attractors >= 1:
         stim1_ids = rcn.set_active_E_ids(stimulus = 'flat_to_E_fixed_size', offset = 0)
-        rcn.set_potentiated_synapses(stim1_ids, weight = 2.0)
+        rcn.set_potentiated_synapses(stim1_ids)
         A1 = list(range(0, 64))
         attractors.append(('A1', A1))
     if args.attractors >= 2:
@@ -222,7 +224,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     # -- run network --
     
     stimulation_amount = []
-    cue_percentage = 50
+    cue_percentage = 100
 
     # cue attractor 1
     gs_A1 = (cue_percentage, stim1_ids, (0, 0.1))
@@ -241,7 +243,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.run_net(duration = 2)
 
     # cue attractor 2
-    gs_A2 = (cue_percentage, stim2_ids, (2.1, 2.2))
+    gs_A2 = (cue_percentage, stim2_ids, (2.1, 2.1 + args.A2_cue_time))
     act_ids = rcn.generic_stimulus(
         frequency = rcn.stim_freq_e, 
         stim_perc = gs_A2[0], 
@@ -254,7 +256,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.generic_stimulus_off(act_ids)
 
     # wait for another 2 seconds before ending
-    rcn.run_net(duration = 2)
+    rcn.run_net(duration = 2 + args.A2_cue_time)
 
     # 2 ------ plotting simulation data ------
     title_addition = f'BA {ba} Hz, GS {gs_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
@@ -302,9 +304,10 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         params_file.write('generic stimuli (%): {}\n'.format(gs_percentage))
         params_file.write('inh. to exc. weight (mV): {}\n'.format(i_e_w))
         params_file.write('inh. firing frequency (Hz): {}\n'.format(i_freq))
+        params_file.write('cueing time (s): {}\n'.format(args.A2_cue_time))
         params_file.write('\nPopulation Spikes (count)\n')
 
-atr_ps_counts = count_ps_v2(
+atr_ps_counts = count_ps(
     rcn = rcn, 
     attractors = attractors, 
     time_window = attractors_t_windows,

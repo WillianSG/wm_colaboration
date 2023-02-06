@@ -32,7 +32,7 @@ if sys.platform == 'linux':
     from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
     from spike_synchronisation import *
     from visualize_attractor import *
-    from population_spikes import count_ps, count_ps_v2
+    from population_spikes import find_gap_between_PS
 
 else:
 
@@ -158,30 +158,17 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.w_e_i = 3 * mV                     
     rcn.w_i_e = i_e_w * mV
     rcn.spont_rate = ba * Hz
-
-    # -- intrinsic plasticity setup (Vth_e_decr for naive / tau_Vth_e for calcium-based)
     
-    rcn.tau_Vth_e = 0.1 * second            # 0.1 s default
-    rcn.k = 4                               # 2 default
+    rcn.tau_Vth_e = 0.1 * second        
+    rcn.k = 4                           
 
     rcn.net_init()
 
-    rcn.w_max = 2 * mV                     # for param. 2.1: 10*mV
-
-    # -- synaptic augmentation setup
-    rcn.U = 0.2                             # 0.2 default
+    rcn.w_max = 10 * mV                  
 
     rcn.set_stimulus_i(
         stimulus = 'flat_to_I', 
-        frequency = i_freq * Hz)            # default: 15 Hz
-
-    # --folder for simulation results
-    save_dir = os.path.join(os.path.join(timestamp_folder, f'BA_{ba}_GS_{gs_percentage}_W_{i_e_w}_I_{i_freq}'))
-    os.mkdir(save_dir)
-    rcn.net_sim_data_path = save_dir
-
-    # output .txt with simulation summary.
-    _f = os.path.join(rcn.net_sim_data_path, 'simulation_summary.txt')
+        frequency = i_freq * Hz)
 
     # --- set attractors ----------------------------------------------------------------
 
@@ -208,8 +195,10 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
    
     rcn.generic_stimulus_off(act_ids)
 
-    rcn.run_net(duration = 3)
+    rcn.run_net(duration = 10)
 
     # --- plotting simulation data ------------------------------------------------------
+
+    # ps1stEnd, ps2ndStart = find_gap_between_PS(rcn, [('A1', nIDs_attra)], 0.75)
 
     visualize_attractor(attractor = nIDs_attra, network = rcn)

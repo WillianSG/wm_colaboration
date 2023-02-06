@@ -92,8 +92,8 @@ def visualize_attractor(attractor, network):
 	u_mean = np.array(np.mean(all_u, axis = 0))
 	_Vepsp = (x_mean*u_mean)/network.U
 
-	plt.plot(t_array, x_mean, lw = 1.5, color = 'g', label = 'x')
-	plt.plot(t_array, u_mean, lw = 1.5, color = 'brown', label = 'u')
+	plt.plot(t_array, x_mean, lw = 1.5, color = 'g', label = 'x', alpha = 0.5)
+	plt.plot(t_array, u_mean, lw = 1.5, color = 'brown', label = 'u', alpha = 0.5)
 
 	ax3.set_xlabel('time [s]')
 	ax3.set_yticks(np.arange(0.0, 1.2, 0.2))
@@ -103,10 +103,10 @@ def visualize_attractor(attractor, network):
 
 	ax3a = ax3.twinx()
 
-	plt.plot(t_array, _Vepsp, lw = 1.5, color = 'purple', ls = '--')
+	plt.plot(t_array, _Vepsp*(network.w_max/mV), lw = 1.5, color = 'purple', ls = '--')
 	
-	ax3a.set_yticks(np.arange(0.0, 4.5, 0.5))
-	ax3a.set_ylim(0.0, 4.0)
+	ax3a.set_yticks(np.arange(1.0, 11.0, 1.0))
+	ax3a.set_ylim(1.0, 10.0)
 
 	ax3a.set_ylabel(r'$V_{epsp}$' + ' [mV]', color = 'purple')
 
