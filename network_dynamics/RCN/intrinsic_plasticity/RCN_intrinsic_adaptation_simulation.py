@@ -21,7 +21,7 @@ print_report = False
 
 if sys.platform == 'linux':
 
-    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../../..')))
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, '../../..')))
 
     sys.path.append(os.path.join(root, 'helper_functions'))
     sys.path.append(os.path.join(root, 'plotting_functions'))
@@ -35,7 +35,6 @@ if sys.platform == 'linux':
     from population_spikes import count_ps
 
 else:
-
     from brian2 import prefs, ms, Hz, mV, second
     from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
     from helper_functions.other import *
@@ -43,26 +42,26 @@ else:
     from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
     from plotting_functions.spike_synchronisation import *
     from plotting_functions.plot_thresholds import *
+    from helper_functions.population_spikes import count_ps
 
 prefs.codegen.target = 'numpy'
 
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 warnings.filterwarnings('ignore', category=TqdmWarning)
 
-
 # === parsing arguments =================================================================
 
 parser = argparse.ArgumentParser(description='RCN_item_reactivation_gs_attractors')
-parser.add_argument('--ba_amount', type=float, default=[10, 10], nargs='+',
+parser.add_argument('--ba_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for background activity in Hz')
 parser.add_argument('--ba_step', type=float, default=5, help='Step size for background activity')
 parser.add_argument('--gs_amount', type=float, default=[15, 15], nargs='+',
                     help='Bounds for generic stimulus in % of stimulated neurons')
 parser.add_argument('--gs_step', type=float, default=5, help='Step size for generic stimulus')
-parser.add_argument('--i_amount', type=float, default=[15, 15], nargs='+',
+parser.add_argument('--i_amount', type=float, default=[10, 10], nargs='+',
                     help='Bounds for I-to-E inhibition weight')
 parser.add_argument('--i_step', type=float, default=2, help='Step size for I-to-E inhibition weight')
-parser.add_argument('--i_stim_amount', type=float, default=[15, 15], nargs='+',
+parser.add_argument('--i_stim_amount', type=float, default=[20, 20], nargs='+',
                     help='Bounds for I inhibition input in Hz')
 parser.add_argument('--i_stim_step', type=int, default=10, help='Step size for I inhibition')
 parser.add_argument('--gs_freq', type=float, default=4, help='Frequency of generic stimulus Hz')
@@ -114,7 +113,6 @@ assert args.i_stim_step > 0, 'Step size must be positive'
 # === simulation parameters =============================================================
 
 if print_report:
-
     print('This experiment will run around 4 seconds of simulation.\n'
           'In the first 2 seconds it will cue attractor 1 and see if it naturally reactivates.\n'
           'In the last 2 seconds it will cue attractor 2 and see if it naturally reactivates.\n'
@@ -136,7 +134,6 @@ I_input_freq = np.arange(args.i_stim_amount[0], args.i_stim_amount[1] + args.i_s
 
 parameter_combinations = itertools.product(background_activity, generic_stimuli, I_E_weights, I_input_freq)
 
-
 # === initializing/running network ======================================================
 
 i = 0
@@ -146,41 +143,41 @@ running_times = []
 attractors_t_windows = []
 
 for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
-    
+
     # --initialise time to predict overall experiment time
-    
+
     start_time = timeit.default_timer()
-    
+
     i += 1
 
     rcn = RecurrentCompetitiveNet(
-        plasticity_rule = plasticity_rule,
-        parameter_set = parameter_set)
+        plasticity_rule=plasticity_rule,
+        parameter_set=parameter_set)
 
     plastic_syn = False
     plastic_ux = True
     rcn.E_E_syn_matrix_snapshot = False
-    rcn.w_e_i = 3 * mV                      # for param. 2.1: 5*mV
-    rcn.w_max = 10 * mV                     # for param. 2.1: 10*mV
+    rcn.w_e_i = 3 * mV  # for param. 2.1: 5*mV
+    rcn.w_max = 10 * mV  # for param. 2.1: 10*mV
     rcn.spont_rate = ba * Hz
 
-    rcn.w_e_i = 3 * mV                      # 3 mV default
-    rcn.w_i_e = i_e_w * mV                  # 1 mV default
+    rcn.w_e_i = 3 * mV  # 3 mV default
+    rcn.w_i_e = i_e_w * mV  # 1 mV default
 
     # -- intrinsic plasticity setup (Vth_e_decr for naive / tau_Vth_e for calcium-based)
-    
-    rcn.tau_Vth_e = 0.1 * second            # 0.1 s default
+
+    rcn.tau_Vth_e = 0.1 * second  # 0.1 s default
     # rcn.Vth_e_init = -51.6 * mV           # -52 mV default
-    rcn.k = 4                               # 2 default
+    rcn.k = 4  # 2 default
 
     rcn.net_init()
 
     # -- synaptic augmentation setup
-    rcn.U = 0.2                             # 0.2 default
+    rcn.U = 0.2  # 0.2 default
 
     rcn.set_stimulus_i(
-        stimulus = 'flat_to_I', 
-        frequency = i_freq * Hz)            # default: 15 Hz
+        stimulus='flat_to_I',
+        frequency=i_freq * Hz)  # default: 15 Hz
 
     # --folder for simulation results
     save_dir = os.path.join(os.path.join(timestamp_folder, f'BA_{ba}_GS_{gs_percentage}_W_{i_e_w}_I_{i_freq}'))
@@ -193,26 +190,25 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     attractors = []
 
     if args.attractors >= 1:
-        stim1_ids = rcn.set_active_E_ids(stimulus = 'flat_to_E_fixed_size', offset = 0)
+        stim1_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=0)
         rcn.set_potentiated_synapses(stim1_ids)
         A1 = list(range(0, 64))
         attractors.append(('A1', A1))
     if args.attractors >= 2:
-        stim2_ids = rcn.set_active_E_ids(stimulus = 'flat_to_E_fixed_size', offset = 100)
+        stim2_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=100)
         rcn.set_potentiated_synapses(stim2_ids)
         A2 = list(range(100, 164))
         attractors.append(('A2', A2))
     if args.attractors >= 3:
-        stim3_ids = rcn.set_active_E_ids(stimulus = 'flat_to_E_fixed_size', offset = 180)
+        stim3_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=180)
         rcn.set_potentiated_synapses(stim3_ids)
         A3 = list(range(180, 244))
         attractors.append(('A3', A3))
 
-    rcn.set_E_E_plastic(plastic = plastic_syn)
-    rcn.set_E_E_ux_vars_plastic(plastic = plastic_ux)
+    rcn.set_E_E_plastic(plastic=plastic_syn)
+    rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
 
     if print_report:
-
         print('-------------------------------------------------------')
         print(
             f'Iteration {i} of {len(list(itertools.product(background_activity, generic_stimuli, I_E_weights, I_input_freq)))}',
@@ -222,41 +218,41 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         print('I input = ', i_freq, 'Hz', 'I-to-E weight', i_e_w, 'mV')
 
     # -- run network --
-    
+
     stimulation_amount = []
     cue_percentage = 100
 
     # cue attractor 1
     gs_A1 = (cue_percentage, stim1_ids, (0, 0.1))
     act_ids = rcn.generic_stimulus(
-        frequency = rcn.stim_freq_e, 
-        stim_perc = gs_A1[0], 
-        subset = gs_A1[1])
+        frequency=rcn.stim_freq_e,
+        stim_perc=gs_A1[0],
+        subset=gs_A1[1])
     stimulation_amount.append(
         (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
          100 * np.intersect1d(act_ids, stim2_ids).size / len(stim2_ids))
     )
-    rcn.run_net(duration = gs_A1[2][1] - gs_A1[2][0])
+    rcn.run_net(duration=gs_A1[2][1] - gs_A1[2][0])
     rcn.generic_stimulus_off(act_ids)
 
     # wait for 2 seconds before cueing second attractor
-    rcn.run_net(duration = 2)
+    rcn.run_net(duration=2)
 
     # cue attractor 2
     gs_A2 = (cue_percentage, stim2_ids, (2.1, 2.1 + args.A2_cue_time))
     act_ids = rcn.generic_stimulus(
-        frequency = rcn.stim_freq_e, 
-        stim_perc = gs_A2[0], 
-        subset = gs_A2[1])
+        frequency=rcn.stim_freq_e,
+        stim_perc=gs_A2[0],
+        subset=gs_A2[1])
     stimulation_amount.append(
         (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
          100 * np.intersect1d(act_ids, stim2_ids).size / len(stim2_ids))
     )
-    rcn.run_net(duration = gs_A2[2][1] - gs_A2[2][0])
+    rcn.run_net(duration=gs_A2[2][1] - gs_A2[2][0])
     rcn.generic_stimulus_off(act_ids)
 
     # wait for another 2 seconds before ending
-    rcn.run_net(duration = 2 + args.A2_cue_time)
+    rcn.run_net(duration=2 + args.A2_cue_time)
 
     # 2 ------ plotting simulation data ------
     title_addition = f'BA {ba} Hz, GS {gs_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
@@ -264,28 +260,27 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
 
     gss = [gs_A1, gs_A2]
     fig1 = plot_x_u_spks_from_basin(
-        path = save_dir,
-        filename = 'x_u_spks_from_basin' + filename_addition,
-        title_addition = title_addition,
-        generic_stimuli = gss,
-        rcn = rcn,
-        attractors = attractors,
-        num_neurons = len(rcn.E),
-        show = args.show)
+        path=save_dir,
+        filename='x_u_spks_from_basin' + filename_addition,
+        title_addition=title_addition,
+        generic_stimuli=gss,
+        rcn=rcn,
+        attractors=attractors,
+        num_neurons=len(rcn.E),
+        show=args.show)
 
     fig3 = plot_thresholds(
-        path = save_dir,
-        file_name = 'thresholds' + filename_addition,
-        rcn = rcn, 
-        attractors = attractors, 
-        show = args.show)
+        path=save_dir,
+        file_name='thresholds' + filename_addition,
+        rcn=rcn,
+        attractors=attractors,
+        show=args.show)
 
     # plot u from synapses and neurons
 
     running_times.append(timeit.default_timer() - start_time)
-    
+
     if print_report:
-        
         print(
             f'Predicted time remaining in experiment: '
             f'{np.round(np.mean(running_times) * len(list(itertools.product(background_activity, generic_stimuli, I_E_weights, I_input_freq)))) - i} s')
@@ -296,7 +291,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     attractors_t_windows.append((gs_A1[2][1], gs_A2[2][0], gs_A1[2]))
 
     # log period of independent activity for attractor 2.
-    attractors_t_windows.append((gs_A2[2][1], rcn.E_E_rec.t[-1]/second, gs_A2[2]))
+    attractors_t_windows.append((gs_A2[2][1], rcn.E_E_rec.t[-1] / second, gs_A2[2]))
 
     with open(_f, 'a') as params_file:
 
@@ -308,13 +303,45 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         params_file.write('\nPopulation Spikes (count)\n')
 
 atr_ps_counts = count_ps(
-    rcn = rcn, 
-    attractors = attractors, 
-    time_window = attractors_t_windows,
-    spk_sync_thr = 0.75)
+    rcn=rcn,
+    attractors=attractors,
+    time_window=attractors_t_windows,
+    spk_sync_thr=0.75)
 
 for key, val in atr_ps_counts.items():
-
     with open(_f, 'a') as params_file:
-
         params_file.write('attractor {}: {}\n'.format(key, val))
+
+title_addition = f'BA {ba} Hz, GS {gs_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
+filename_addition = f'_BA_{ba}_GS_{gs_percentage}_W_{i_e_w}_Hz_{i_freq}'
+
+gss = [gs_A1, gs_A2]
+fig1 = plot_x_u_spks_from_basin(
+    path=save_dir,
+    filename='x_u_spks_from_basin' + filename_addition,
+    title_addition=title_addition,
+    generic_stimuli=gss,
+    rcn=rcn,
+    attractors=attractors,
+    num_neurons=len(rcn.E),
+    show=args.show)
+# plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
+
+fig2 = plot_rcn_spiketrains_histograms(
+    Einp_spks=rcn.get_Einp_spks()[0],
+    Einp_ids=rcn.get_Einp_spks()[1],
+    stim_E_size=rcn.stim_size_e,
+    E_pop_size=rcn.N_input_e,
+    Iinp_spks=rcn.get_Iinp_spks()[0],
+    Iinp_ids=rcn.get_Iinp_spks()[1],
+    stim_I_size=rcn.stim_size_i,
+    I_pop_size=rcn.N_input_i,
+    E_spks=rcn.get_E_spks()[0],
+    E_ids=rcn.get_E_spks()[1],
+    I_spks=rcn.get_I_spks()[0],
+    I_ids=rcn.get_I_spks()[1],
+    t_run=rcn.net.t,
+    path=save_dir,
+    filename='rcn_population_spiking' + filename_addition,
+    title_addition=title_addition,
+    show=args.show)
