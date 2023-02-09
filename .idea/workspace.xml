@@ -7,15 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- fixed imports and figures not generating in RCN_intrinsic_adaptation_simulation.py">
-      <change afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/population_spikes.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/population_spikes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/helper_PS_count_grids/plot_PS_count_grid_search.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/helper_PS_count_grids/plot_PS_count_grid_search.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/run_PS_count_grid_search.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/run_PS_count_grid_search.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -567,14 +561,7 @@
       <workItem from="1669665784827" duration="1000" />
       <workItem from="1675853771568" duration="4798000" />
       <workItem from="1675861781208" duration="9817000" />
-      <workItem from="1675936837698" duration="18141000" />
-    </task>
-    <task id="LOCAL-00014" summary="- made pss modular&#10;- added PS annotation to all axes">
-      <created>1646753004440</created>
-      <option name="number" value="00014" />
-      <option name="presentableId" value="LOCAL-00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1646753004440</updated>
+      <workItem from="1675936837698" duration="19098000" />
     </task>
     <task id="LOCAL-00015" summary="- adjusted anomaly detection algorithm for finding PSs">
       <created>1646753527497</created>
@@ -912,7 +899,14 @@
       <option name="project" value="LOCAL" />
       <updated>1675855331415</updated>
     </task>
-    <option name="localTasksCounter" value="63" />
+    <task id="LOCAL-00063" summary="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
+      <created>1675969458409</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1675969458410</updated>
+    </task>
+    <option name="localTasksCounter" value="64" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -954,7 +948,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- fixed bug where PSs for attractors &gt; A1 were not counted" />
     <MESSAGE value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added support for multiple GS types together" />
     <MESSAGE value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together" />
     <MESSAGE value="- rewrote GS generation algorithm to be much more precise" />
@@ -979,7 +972,8 @@
     <MESSAGE value="- conda install numpy &quot;libblas=*=*accelerate&quot; doubles numpy performance" />
     <MESSAGE value="- normalised short term plasticity to be equal to w_max" />
     <MESSAGE value="- fixed imports and figures not generating in RCN_intrinsic_adaptation_simulation.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="- fixed imports and figures not generating in RCN_intrinsic_adaptation_simulation.py" />
+    <MESSAGE value="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

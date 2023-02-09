@@ -155,13 +155,18 @@ def run_sim(params):
                 trig += v
             if k == 'spontaneous':
                 spont += v
-    print(f'FINISHED worker {pid} triggered: {trig}, spontaneous: {spont}, score: {trig / (trig + spont)}')
+    try:
+        score = trig / (trig + spont)
+    except ZeroDivisionError:
+        score = 0
+
+    print(f'FINISHED worker {pid} triggered: {trig}, spontaneous: {spont}, score: {score}')
 
     # TODO do we like this way of scoring?
-    return params, trig / (trig + spont)
+    return params, score
 
 
-num_par = 10
+num_par = 20
 cv = 10
 default_params = [15, 10, 20, 100, 2]
 param_grid = {
