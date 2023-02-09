@@ -19,6 +19,9 @@ spontaneous: count of PSs happening inside a time window where a different cued 
 def count_ps(rcn, attractors: list, time_window: list, spk_sync_thr: float):
     from helper_functions.other import find_ps
 
+    # needed to output the spikes to file or they won't be found bt find_ps()
+    rcn.get_spikes_pyspike()
+
     attractors_ps_counts = {}
 
     us_neurs_with_input, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
@@ -40,6 +43,7 @@ def count_ps(rcn, attractors: list, time_window: list, spk_sync_thr: float):
                     attractors_ps_counts[attractors[i][0]]['triggered'] += 1
 
                     _last_trg_ps = x[j] + 0.15
+                    # _last_trg_ps = x[j] + (x[pss[0][1]] - x[pss[0][0]])
 
             else:
 
@@ -50,6 +54,7 @@ def count_ps(rcn, attractors: list, time_window: list, spk_sync_thr: float):
                         attractors_ps_counts[attractors[i][0]]['spontaneous'] += 1
 
                         _last_spt_ps = x[j] + 0.15
+                        # _last_spt_ps = x[j] + (x[pss[0][1]] - x[pss[0][0]])
 
     return attractors_ps_counts
 

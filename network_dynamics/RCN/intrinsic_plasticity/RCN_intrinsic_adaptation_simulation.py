@@ -235,6 +235,7 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.run_net(duration=gs_A1[2][1] - gs_A1[2][0])
     rcn.generic_stimulus_off(act_ids)
 
+
     # wait for 2 seconds before cueing second attractor
     rcn.run_net(duration=2)
 

@@ -1,7 +1,8 @@
 import brian2.monitors
 import numpy as np
 import matplotlib.pyplot as plt
-import os, datetime
+import os
+from datetime import datetime, timedelta
 
 """
 @author: t.f.tiotto@rug.nl
@@ -75,7 +76,7 @@ def make_folders(path):
 def make_timestamped_folder(path):
     if not os.path.exists(path):
         os.makedirs(path)
-    timestamp = datetime.datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
+    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
     os.makedirs(os.path.join(path, timestamp))
 
     return os.path.join(path, timestamp)
@@ -196,6 +197,7 @@ def find_ps(path, sim_time, attractor, write_to_file=False, parameters=None, ver
                   )
 
     return x, y, y_smooth, pss
+
 
 def count_pss_in_gss(pss_path, normalise_by_PS=False, num_gss=None, write_to_file=False, ba=None, gss=None,
                      verbose=True):
@@ -424,3 +426,28 @@ def hz2sec(hz):
     if isinstance(hz, int) or isinstance(hz, float):
         return 1 / hz * second
     return (1 / hz)
+
+
+def estimate_search_time(function, param_grid, cv, repeat=1):
+    print('Evaluating execution time')
+    # -- estimate execution time
+    start = datetime.now()
+    function(param_grid[0])
+    time_iteration = datetime.now() - start
+
+    num_params = len(param_grid)
+    num_cpus = os.cpu_count()
+    num_cv_iteration = (num_params * cv) // num_cpus
+    if num_cv_iteration == 0:
+        time_iterations = num_params * cv * time_iteration * repeat
+    else:
+        time_iterations = num_cv_iteration * time_iteration * repeat
+
+    print(f'Estimated time for 1 iteration: {time_iteration.total_seconds():.2f} seconds')
+    if repeat == 1:
+        print(
+            f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv: {time_iterations.total_seconds() / 60:.2f} minutes')
+    else:
+        print(
+            f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv, repeated {repeat} times: {time_iterations.total_seconds() / 60:.2f} minutes')
+    print('Estimated end time:', datetime.now() + time_iterations)
