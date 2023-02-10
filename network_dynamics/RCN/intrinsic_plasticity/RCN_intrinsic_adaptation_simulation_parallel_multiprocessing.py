@@ -203,8 +203,14 @@ df_results = pd.DataFrame(results, columns=['params', 'score'])
 df_results['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
 df_results = df_results.groupby('params').mean().reset_index()
 df_results.set_index('params', inplace=True)
-df_results.sort_values(by='score', ascending=False, inplace=True)
 
-print(df_results)
+print(df_results.sort_values(by='score', ascending=False))
+
+fig, ax = plt.subplots(figsize=(12, 10))
+df_results.plot(kind='bar', ax=ax)
+ax.set_ylabel('Score')
+ax.set_xlabel('Parameters')
+ax.set_title('Score for different parameters')
+plt.show()
 
 cleanup()

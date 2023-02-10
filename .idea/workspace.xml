@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper_functions/population_spikes.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/population_spikes.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -109,7 +109,7 @@
       <recent name="$PROJECT_DIR$/plotting_functions" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RCN_intrinsic_adaptation_simulation_parallel_multiprocessing">
+  <component name="RunManager" selected="Python.RCN_intrinsic_adaptation_simulation">
     <configuration name="One attractor ba full experiment" type="PythonConfigurationType" factoryName="Python">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -482,8 +482,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.RCN_intrinsic_adaptation_simulation_parallel_multiprocessing" />
         <item itemvalue="Python.RCN_intrinsic_adaptation_simulation" />
+        <item itemvalue="Python.RCN_intrinsic_adaptation_simulation_parallel_multiprocessing" />
         <item itemvalue="Python.RCN_intrinsic_adaptation_simulation_parallel" />
         <item itemvalue="Python.plot_PS_count_grid_search" />
         <item itemvalue="Python.run_PS_count_grid_search" />
@@ -561,14 +561,7 @@
       <workItem from="1669665784827" duration="1000" />
       <workItem from="1675853771568" duration="4798000" />
       <workItem from="1675861781208" duration="9817000" />
-      <workItem from="1675936837698" duration="19098000" />
-    </task>
-    <task id="LOCAL-00015" summary="- adjusted anomaly detection algorithm for finding PSs">
-      <created>1646753527497</created>
-      <option name="number" value="00015" />
-      <option name="presentableId" value="LOCAL-00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1646753527497</updated>
+      <workItem from="1675936837698" duration="21980000" />
     </task>
     <task id="LOCAL-00016" summary="- saving PS stats to pss.csv and reading back counting number of PSs">
       <created>1646762275996</created>
@@ -906,7 +899,14 @@
       <option name="project" value="LOCAL" />
       <updated>1675969458410</updated>
     </task>
-    <option name="localTasksCounter" value="64" />
+    <task id="LOCAL-00064" summary="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
+      <created>1675973985157</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1675973985157</updated>
+    </task>
+    <option name="localTasksCounter" value="65" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -948,7 +948,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added support for multiple GS types together" />
     <MESSAGE value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together" />
     <MESSAGE value="- rewrote GS generation algorithm to be much more precise" />
     <MESSAGE value="- corrected weight in plot being scaled wrong" />
@@ -973,7 +972,8 @@
     <MESSAGE value="- normalised short term plasticity to be equal to w_max" />
     <MESSAGE value="- fixed imports and figures not generating in RCN_intrinsic_adaptation_simulation.py" />
     <MESSAGE value="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
+    <MESSAGE value="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

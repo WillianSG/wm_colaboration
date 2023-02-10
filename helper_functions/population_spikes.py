@@ -41,7 +41,7 @@ def count_ps(rcn, attractors: list, time_window: list, spk_sync_thr: float):
 
                 if y[j] >= spk_sync_thr and x[j] > _last_trg_ps:
                     attractors_ps_counts[attractors[i][0]]['triggered'] += 1
-
+                    # TODO check if this is correct.  I think always adding 0.15s could lead to issues.  Try my alternative commented out line below
                     _last_trg_ps = x[j] + 0.15
                     # _last_trg_ps = x[j] + (x[pss[0][1]] - x[pss[0][0]])
 
