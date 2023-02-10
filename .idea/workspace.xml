@@ -7,9 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added simple plot to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/population_spikes.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/population_spikes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -561,14 +561,7 @@
       <workItem from="1669665784827" duration="1000" />
       <workItem from="1675853771568" duration="4798000" />
       <workItem from="1675861781208" duration="9817000" />
-      <workItem from="1675936837698" duration="21980000" />
-    </task>
-    <task id="LOCAL-00016" summary="- saving PS stats to pss.csv and reading back counting number of PSs">
-      <created>1646762275996</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1646762275996</updated>
+      <workItem from="1675936837698" duration="24019000" />
     </task>
     <task id="LOCAL-00017" summary="- added a subplot for variables for each attractor">
       <created>1646840912247</created>
@@ -906,7 +899,14 @@
       <option name="project" value="LOCAL" />
       <updated>1675973985157</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="- added simple plot to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
+      <created>1676024013829</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1676024013829</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -948,7 +948,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together" />
     <MESSAGE value="- rewrote GS generation algorithm to be much more precise" />
     <MESSAGE value="- corrected weight in plot being scaled wrong" />
     <MESSAGE value="- fixed bug with GSs not being periodic" />
@@ -973,7 +972,8 @@
     <MESSAGE value="- fixed imports and figures not generating in RCN_intrinsic_adaptation_simulation.py" />
     <MESSAGE value="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
+    <MESSAGE value="- added simple plot to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added simple plot to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -999,14 +999,9 @@
           <option name="timeStamp" value="76" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation.py</url>
-          <line>261</line>
-          <option name="timeStamp" value="109" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py</url>
-          <line>260</line>
-          <option name="timeStamp" value="111" />
+          <url>file://$PROJECT_DIR$/helper_functions/population_spikes.py</url>
+          <line>44</line>
+          <option name="timeStamp" value="117" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -1040,7 +1035,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs.coverage" NAME="RCN_item_reactivation_gs Coverage Results" MODIFIED="1646243957580" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$Two_attractor_reactivation_fast_three_iterations.coverage" NAME="Two attractor reactivation fast three iterations Coverage Results" MODIFIED="1646931532718" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_ba.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646331179889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation.coverage" NAME="RCN_intrinsic_adaptation_simulation Coverage Results" MODIFIED="1675953265716" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation.coverage" NAME="RCN_intrinsic_adaptation_simulation Coverage Results" MODIFIED="1676023764204" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN.coverage" NAME="RCN Coverage Results" MODIFIED="1646048705953" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$Two_attractor_reactivation_fast_.coverage" NAME="Two attractor reactivation fast  Coverage Results" MODIFIED="1647017494788" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation_lite.coverage" NAME="network_visualisation_lite Coverage Results" MODIFIED="1644336752261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />

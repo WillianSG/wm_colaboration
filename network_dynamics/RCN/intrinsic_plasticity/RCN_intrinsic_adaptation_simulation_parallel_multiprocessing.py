@@ -177,6 +177,8 @@ param_grid = {
     'a2_cue_time': np.linspace(0.1, 1, num=num_par),
     'attractors': [default_params[4]]
 }
+sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
+
 print(param_grid)
 
 
@@ -199,7 +201,14 @@ estimate_search_time(run_sim, param_grid_pool, cv)
 with pathos.multiprocessing.ProcessPool(num_proc) as p:
     results = p.map(run_sim, param_grid_pool)
 
-df_results = pd.DataFrame(results, columns=['params', 'score'])
+res_unsweeped_removed = []
+for r in results:
+    res_tmp = []
+    for p in sweeped_params:
+        res_tmp.append(r[0][p[1]])
+    res_unsweeped_removed.append((res_tmp, r[1]))
+
+df_results = pd.DataFrame(res_unsweeped_removed, columns=['params', 'score'])
 df_results['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
 df_results = df_results.groupby('params').mean().reset_index()
 df_results.set_index('params', inplace=True)
