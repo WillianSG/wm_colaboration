@@ -16,10 +16,10 @@ spontaneous: count of PSs happening inside a time window where a different cued 
 """
 
 
-def count_ps(rcn, attractors: list, time_window: list, spk_sync_thr: float):
+def count_ps(rcn, attractors, time_window, spk_sync_thr):
     from helper_functions.other import find_ps
 
-    # needed to output the spikes to file or they won't be found bt find_ps()
+    # needed to output the spikes to file, or they won't be found by find_ps()
     rcn.get_spikes_pyspike()
 
     attractors_ps_counts = {}

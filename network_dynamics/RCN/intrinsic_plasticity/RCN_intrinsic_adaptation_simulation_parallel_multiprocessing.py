@@ -6,6 +6,7 @@ import pathos
 import numpy as np
 import matplotlib.pyplot as plt
 from dill import PicklingWarning, UnpicklingWarning
+from natsort import natsorted
 from numpy import VisibleDeprecationWarning
 import warnings
 import pandas as pd
@@ -41,8 +42,8 @@ def run_sim(params):
     i_e_w = params[1]
     i_freq = params[2]
     cue_percentage = params[3]
-    a2_cue_time = params[4]
-    attractors = params[5]
+    cue_time = params[4]
+    num_attractors = params[5]
 
     rcn = RecurrentCompetitiveNet(
         plasticity_rule='LR4',
@@ -80,64 +81,37 @@ def run_sim(params):
     _f = os.path.join(rcn.net_sim_data_path, 'simulation_summary.txt')
 
     attractors_list = []
-    if attractors >= 1:
-        stim1_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=0)
-        rcn.set_potentiated_synapses(stim1_ids)
-        A1 = list(range(0, 64))
-        attractors_list.append(('A1', A1))
-    if attractors >= 2:
-        stim2_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=100)
-        rcn.set_potentiated_synapses(stim2_ids)
-        A2 = list(range(100, 164))
-        attractors_list.append(('A2', A2))
-    if attractors >= 3:
-        stim3_ids = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=180)
-        rcn.set_potentiated_synapses(stim3_ids)
-        A3 = list(range(180, 244))
-        attractors_list.append(('A3', A3))
+    for i in range(num_attractors):
+        if i * 80 + rcn.stim_size_e > len(rcn.E):
+            print(
+                f'{num_attractors} attractors of size {rcn.stim_size_e} cannot fit into a network of {len(rcn.E)} neurons.  Instantiating {i} attractors instead.')
+            num_attractors = i
+            break
+        stim_id = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=i * 80)
+        rcn.set_potentiated_synapses(stim_id)
+        attractors_list.append([f'A{i}', stim_id])
 
     rcn.set_E_E_plastic(plastic=plastic_syn)
     rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
 
-    stimulation_amount = []
-
-    # cue attractor 1
-    gs_A1 = (cue_percentage, stim1_ids, (0, 0.1))
-    act_ids = rcn.generic_stimulus(
-        frequency=rcn.stim_freq_e,
-        stim_perc=gs_A1[0],
-        subset=gs_A1[1])
-    stimulation_amount.append(
-        (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
-         100 * np.intersect1d(act_ids, stim2_ids).size / len(stim2_ids))
-    )
-    rcn.run_net(duration=gs_A1[2][1] - gs_A1[2][0])
-    rcn.generic_stimulus_off(act_ids)
-
-    # wait for 2 seconds before cueing second attractor
-    rcn.run_net(duration=2)
-
-    # cue attractor 2
-    gs_A2 = (cue_percentage, stim2_ids, (2.1, 2.1 + a2_cue_time))
-    act_ids = rcn.generic_stimulus(
-        frequency=rcn.stim_freq_e,
-        stim_perc=gs_A2[0],
-        subset=gs_A2[1])
-    stimulation_amount.append(
-        (100 * np.intersect1d(act_ids, stim1_ids).size / len(stim1_ids),
-         100 * np.intersect1d(act_ids, stim2_ids).size / len(stim2_ids))
-    )
-    rcn.run_net(duration=gs_A2[2][1] - gs_A2[2][0])
-    rcn.generic_stimulus_off(act_ids)
-
-    # wait for another 2 seconds before ending
-    rcn.run_net(duration=2 + a2_cue_time)
+    for i, a in enumerate(attractors_list):
+        gs = (cue_percentage, a[1], ((2 + cue_time) * i, (2 + cue_time) * i + cue_time))
+        act_ids = rcn.generic_stimulus(
+            frequency=rcn.stim_freq_e,
+            stim_perc=gs[0],
+            subset=gs[1])
+        rcn.run_net(duration=gs[2][1] - gs[2][0])
+        rcn.generic_stimulus_off(act_ids)
+        # # wait for 2 seconds before cueing second attractor
+        rcn.run_net(duration=2)
+        a.append(gs[2])
 
     attractors_t_windows = []
-    # log period of independent activity for attractor 1.
-    attractors_t_windows.append((gs_A1[2][1], gs_A2[2][0], gs_A1[2]))
-    # log period of independent activity for attractor 2.
-    attractors_t_windows.append((gs_A2[2][1], rcn.E_E_rec.t[-1] / second, gs_A2[2]))
+    for i, a in enumerate(attractors_list):
+        try:
+            attractors_t_windows.append((attractors_list[i][2][1], attractors_list[i + 1][2][0], attractors_list[i][2]))
+        except IndexError:
+            attractors_t_windows.append((attractors_list[i][2][1], rcn.net.t / second, attractors_list[i][2]))
 
     # -- calculate score
     atr_ps_counts = count_ps(
@@ -166,8 +140,8 @@ def run_sim(params):
     return params, score
 
 
-num_par = 20
-cv = 10
+num_par = 10
+cv = 20
 default_params = [15, 10, 20, 100, 2]
 param_grid = {
     'ba': [default_params[0]],
@@ -175,7 +149,7 @@ param_grid = {
     'i_freq': [default_params[2]],
     'cue_percentage': [default_params[3]],
     'a2_cue_time': np.linspace(0.1, 1, num=num_par),
-    'attractors': [default_params[4]]
+    'num_attractors': [default_params[4]]
 }
 sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
 
@@ -208,13 +182,15 @@ for r in results:
         res_tmp.append(r[0][p[1]])
     res_unsweeped_removed.append((res_tmp, r[1]))
 
-df_results = pd.DataFrame(res_unsweeped_removed, columns=['params', 'score'])
+df_results = pd.DataFrame([i for i in res_unsweeped_removed], columns=['params', 'score'])
 df_results['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
 df_results = df_results.groupby('params').mean().reset_index()
+df_results.sort_values(by='params', ascending=True, inplace=True)
 df_results.set_index('params', inplace=True)
+df_results.index = natsorted(df_results.index)
 
 print(df_results.sort_values(by='score', ascending=False))
-
+# TODO ordering by parameter is still off
 fig, ax = plt.subplots(figsize=(12, 10))
 df_results.plot(kind='bar', ax=ax)
 ax.set_ylabel('Score')
