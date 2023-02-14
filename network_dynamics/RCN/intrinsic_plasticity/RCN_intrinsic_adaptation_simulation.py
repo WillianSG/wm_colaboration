@@ -41,7 +41,7 @@ else:
     from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
     from plotting_functions.rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
     from plotting_functions.spike_synchronisation import *
-    from plotting_functions.plot_thresholds import *
+    from plotting_functions.plot_thresholds import plot_thresholds
     from helper_functions.population_spikes import count_ps
 
 prefs.codegen.target = 'numpy'
@@ -235,7 +235,6 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     rcn.run_net(duration=gs_A1[2][1] - gs_A1[2][0])
     rcn.generic_stimulus_off(act_ids)
 
-
     # wait for 2 seconds before cueing second attractor
     rcn.run_net(duration=2)
 
@@ -295,54 +294,9 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
     attractors_t_windows.append((gs_A2[2][1], rcn.E_E_rec.t[-1] / second, gs_A2[2]))
 
     with open(_f, 'a') as params_file:
-
         params_file.write('background activity (Hz): {}\n'.format(ba))
         params_file.write('generic stimuli (%): {}\n'.format(gs_percentage))
         params_file.write('inh. to exc. weight (mV): {}\n'.format(i_e_w))
         params_file.write('inh. firing frequency (Hz): {}\n'.format(i_freq))
         params_file.write('cueing time (s): {}\n'.format(args.A2_cue_time))
         params_file.write('\nPopulation Spikes (count)\n')
-
-atr_ps_counts = count_ps(
-    rcn=rcn,
-    attractors=attractors,
-    time_window=attractors_t_windows,
-    spk_sync_thr=0.75)
-
-for key, val in atr_ps_counts.items():
-    with open(_f, 'a') as params_file:
-        params_file.write('attractor {}: {}\n'.format(key, val))
-
-title_addition = f'BA {ba} Hz, GS {gs_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
-filename_addition = f'_BA_{ba}_GS_{gs_percentage}_W_{i_e_w}_Hz_{i_freq}'
-
-gss = [gs_A1, gs_A2]
-fig1 = plot_x_u_spks_from_basin(
-    path=save_dir,
-    filename='x_u_spks_from_basin' + filename_addition,
-    title_addition=title_addition,
-    generic_stimuli=gss,
-    rcn=rcn,
-    attractors=attractors,
-    num_neurons=len(rcn.E),
-    show=args.show)
-# plot_syn_matrix_heatmap( path_to_data=rcn.E_E_syn_matrix_path )
-
-fig2 = plot_rcn_spiketrains_histograms(
-    Einp_spks=rcn.get_Einp_spks()[0],
-    Einp_ids=rcn.get_Einp_spks()[1],
-    stim_E_size=rcn.stim_size_e,
-    E_pop_size=rcn.N_input_e,
-    Iinp_spks=rcn.get_Iinp_spks()[0],
-    Iinp_ids=rcn.get_Iinp_spks()[1],
-    stim_I_size=rcn.stim_size_i,
-    I_pop_size=rcn.N_input_i,
-    E_spks=rcn.get_E_spks()[0],
-    E_ids=rcn.get_E_spks()[1],
-    I_spks=rcn.get_I_spks()[0],
-    I_ids=rcn.get_I_spks()[1],
-    t_run=rcn.net.t,
-    path=save_dir,
-    filename='rcn_population_spiking' + filename_addition,
-    title_addition=title_addition,
-    show=args.show)
