@@ -43,7 +43,7 @@ tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
 
 
-def run_sim(params, plot=False):
+def run_sim(params, plot=True, show_plot=False):
     pid = os.getpid()
     print(f'RUNNING worker {pid} with params: {params}')
 
@@ -157,7 +157,7 @@ def run_sim(params, plot=False):
             rcn=rcn,
             attractors=attractors_list,
             num_neurons=len(rcn.E),
-            show=True)
+            show=show_plot)
 
         # plot_thresholds(
         #     path=rcn.net_sim_data_path,
@@ -174,7 +174,7 @@ def run_sim(params, plot=False):
 
 num_par = 2
 cv = 1
-default_params = [15, 10, 20, 100, 2]
+default_params = [15, 10, 20, 100, 3]
 param_grid = {
     'ba': [default_params[0]],
     'i_e_w': [default_params[1]],
@@ -202,10 +202,10 @@ def product_dict_to_list(**kwargs):
 
 param_grid_pool = product_dict_to_list(**param_grid) * cv
 num_proc = pathos.multiprocessing.cpu_count()
-# estimate_search_time(run_sim, param_grid_pool, cv)
+estimate_search_time(run_sim, param_grid_pool, cv)
 
 with pathos.multiprocessing.ProcessPool(num_proc) as p:
-    results = p.map(partial(run_sim, plot=True), param_grid_pool)
+    results = p.map(run_sim, param_grid_pool)
 
 if len(sweeped_params) > 1:
     res_unsweeped_removed = []
@@ -218,12 +218,14 @@ else:
     res_unsweeped_removed = results
 
 df_results = pd.DataFrame([i for i in res_unsweeped_removed], columns=['params', 'score'])
-df_results['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
-df_results = df_results.groupby('params').mean().reset_index()
-df_results.sort_values(by='params', ascending=True, inplace=True)
-df_results.set_index('params', inplace=True)
-df_results.index = natsorted(df_results.index)
-df_results.to_csv(f'{tmp_folder}/results.csv')
+
+df_results_print = df_results.copy()
+df_results_print['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
+df_results_print = df_results_print.groupby('params').mean().reset_index()
+df_results_print.sort_values(by='params', ascending=True, inplace=True)
+df_results_print.set_index('params', inplace=True)
+df_results_print.index = natsorted(df_results_print.index)
+df_results_print.to_csv(f'{tmp_folder}/results.csv')
 
 print(df_results.sort_values(by='score', ascending=False))
 # TODO ordering by parameter is still off
@@ -233,7 +235,11 @@ ax.set_ylabel('Score')
 ax.set_xlabel('Parameters')
 ax.set_title('Score for different parameters')
 fig.savefig(f'{tmp_folder}/score.png')
-plt.show()
+fig.show()
+
+best_params = df_results.loc[df_results.score.idxmax(), 'params']
+print(f'Best parameters: {best_params}')
+run_sim(best_params, plot=True, show_plot=True)
 
 while True:
     save = input('Save results? (y/n)')
