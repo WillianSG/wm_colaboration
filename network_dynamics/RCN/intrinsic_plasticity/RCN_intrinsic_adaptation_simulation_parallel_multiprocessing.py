@@ -1,6 +1,8 @@
 import atexit
+import copy
 import glob
 import os
+import random
 import shutil
 import signal
 from functools import partial
@@ -15,6 +17,8 @@ import warnings
 import pandas as pd
 
 from brian2 import prefs, ms, Hz, mV, second
+from tqdm import tqdm
+
 from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
 from helper_functions.population_spikes import count_ps
 from helper_functions.other import *
@@ -53,6 +57,7 @@ def run_sim(params, plot=True, show_plot=False):
     cue_percentage = params[3]
     cue_time = params[4]
     num_attractors = params[5]
+    num_cues = params[6]
 
     rcn = RecurrentCompetitiveNet(
         plasticity_rule='LR4',
@@ -91,38 +96,50 @@ def run_sim(params, plot=True, show_plot=False):
 
     attractors_list = []
     for i in range(num_attractors):
-        if i * 80 + rcn.stim_size_e > len(rcn.E):
+        if i * (64 + 16) + rcn.stim_size_e > len(rcn.E):
             print(
                 f'{num_attractors} attractors of size {rcn.stim_size_e} cannot fit into a network of {len(rcn.E)} neurons.  Instantiating {i} attractors instead.')
             num_attractors = i
             break
-        stim_id = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=i * 80)
+        stim_id = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=i * (64 + 16))
         rcn.set_potentiated_synapses(stim_id)
         attractors_list.append([f'A{i}', stim_id])
 
     rcn.set_E_E_plastic(plastic=plastic_syn)
     rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
 
+    # generate shuffled attractors
+    attractors_cueing_order = [copy.copy(random.choice(attractors_list))]
+    for i in range(num_cues):
+        atr_sel = copy.copy(random.choice(attractors_list))
+        while attractors_cueing_order[i] == atr_sel:
+            atr_sel = random.choice(attractors_list)
+        attractors_cueing_order.append(atr_sel)
+
+    # generate random reactivation times in the range [0, 1]
+    for a in attractors_cueing_order:
+        a.append(random.random())
+
     gss = []
-    for i, a in enumerate(attractors_list):
-        gs = (cue_percentage, a[1], ((2 + cue_time) * i, (2 + cue_time) * i + cue_time))
+    for i, a in tqdm(enumerate(attractors_cueing_order), disable=not plot, total=len(attractors_cueing_order)):
+        gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
         act_ids = rcn.generic_stimulus(
             frequency=rcn.stim_freq_e,
             stim_perc=gs[0],
             subset=gs[1])
-        rcn.run_net(duration=gs[2][1] - gs[2][0])
+        rcn.run_net(duration=cue_time)
         rcn.generic_stimulus_off(act_ids)
-        # # wait for 2 seconds before cueing second attractor
-        rcn.run_net(duration=2)
+        # # wait for 2 seconds before cueing next attractor
+        rcn.run_net(duration=a[2])
         a.append(gs[2])
         gss.append(gs)
-
+    # TODO get rid of all these gss lists and just use the attractors for everything
     attractors_t_windows = []
     for i, a in enumerate(attractors_list):
         try:
-            attractors_t_windows.append((attractors_list[i][2][1], attractors_list[i + 1][2][0], attractors_list[i][2]))
+            attractors_t_windows.append((attractors_list[i][3][1], attractors_list[i + 1][3][0], attractors_list[i][3]))
         except IndexError:
-            attractors_t_windows.append((attractors_list[i][2][1], rcn.net.t / second, attractors_list[i][2]))
+            attractors_t_windows.append((attractors_list[i][3][1], rcn.net.t / second, attractors_list[i][3]))
 
     # -- calculate score
     atr_ps_counts = count_ps(
@@ -174,14 +191,15 @@ def run_sim(params, plot=True, show_plot=False):
 
 num_par = 2
 cv = 1
-default_params = [15, 10, 20, 100, 3]
+default_params = [15, 10, 20, 100, 3, 9]
 param_grid = {
     'ba': [default_params[0]],
     'i_e_w': [default_params[1]],
     'i_freq': [default_params[2]],
     'cue_percentage': [default_params[3]],
     'a2_cue_time': np.linspace(0.1, 1, num=num_par),
-    'num_attractors': [default_params[4]]
+    'num_attractors': [default_params[4]],
+    'num_cues': [default_params[5]],
 }
 sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
 
@@ -199,6 +217,10 @@ def product_dict_to_list(**kwargs):
 
     return out_list
 
+
+# debug
+default_params.insert(4, 1.0)
+run_sim(default_params, plot=True, show_plot=True)
 
 param_grid_pool = product_dict_to_list(**param_grid) * cv
 num_proc = pathos.multiprocessing.cpu_count()

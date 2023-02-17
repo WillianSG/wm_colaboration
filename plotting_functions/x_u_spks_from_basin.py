@@ -13,7 +13,7 @@ import numpy as np
 
 if sys.platform == 'linux':
 
-    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, '../')))
 
     sys.path.append(os.path.join(root, 'helper_functions'))
 
@@ -26,43 +26,6 @@ else:
 
 def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=None,
                              filename=None, num_neurons=None, title_addition='', show=True):
-    # TODO just use rcn for everything
-    # Load data
-    # us_pickled_data = os.path.join(
-    #     path,
-    #     'us_neurs_with_input.pickle')
-    #
-    # with open(us_pickled_data, 'rb') as f:
-    #     (
-    #         us_neurs_with_input,
-    #         sim_t_array,
-    #         U,
-    #         tau_f,
-    #         # stim_pulse_duration
-    #     ) = pickle.load(f)
-    #
-    # xs_pickled_data = os.path.join(
-    #     path,
-    #     'xs_neurs_with_input.pickle')
-    #
-    # with open(xs_pickled_data, 'rb') as f:
-    #     (
-    #         xs_neurs_with_input,
-    #         sim_t_array,
-    #         tau_d,
-    #         # stim_pulse_duration
-    #     ) = pickle.load(f)
-    #
-    # spks_pickled_data = os.path.join(
-    #     path,
-    #     'spks_neurs_with_input.pickle')
-    #
-    # with open(spks_pickled_data, 'rb') as f:
-    #     (
-    #         spk_mon_ids,
-    #         spk_mon_ts,
-    #         t_run) = pickle.load(f)
-
     # Plot settings
     plt.close('all')
 
@@ -213,10 +176,13 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
     f_thresh = fig.add_subplot(spec2[len(attractors), 0])
 
     # -- plot voltage thresholds --
-    f_thresh.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[0][1], :], axis=0), label=attractors[0][0])
-    f_thresh.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[1][1], :], axis=0), label=attractors[1][0])
-    # f_thresh.set_ylim(np.min(rcn.E_rec.Vth_e), np.max(rcn.E_rec.Vth_e))
-    f_thresh.set_xlim(0, sim_t_array[-1])
+    for i, atr in enumerate(attractors):
+        color = colour_cycle[i]
+
+        f_thresh.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[attractors[i][1], :], axis=0),
+                      label=attractors[i][0], color=color)
+        # f_thresh.set_ylim(np.min(rcn.E_rec.Vth_e), np.max(rcn.E_rec.Vth_e))
+        f_thresh.set_xlim(0, sim_t_array[-1])
     f_thresh.set_title('Voltage thresholds', size=title_fontsize)
     f_thresh.legend()
 
@@ -261,9 +227,9 @@ def plot_x_u_spks_from_basin(path, generic_stimuli=None, attractors=None, rcn=No
     rcn.get_spikes_pyspike()
 
     f3_ax1 = fig.add_subplot(spec2[len(attractors) + 2, 0])
-    
+
     # -- plot spike sync profile
-    
+
     for i, atr in enumerate(attractors):
         x, y, y_smooth, pss = find_ps(path, sim_t_array[-1], atr)
 
