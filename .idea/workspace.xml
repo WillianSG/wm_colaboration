@@ -7,11 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added plotting and results saving to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py">
-      <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- added random reactivation time in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py so that cues come at random intervals">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper_functions/population_spikes.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/population_spikes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -570,14 +570,7 @@
       <workItem from="1676198104457" duration="13224000" />
       <workItem from="1676385893663" duration="249000" />
       <workItem from="1676386168688" duration="10522000" />
-      <workItem from="1676453202648" duration="8205000" />
-    </task>
-    <task id="LOCAL-00021" summary="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors">
-      <created>1646914626881</created>
-      <option name="number" value="00021" />
-      <option name="presentableId" value="LOCAL-00021" />
-      <option name="project" value="LOCAL" />
-      <updated>1646914626881</updated>
+      <workItem from="1676453202648" duration="26838000" />
     </task>
     <task id="LOCAL-00022" summary="- added new command-line parameters to give lower bound on parameter search&#10;- bugfixes in dynamic subplots for attractors">
       <created>1646914658653</created>
@@ -915,7 +908,14 @@
       <option name="project" value="LOCAL" />
       <updated>1676397118354</updated>
     </task>
-    <option name="localTasksCounter" value="70" />
+    <task id="LOCAL-00070" summary="- added random reactivation time in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py so that cues come at random intervals">
+      <created>1676631446813</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1676631446813</updated>
+    </task>
+    <option name="localTasksCounter" value="71" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -957,7 +957,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- updated GS visualisation to show exactly which neurons are being targeted" />
     <MESSAGE value="- push to switch PC" />
     <MESSAGE value="- single attractor displaying cuable phasic firing" />
     <MESSAGE value="- removed I-I synapses because they were using the same model as E-E and I didn't want to deal with them&#10;- moved u equations into the neuron model (!!)&#10;- made plotting more self-contained by reading directly from RCN object instead of writing-reading from files" />
@@ -982,7 +981,8 @@
     <MESSAGE value="- added logic to cleanup parameter results RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- generalised attractor number in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- added plotting and results saving to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="- added plotting and results saving to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
+    <MESSAGE value="- added random reactivation time in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py so that cues come at random intervals" />
+    <option name="LAST_COMMIT_MESSAGE" value="- added random reactivation time in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py so that cues come at random intervals" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1032,7 +1032,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_BA_GS_sweep.coverage" NAME="One attractor reactivation full BA GS sweep Coverage Results" MODIFIED="1647615005571" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_experiment_BA_GS_sweep.coverage" NAME="One attractor reactivation full experiment BA GS sweep Coverage Results" MODIFIED="1647341862665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$f_u__fitting.coverage" NAME="f(u)_fitting Coverage Results" MODIFIED="1654852623687" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.coverage" NAME="RCN_intrinsic_adaptation_simulation_parallel_multiprocessing Coverage Results" MODIFIED="1676630882515" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.coverage" NAME="RCN_intrinsic_adaptation_simulation_parallel_multiprocessing Coverage Results" MODIFIED="1676912431993" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$numpy_test.coverage" NAME="numpy_test Coverage Results" MODIFIED="1676569342503" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/helper_functions" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast.coverage" NAME="One attractor reactivation fast Coverage Results" MODIFIED="1647443654690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$run_PS_count_grid_search.coverage" NAME="run_PS_count_grid_search Coverage Results" MODIFIED="1675856427143" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />

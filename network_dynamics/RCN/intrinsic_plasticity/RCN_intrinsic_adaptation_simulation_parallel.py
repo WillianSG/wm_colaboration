@@ -163,11 +163,7 @@ class RCN_Estimator(BaseEstimator, RegressorMixin):
     def score(self, X, y=None, sample_weight=None):
         assert self.results_ready, "You must call fit() before calling score()"
 
-        atr_ps_counts = count_ps(
-            rcn=self.rcn,
-            attractors=self.attractors,
-            time_window=self.attractors_t_windows,
-            spk_sync_thr=0.75)
+        atr_ps_counts = count_ps(rcn=self.rcn, attractor_activity_period=, spk_sync_thr=0.75)
 
         # -- count reactivations
         trig = 0

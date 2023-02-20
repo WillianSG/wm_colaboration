@@ -4,6 +4,7 @@
 @university: University of Groningen
 @group: Bio-Inspired Circuits and System
 """
+import numpy as np
 
 """
 Counts the number of population spikes (PS) for each attractor during the whole simulation course.
@@ -16,47 +17,52 @@ spontaneous: count of PSs happening inside a time window where a different cued 
 """
 
 
-def count_ps(rcn, attractors, time_window, spk_sync_thr):
+def count_ps(rcn, attractor_activity_period, spk_sync_thr):
     from helper_functions.other import find_ps
 
     # needed to output the spikes to file, or they won't be found by find_ps()
     rcn.get_spikes_pyspike()
 
-    attractors_ps_counts = {}
+    attractor_ps_counts = {}
 
     us_neurs_with_input, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
 
-    for i in range(0, len(attractors)):
+    attractor_times = {}
+    for a in attractor_activity_period:
+        if not a[0] in attractor_times:
+            attractor_times[a[0]] = [(a[3][0], a[3][1], a[3][1] + a[2])]
+        else:
+            attractor_times[a[0]].append((a[3][0], a[3][1], a[3][1] + a[2]))
 
-        attractors_ps_counts[attractors[i][0]] = {'triggered': 0, 'spontaneous': 0}
+    for a in attractor_activity_period:
+        if not a[0] in attractor_ps_counts:
+            attractor_ps_counts[a[0]] = {'triggered': list(), 'spontaneous': list()}
 
-        x, y, y_smooth, pss = find_ps(rcn.net_sim_data_path, sim_t_array[-1], attractors[i])
+        x, y, y_smooth, pss = find_ps(rcn.net_sim_data_path, sim_t_array[-1], a)
 
-        _last_trg_ps = 0
-        _last_spt_ps = 0
+        # check each PS if it is triggered or spontaneous (4 cases)
+        for ps in pss:
+            max_sync_t = x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]
+            # if PS in triggered window of this cue
+            if a[3][1] <= max_sync_t <= a[3][1] + a[2]:
+                attractor_ps_counts[a[0]]['triggered'].append(max_sync_t)
+                print('TRIG', a[0], max_sync_t)
+            # if PS during this cue
+            elif a[3][0] <= max_sync_t <= a[3][1]:
+                continue
+            # if PS outside activity window of this cue
+            elif (max_sync_t < a[3][0] or max_sync_t > a[3][1] + a[2]):
+                # if PS during another cue's activity window
+                for at in attractor_times[a[0]]:
+                    if at[0] <= max_sync_t <= at[2]:
+                        break
+                # finally, if PS is not during another cue's activity window
+                else:
+                    if max_sync_t not in attractor_ps_counts[a[0]]['spontaneous']:
+                        attractor_ps_counts[a[0]]['spontaneous'].append(max_sync_t)
+                        print('SPONT', a[0], max_sync_t)
 
-        for j in range(0, len(x)):
-
-            if x[j] >= time_window[i][0] and x[j] <= time_window[i][1]:
-
-                if y[j] >= spk_sync_thr and x[j] > _last_trg_ps:
-                    attractors_ps_counts[attractors[i][0]]['triggered'] += 1
-                    # TODO check if this is correct.  I think always adding 0.15s could lead to issues.  Try my alternative commented out line below
-                    _last_trg_ps = x[j] + 0.15
-                    # _last_trg_ps = x[j] + (x[pss[0][1]] - x[pss[0][0]])
-
-            else:
-
-                if (x[j] < time_window[i][0] or x[j] > time_window[i][1]) and (
-                        x[j] < time_window[i][2][0] or x[j] > time_window[i][2][1]):
-
-                    if y[j] >= spk_sync_thr and x[j] > _last_spt_ps:
-                        attractors_ps_counts[attractors[i][0]]['spontaneous'] += 1
-
-                        _last_spt_ps = x[j] + 0.15
-                        # _last_spt_ps = x[j] + (x[pss[0][1]] - x[pss[0][0]])
-
-    return attractors_ps_counts
+    return attractor_ps_counts
 
 
 """

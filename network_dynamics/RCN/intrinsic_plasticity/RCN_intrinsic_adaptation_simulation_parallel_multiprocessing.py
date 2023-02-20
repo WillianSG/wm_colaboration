@@ -109,19 +109,20 @@ def run_sim(params, plot=True, show_plot=False):
     rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
 
     # generate shuffled attractors
-    attractors_cueing_order = [copy.copy(random.choice(attractors_list))]
-    for i in range(num_cues):
-        atr_sel = copy.copy(random.choice(attractors_list))
-        while attractors_cueing_order[i] == atr_sel:
-            atr_sel = random.choice(attractors_list)
+    attractors_cueing_order = [copy.deepcopy(random.choice(attractors_list))]
+    for i in range(num_cues - 1):
+        atr_sel = copy.deepcopy(random.choice(attractors_list))
+        while attractors_cueing_order[i][0] == atr_sel[0]:
+            atr_sel = copy.deepcopy(random.choice(attractors_list))
         attractors_cueing_order.append(atr_sel)
 
     # generate random reactivation times in the range [0, 1]
     for a in attractors_cueing_order:
-        a.append(random.random())
+        a.append(random.uniform(0.1, 1))
 
+    # TODO get rid of all these gss lists and just use the attractors for everything
     gss = []
-    for i, a in tqdm(enumerate(attractors_cueing_order), disable=not plot, total=len(attractors_cueing_order)):
+    for a in tqdm(attractors_cueing_order, disable=not plot, total=len(attractors_cueing_order)):
         gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
         act_ids = rcn.generic_stimulus(
             frequency=rcn.stim_freq_e,
@@ -133,20 +134,9 @@ def run_sim(params, plot=True, show_plot=False):
         rcn.run_net(duration=a[2])
         a.append(gs[2])
         gss.append(gs)
-    # TODO get rid of all these gss lists and just use the attractors for everything
-    attractors_t_windows = []
-    for i, a in enumerate(attractors_list):
-        try:
-            attractors_t_windows.append((attractors_list[i][3][1], attractors_list[i + 1][3][0], attractors_list[i][3]))
-        except IndexError:
-            attractors_t_windows.append((attractors_list[i][3][1], rcn.net.t / second, attractors_list[i][3]))
 
     # -- calculate score
-    atr_ps_counts = count_ps(
-        rcn=rcn,
-        attractors=attractors_list,
-        time_window=attractors_t_windows,
-        spk_sync_thr=0.75)
+    atr_ps_counts = count_ps(rcn=rcn, attractor_activity_period=attractors_cueing_order, spk_sync_thr=0.75)
 
     # -- count reactivations
     trig = 0
@@ -154,9 +144,9 @@ def run_sim(params, plot=True, show_plot=False):
     for k, v in atr_ps_counts.items():
         for k, v in v.items():
             if k == 'triggered':
-                trig += v
+                trig += len(v)
             if k == 'spontaneous':
-                spont += v
+                spont += len(v)
     try:
         score = trig / (trig + spont)
     except ZeroDivisionError:
@@ -166,6 +156,7 @@ def run_sim(params, plot=True, show_plot=False):
         title_addition = f'BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
         filename_addition = f'_BA_{ba}_GS_{cue_percentage}_W_{i_e_w}_Hz_{i_freq}'
 
+        # TODO mark PS as triggered or spontaneous in plot
         plot_x_u_spks_from_basin(
             path=rcn.net_sim_data_path,
             filename='x_u_spks_from_basin' + filename_addition,
@@ -184,6 +175,7 @@ def run_sim(params, plot=True, show_plot=False):
         #     show=True)
 
     print(f'FINISHED worker {pid} triggered: {trig}, spontaneous: {spont}, score: {score}')
+    print(atr_ps_counts)
 
     # TODO do we like this way of scoring?
     return params, score
@@ -191,7 +183,7 @@ def run_sim(params, plot=True, show_plot=False):
 
 num_par = 2
 cv = 1
-default_params = [15, 10, 20, 100, 3, 9]
+default_params = [15, 10, 20, 100, 3, 10]
 param_grid = {
     'ba': [default_params[0]],
     'i_e_w': [default_params[1]],
@@ -219,8 +211,12 @@ def product_dict_to_list(**kwargs):
 
 
 # debug
-default_params.insert(4, 1.0)
-run_sim(default_params, plot=True, show_plot=True)
+default_params.insert(4, 0.1)
+default_params[5] = 3
+default_params[6] = 10
+p, s = run_sim(default_params, plot=True, show_plot=True)
+print(p)
+0 / 0
 
 param_grid_pool = product_dict_to_list(**param_grid) * cv
 num_proc = pathos.multiprocessing.cpu_count()
