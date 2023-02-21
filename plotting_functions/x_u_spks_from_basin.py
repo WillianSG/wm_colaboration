@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-@author: w.soares.girao@rug.nl / t.f.tiotto@rug.nl
+@author: t.f.tiotto@rug.nl / w.soares.girao@rug.nl
 @university: University of Groningen
-@group: Bio-Inspired Circuits and System / Artificial Intelligence
+@group: Bernoulli Institute / Bio-Inspired Circuits and System
 """
+import collections
 import os, sys, pickle
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -52,15 +53,17 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
 
     plt.rcParams['axes.titlepad'] = 20
 
-    # Plotting
-    fig = plt.figure(figsize=(15, 10))
-
+    # Extract name and neuron IDs of attractors
     attractors_unique = {}
     for a in attractor_cues:
         if a[0] not in attractors_unique:
             attractors_unique[a[0]] = a[1]
+    attractors_unique = collections.OrderedDict(sorted(attractors_unique.items()))
+
     widths = [10]
     heights = [2] * len(attractors_unique) + [2, 2, 2]
+
+    fig = plt.figure(figsize=(15, 6 + 1.5 * len(attractors_unique)))
 
     spec2 = gridspec.GridSpec(
         ncols=len(widths),
@@ -188,7 +191,6 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
         # f_thresh.set_ylim(np.min(rcn.E_rec.Vth_e), np.max(rcn.E_rec.Vth_e))
         f_thresh.set_xlim(0, sim_t_array[-1])
     f_thresh.set_title('Voltage thresholds', size=title_fontsize)
-    f_thresh.legend()
 
     # -------------------------------------------------------------------------
     # ------- Plot spikes
@@ -296,8 +298,6 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
                         alpha=alpha2,
                         color='grey'
                     )
-                # TODo improve spacing with x-axis
-                # TODo add ps statistics to plot
             ax_spikes.annotate('GS',
                                xycoords='data',
                                xy=((gs[2][0] + gs[2][1]) / 2, 0),
@@ -309,9 +309,16 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
 
     plt.xlabel('time (s)', size=axis_label_size)
 
+    trig, spont, score = compute_ps_score(pss_categorised)
+
     fig.suptitle('Attractor Neurons\n' + title_addition, fontsize=suptitle_fontsize)
 
-    plt.tight_layout()
+    fig.subplots_adjust(bottom=0.2)
+    plt.figtext(0.2, 0.01, f'Triggered PSs: {trig}, Spontaneous PSs: {spont}, PS score: {score:.2f}',
+                ha='center', fontsize=title_fontsize,
+                bbox={'facecolor': 'white', 'pad': 5})
+
+    fig.tight_layout()
 
     if not filename:
         filename = 'x_u_spks_from_basin.png'

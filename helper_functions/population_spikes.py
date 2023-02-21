@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-@author: w.soares.girao@rug.nl
+@author: t.f.tiotto@rug.nl / w.soares.girao@rug.nl
 @university: University of Groningen
-@group: Bio-Inspired Circuits and System
+@group: Bernoulli Institute / Bio-Inspired Circuits and System
 """
 import numpy as np
 

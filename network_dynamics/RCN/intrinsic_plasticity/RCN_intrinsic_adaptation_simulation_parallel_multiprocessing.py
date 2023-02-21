@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+@author: t.f.tiotto@rug.nl
+@university: University of Groningen
+@group: Bernoulli Institute
+"""
+
 import atexit
 import copy
 import glob
@@ -118,8 +125,9 @@ def run_sim(params, plot=True, show_plot=False):
 
     # generate random reactivation times in the range [0, 1]
     for a in attractors_cueing_order:
-        a.append(random.uniform(0.1, 1))
+        a.append(random.uniform(0.5, 5))
 
+    # TODo compute estimated sim time based on cue and activity lengths
     for a in tqdm(attractors_cueing_order, disable=not plot, total=len(attractors_cueing_order)):
         gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
         act_ids = rcn.generic_stimulus(
@@ -135,19 +143,7 @@ def run_sim(params, plot=True, show_plot=False):
     # -- calculate score
     atr_ps_counts = count_ps(rcn=rcn, attractor_cueing_order=attractors_cueing_order)
 
-    # -- count reactivations
-    trig = 0
-    spont = 0
-    for k, v in atr_ps_counts.items():
-        for k, v in v.items():
-            if k == 'triggered':
-                trig += len(v)
-            if k == 'spontaneous':
-                spont += len(v)
-    try:
-        score = trig / (trig + spont)
-    except ZeroDivisionError:
-        score = 0
+    trig, spont, score = compute_ps_score(atr_ps_counts)
 
     if plot:
         title_addition = f'BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
@@ -206,10 +202,10 @@ def product_dict_to_list(**kwargs):
     return out_list
 
 
-# ------ debug
+# ------ TODO debug
 default_params.insert(4, 0.1)
 default_params[5] = 3
-default_params[6] = 10
+default_params[6] = 2
 p, s = run_sim(default_params, plot=True, show_plot=True)
 0 / 0
 # ----------------

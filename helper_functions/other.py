@@ -451,3 +451,21 @@ def estimate_search_time(function, param_grid, cv, repeat=1):
         print(
             f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv, repeated {repeat} times: {time_iterations.total_seconds() / 60:.2f} minutes')
     print('Estimated end time:', datetime.now() + time_iterations)
+
+
+def compute_ps_score(atr_ps_counts):
+    # -- count reactivations
+    trig = 0
+    spont = 0
+    for k, v in atr_ps_counts.items():
+        for k, v in v.items():
+            if k == 'triggered':
+                trig += len(v)
+            if k == 'spontaneous':
+                spont += len(v)
+    try:
+        score = trig / (trig + spont)
+    except ZeroDivisionError:
+        score = 0
+
+    return trig, spont, score
