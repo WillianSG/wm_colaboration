@@ -120,8 +120,6 @@ def run_sim(params, plot=True, show_plot=False):
     for a in attractors_cueing_order:
         a.append(random.uniform(0.1, 1))
 
-    # TODO get rid of all these gss lists and just use the attractors for everything
-    gss = []
     for a in tqdm(attractors_cueing_order, disable=not plot, total=len(attractors_cueing_order)):
         gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
         act_ids = rcn.generic_stimulus(
@@ -132,11 +130,10 @@ def run_sim(params, plot=True, show_plot=False):
         rcn.generic_stimulus_off(act_ids)
         # # wait for 2 seconds before cueing next attractor
         rcn.run_net(duration=a[2])
-        a.append(gs[2])
-        gss.append(gs)
+        a.append(gs)
 
     # -- calculate score
-    atr_ps_counts = count_ps(rcn=rcn, attractor_activity_period=attractors_cueing_order, spk_sync_thr=0.75)
+    atr_ps_counts = count_ps(rcn=rcn, attractor_cueing_order=attractors_cueing_order)
 
     # -- count reactivations
     trig = 0
@@ -156,14 +153,13 @@ def run_sim(params, plot=True, show_plot=False):
         title_addition = f'BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
         filename_addition = f'_BA_{ba}_GS_{cue_percentage}_W_{i_e_w}_Hz_{i_freq}'
 
-        # TODO mark PS as triggered or spontaneous in plot
         plot_x_u_spks_from_basin(
             path=rcn.net_sim_data_path,
             filename='x_u_spks_from_basin' + filename_addition,
             title_addition=title_addition,
-            generic_stimuli=gss,
             rcn=rcn,
-            attractors=attractors_list,
+            attractor_cues=attractors_cueing_order,
+            pss_categorised=atr_ps_counts,
             num_neurons=len(rcn.E),
             show=show_plot)
 
@@ -210,13 +206,13 @@ def product_dict_to_list(**kwargs):
     return out_list
 
 
-# debug
+# ------ debug
 default_params.insert(4, 0.1)
 default_params[5] = 3
 default_params[6] = 10
 p, s = run_sim(default_params, plot=True, show_plot=True)
-print(p)
 0 / 0
+# ----------------
 
 param_grid_pool = product_dict_to_list(**param_grid) * cv
 num_proc = pathos.multiprocessing.cpu_count()

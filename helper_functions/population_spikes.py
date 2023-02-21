@@ -17,7 +17,7 @@ spontaneous: count of PSs happening inside a time window where a different cued 
 """
 
 
-def count_ps(rcn, attractor_activity_period, spk_sync_thr):
+def count_ps(rcn, attractor_cueing_order):
     from helper_functions.other import find_ps
 
     # needed to output the spikes to file, or they won't be found by find_ps()
@@ -28,13 +28,13 @@ def count_ps(rcn, attractor_activity_period, spk_sync_thr):
     us_neurs_with_input, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
 
     attractor_times = {}
-    for a in attractor_activity_period:
+    for a in attractor_cueing_order:
         if not a[0] in attractor_times:
-            attractor_times[a[0]] = [(a[3][0], a[3][1], a[3][1] + a[2])]
+            attractor_times[a[0]] = [(a[3][2][0], a[3][2][1], a[3][2][1] + a[2])]
         else:
-            attractor_times[a[0]].append((a[3][0], a[3][1], a[3][1] + a[2]))
+            attractor_times[a[0]].append((a[3][2][0], a[3][2][1], a[3][2][1] + a[2]))
 
-    for a in attractor_activity_period:
+    for a in attractor_cueing_order:
         if not a[0] in attractor_ps_counts:
             attractor_ps_counts[a[0]] = {'triggered': list(), 'spontaneous': list()}
 
@@ -44,23 +44,22 @@ def count_ps(rcn, attractor_activity_period, spk_sync_thr):
         for ps in pss:
             max_sync_t = x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]
             # if PS in triggered window of this cue
-            if a[3][1] <= max_sync_t <= a[3][1] + a[2]:
+            if a[3][2][1] <= max_sync_t <= a[3][2][1] + a[2]:
                 attractor_ps_counts[a[0]]['triggered'].append(max_sync_t)
-                print('TRIG', a[0], max_sync_t)
             # if PS during this cue
-            elif a[3][0] <= max_sync_t <= a[3][1]:
+            elif a[3][2][0] <= max_sync_t <= a[3][2][1]:
                 continue
             # if PS outside activity window of this cue
-            elif (max_sync_t < a[3][0] or max_sync_t > a[3][1] + a[2]):
+            elif (max_sync_t < a[3][2][0] or max_sync_t > a[3][2][1] + a[2]):
                 # if PS during another cue's activity window
                 for at in attractor_times[a[0]]:
                     if at[0] <= max_sync_t <= at[2]:
                         break
                 # finally, if PS is not during another cue's activity window
                 else:
+                    # the first pass of this loop will count the spontaneous PSs while the others should avoid doing so or they'll be counted twice
                     if max_sync_t not in attractor_ps_counts[a[0]]['spontaneous']:
                         attractor_ps_counts[a[0]]['spontaneous'].append(max_sync_t)
-                        print('SPONT', a[0], max_sync_t)
 
     return attractor_ps_counts
 
