@@ -247,15 +247,10 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
     # -------------------------------------------------------------------------
     # ------- Plot SPIKE-synchronisation profile
     # -------------------------------------------------------------------------
-    # TODO make this self-contained so I don't need an external file
-    rcn.get_spikes_pyspike()
-
     f3_ax1 = fig.add_subplot(spec2[len(attractors_unique) + 2, 0])
 
-    # -- plot spike sync profile
-
     for i, (atr, ids) in enumerate(attractors_unique.items()):
-        x, y, y_smooth, pss = find_ps(path, sim_t_array[-1], (atr, ids))
+        x, y, y_smooth, pss = rcn.find_ps((atr, ids))
 
         color = colour_cycle[i]
 
@@ -276,7 +271,7 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
 
         for i, (atr, ids) in enumerate(attractors_unique.items()):
             if not pss_categorised:
-                x, y, y_smooth, pss = find_ps(path, sim_t_array[-1], (atr, ids))
+                x, y, y_smooth, pss = rcn.find_ps((atr, ids))
 
                 # color = next( ax._get_lines.prop_cycler )[ 'color' ]
                 color = colour_cycle[i]

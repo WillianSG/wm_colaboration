@@ -55,7 +55,7 @@ tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
 
 
-def run_sim(params, plot=True, seed_init=None):
+def run_sim(params, plot=True, seed_init=None, low_memory=True):
     pid = os.getpid()
     print(f'RUNNING worker {pid} with params: {params}')
 
@@ -143,7 +143,8 @@ def run_sim(params, plot=True, seed_init=None):
         a.append(gs)
 
         # after each cue block dump the monitored values to a file and clear the memory
-        rcn.dump_monitors_to_file()
+        if low_memory:
+            rcn.dump_monitors_to_file()
 
     rcn.load_monitors_from_file()
 
@@ -210,10 +211,10 @@ def product_dict_to_list(**kwargs):
 
 
 # ------ TODO debug
-default_params.insert(4, 0.1)
+default_params.insert(4, 1)
 default_params[5] = 2
-default_params[6] = 2
-p, s = run_sim(default_params, plot=True)
+default_params[6] = 4
+p, s = run_sim(default_params, plot=True, low_memory=False)
 0 / 0
 # ----------------
 

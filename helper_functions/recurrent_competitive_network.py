@@ -165,8 +165,15 @@ class RecurrentCompetitiveNet:
         self.stimulus_neurons_e_ids = []
         self.stimulus_neurons_i_ids = []
 
-        # to store the values loaded from dumped monitors
+        # to cache the values loaded from dumped monitors using the load_monitors_from_file method
         self.dumped_mons_dict = {}
+        # to cache PySpike objects
+        self.pyspike_spks = []
+        # to cache pss results
+        self.x_pss = {}
+        self.y_pss = {}
+        self.y_smooth_pss = {}
+        self.pss = {}
 
     # 1 ------ setters
 
@@ -701,9 +708,7 @@ class RecurrentCompetitiveNet:
         if os.path.exists(f'{self.net_sim_data_path}/u_traces.data'):
             with open(f'{self.net_sim_data_path}/u_traces.data', 'rb') as f:
                 u_traces_old = pickle.load(f)
-                print('Old', len(u_traces_old[1]))
         u_traces_new = self.get_u_traces_from_pattern_neurons()
-        print('New', len(u_traces_new[1]))
         # append new traces to old ones
         if u_traces_old is not None:
             for el_old in u_traces_old[0].keys():
@@ -1163,19 +1168,70 @@ class RecurrentCompetitiveNet:
                 self.E_E_rec.t / ms), f)
 
     def get_spikes_pyspike(self, export=False):
+        from pyspike import SpikeTrain
         """
         Retrieves the spikes recorded during simulation and saves them in the format expected by PySpike.
         """
-        fn = os.path.join(self.net_sim_data_path, 'spikes_pyspike.txt')
+        if export:
+            fn = os.path.join(self.net_sim_data_path, 'spikes_pyspike.txt')
 
-        with open(fn, 'w') as file:
-            file.write('# Spikes from excitatory population\n\n')
+            with open(fn, 'w') as file:
+                file.write('# Spikes from excitatory population\n\n')
+                for v in self.get_E_spks(spike_trains=True).values():
+                    np.savetxt(file, np.array(v), newline=' ')
+                    file.write('\n')
+        else:
+            self.pyspike_spks = []
+
             for v in self.get_E_spks(spike_trains=True).values():
-                np.savetxt(file, np.array(v), newline=' ')
-                file.write('\n')
+                self.pyspike_spks.append(SpikeTrain(np.array(v), edges=(0, self.net.t)))
 
     """
     """
+
+    def find_ps(self, attractor, threshold=0.8, verbose=False):
+        from scipy.ndimage.filters import uniform_filter1d
+        from pyspike import spike_sync_profile
+        from helper_functions.other import contiguous_regions
+
+        if attractor[0] in self.pss:
+            return self.x_pss[attractor[0]], self.y_pss[attractor[0]], self.y_smooth_pss[attractor[0]], self.pss[
+                attractor[0]]
+
+        if not self.pyspike_spks:
+            self.get_spikes_pyspike()
+
+        spike_sync_profile = spike_sync_profile(self.pyspike_spks, indices=attractor[1])
+
+        x, y = spike_sync_profile.get_plottable_data()
+        # mean_filter_size = round( len( x ) / 10 )
+        mean_filter_size = 20
+
+        try:
+            y_smooth = uniform_filter1d(y, size=mean_filter_size)
+        except:
+            y_smooth = np.zeros(len(x))
+
+        # if there are no spikes we need to force it to count zero PSs
+        if np.count_nonzero([i for i in self.pyspike_spks]) == 0:
+            pss = np.array([[]])
+        else:
+            pss = contiguous_regions(y_smooth > threshold)
+
+        self.x_pss[attractor[0]], self.y_pss[attractor[0]], self.y_smooth_pss[attractor[0]], self.pss[
+            attractor[0]] = x, y, y_smooth, pss
+
+        if verbose:
+            for ps in pss:
+                print(f'Found PS in {attractor[0]} '
+                      f'between {x[ps[0]]} s and {x[ps[1]]} s '
+                      f'centered at {x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]} s '
+                      f'with max value {np.max(y_smooth[ps[0]:ps[1]])} '
+                      f'(mean={np.mean(y_smooth[ps[0]:ps[1]])}, '
+                      f'std={np.std(y_smooth[ps[0]:ps[1]])}'
+                      )
+
+        return x, y, y_smooth, pss
 
     def get_conn_matrix(self, pop='E_E'):
         if pop == 'E_E':

@@ -18,11 +18,6 @@ spontaneous: count of PSs happening inside a time window where a different cued 
 
 
 def count_ps(rcn, attractor_cueing_order):
-    from helper_functions.other import find_ps
-
-    # needed to output the spikes to file, or they won't be found by find_ps()
-    rcn.get_spikes_pyspike()
-
     attractor_ps_counts = {}
 
     attractor_times = {}
@@ -36,7 +31,7 @@ def count_ps(rcn, attractor_cueing_order):
         if not a[0] in attractor_ps_counts:
             attractor_ps_counts[a[0]] = {'triggered': list(), 'spontaneous': list()}
 
-        x, y, y_smooth, pss = find_ps(rcn.net_sim_data_path, rcn.net.t, a)
+        x, y, y_smooth, pss = rcn.find_ps(a)
 
         # check each PS if it is triggered or spontaneous (4 cases)
         for ps in pss:
