@@ -129,8 +129,11 @@ def run_sim(params, plot=True, seed_init=None, low_memory=True):
     for a in attractors_cueing_order:
         a.append(random.uniform(0.5, 5))
 
-    # TODo compute estimated sim time based on cue and activity lengths
-    for a in tqdm(attractors_cueing_order, disable=not plot, total=len(attractors_cueing_order)):
+    overall_sim_time = len(attractors_cueing_order) * cue_time + sum([a[2] for a in attractors_cueing_order])
+
+    pbar = tqdm(total=overall_sim_time, disable=not plot, unit='sim s',
+                bar_format="{l_bar}{bar}| {n:.2f}/{total:.2f} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'")
+    for a in attractors_cueing_order:
         gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
         act_ids = rcn.generic_stimulus(
             frequency=rcn.stim_freq_e,
@@ -141,6 +144,7 @@ def run_sim(params, plot=True, seed_init=None, low_memory=True):
         # # wait for 2 seconds before cueing next attractor
         rcn.run_net(duration=a[2])
         a.append(gs)
+        pbar.update(cue_time + a[2])
 
         # after each cue block dump the monitored values to a file and clear the memory
         if low_memory:
@@ -181,7 +185,7 @@ def run_sim(params, plot=True, seed_init=None, low_memory=True):
     return params, score
 
 
-num_par = 10
+num_par = 20
 cv = 10
 default_params = [15, 10, 20, 100, 3, 10]
 param_grid = {
@@ -210,13 +214,13 @@ def product_dict_to_list(**kwargs):
     return out_list
 
 
-# ------ TODO debug
-default_params.insert(4, 1)
-default_params[5] = 2
-default_params[6] = 4
-p, s = run_sim(default_params, plot=True, low_memory=False)
-0 / 0
-# ----------------
+# # ------ TODO debug
+# default_params.insert(4, 1)
+# default_params[5] = 2
+# default_params[6] = 2
+# p, s = run_sim(default_params, plot=True, low_memory=False)
+# 0 / 0
+# # ----------------
 
 param_grid_pool = product_dict_to_list(**param_grid) * cv
 num_cpus = pathos.multiprocessing.cpu_count() - 2

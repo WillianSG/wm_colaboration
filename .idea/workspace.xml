@@ -7,12 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- dumping and loading monitors after each simulation implemented by rcn.dump_monitors_to_file()&#10;- adapted plotting and other functions to load monitors from dump">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- made PS finding sel-contained in the RCN by implementing rcn.find_ps().  This also lets us improve efficiency by caching results">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/population_spikes.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/population_spikes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -578,14 +575,7 @@
       <workItem from="1676997801627" duration="621000" />
       <workItem from="1676999669190" duration="1379000" />
       <workItem from="1677057989354" duration="11593000" />
-      <workItem from="1677145830021" duration="41905000" />
-    </task>
-    <task id="LOCAL-00026" summary="- fixed small bug in run_net() that gave extra iterations sometimes">
-      <created>1646941565957</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1646941565957</updated>
+      <workItem from="1677145830021" duration="45096000" />
     </task>
     <task id="LOCAL-00027" summary="- Excel output works!!!!!!">
       <created>1647016064019</created>
@@ -923,7 +913,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677587304888</updated>
     </task>
-    <option name="localTasksCounter" value="75" />
+    <task id="LOCAL-00075" summary="- made PS finding sel-contained in the RCN by implementing rcn.find_ps().  This also lets us improve efficiency by caching results">
+      <created>1677597383621</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1677597383621</updated>
+    </task>
+    <option name="localTasksCounter" value="76" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -965,7 +962,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- made testing file which for now reproduces STSP and threshold adaptation behaviour" />
     <MESSAGE value="- implemented experiment that simulates the firing of an attractor to look at STSP and threshold behaviour" />
     <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot" />
     <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value" />
@@ -990,7 +986,8 @@
     <MESSAGE value="- removed redundant lists and using attractors_cueing_order for everything&#10;- print 'T' or 'S' to indicate PS type in plot_x_u_spks_from_basin()" />
     <MESSAGE value="- adjusted figsize to address spacing issues with multiple attractors in plot_x_u_spks_from_basin()&#10;- added PS statistics to plot_x_u_spks_from_basin()" />
     <MESSAGE value="- dumping and loading monitors after each simulation implemented by rcn.dump_monitors_to_file()&#10;- adapted plotting and other functions to load monitors from dump" />
-    <option name="LAST_COMMIT_MESSAGE" value="- dumping and loading monitors after each simulation implemented by rcn.dump_monitors_to_file()&#10;- adapted plotting and other functions to load monitors from dump" />
+    <MESSAGE value="- made PS finding sel-contained in the RCN by implementing rcn.find_ps().  This also lets us improve efficiency by caching results" />
+    <option name="LAST_COMMIT_MESSAGE" value="- made PS finding sel-contained in the RCN by implementing rcn.find_ps().  This also lets us improve efficiency by caching results" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1052,7 +1049,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_BA_GS_sweep.coverage" NAME="One attractor reactivation full BA GS sweep Coverage Results" MODIFIED="1647615005571" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_experiment_BA_GS_sweep.coverage" NAME="One attractor reactivation full experiment BA GS sweep Coverage Results" MODIFIED="1647341862665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$f_u__fitting.coverage" NAME="f(u)_fitting Coverage Results" MODIFIED="1654852623687" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.coverage" NAME="RCN_intrinsic_adaptation_simulation_parallel_multiprocessing Coverage Results" MODIFIED="1677596778183" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.coverage" NAME="RCN_intrinsic_adaptation_simulation_parallel_multiprocessing Coverage Results" MODIFIED="1677598791026" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$numpy_test.coverage" NAME="numpy_test Coverage Results" MODIFIED="1676569342503" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/helper_functions" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast.coverage" NAME="One attractor reactivation fast Coverage Results" MODIFIED="1647443654690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$run_PS_count_grid_search.coverage" NAME="run_PS_count_grid_search Coverage Results" MODIFIED="1675856427143" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
