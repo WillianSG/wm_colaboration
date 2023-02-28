@@ -4,6 +4,8 @@
 @university: University of Groningen
 @group: Bio-Inspired Circuits and System
 """
+import glob
+
 import setuptools
 from time import localtime, strftime
 import os, pickle, random
@@ -15,7 +17,7 @@ prefs.codegen.target = 'numpy'
 
 if sys.platform == 'linux':
 
-    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, '../')))
 
     sys.path.append(os.path.join(root, 'helper_functions'))
 
@@ -31,7 +33,9 @@ else:
 
 
 class RecurrentCompetitiveNet:
-    def __init__(self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second):
+    def __init__(self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, seed_init=None):
+
+        seed(seed_init)
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -160,6 +164,9 @@ class RecurrentCompetitiveNet:
         # ------ misc operation variables
         self.stimulus_neurons_e_ids = []
         self.stimulus_neurons_i_ids = []
+
+        # to store the values loaded from dumped monitors
+        self.dumped_mons_dict = {}
 
     # 1 ------ setters
 
@@ -634,6 +641,90 @@ class RecurrentCompetitiveNet:
     """
     """
 
+    def dump_monitors_to_file(self):
+        # -- incrementally store all monitors to their own file
+        for mon in self.spk_monitors + self.state_monitors:
+            new_data = mon.get_states()
+            old_data = None
+
+            filename = f'{self.net_sim_data_path}/{mon.name}.data'
+            if os.path.exists(filename):
+                with open(filename, 'rb') as f:
+                    old_data = pickle.load(f)
+
+            if old_data is not None:
+                if isinstance(mon, SpikeMonitor):
+                    data_points = len(old_data['i']) + len(new_data['i'])
+                    for k, v in old_data.items():
+                        if k == 'i' or k == 't':
+                            new_data[k] = np.hstack((old_data[k], new_data[k]))
+                        elif k == 'count':
+                            new_data[k] = old_data[k] + new_data[k]
+                        elif k == 'N':
+                            new_data[k] = data_points
+                # elif isinstance(mon, PopulationRateMonitor):
+                #     data_points = len(old_data['t']) + len(new_data['t'])
+                #     for k, v in old_data.items():
+                #         if k == 'rate' or k == 't':
+                #             new_data[k] = np.hstack((old_data[k], v))
+                #         elif k == 'N':
+                #             new_data[k] = data_points
+                elif isinstance(mon, StateMonitor):
+                    data_points = len(old_data['t']) + len(new_data['t'])
+                    for k, v in old_data.items():
+                        if k == 't':
+                            new_data[k] = np.hstack((old_data[k], new_data[k]))
+                        elif k == 'N':
+                            new_data[k] = data_points
+                        else:
+                            new_data[k] = np.vstack((old_data[k], new_data[k]))
+
+            with open(filename, 'wb+') as f:
+                pickle.dump(new_data, f)
+
+        # -- also store traces now, as it's really hard to extract them later
+        x_traces_old = None
+        if os.path.exists(f'{self.net_sim_data_path}/x_traces.data'):
+            with open(f'{self.net_sim_data_path}/x_traces.data', 'rb') as f:
+                x_traces_old = pickle.load(f)
+        x_traces_new = self.get_x_traces_from_pattern_neurons()
+        # append new traces to old ones
+        if x_traces_old is not None:
+            for el_old in x_traces_old[0].keys():
+                if el_old in x_traces_new[0]:
+                    x_traces_new[0][el_old] = np.hstack((x_traces_old[0][el_old], x_traces_new[0][el_old]))
+            x_traces_new[1] = np.hstack((x_traces_old[1], x_traces_new[1]))
+        with open(f'{self.net_sim_data_path}/x_traces.data', 'wb+') as f:
+            pickle.dump(x_traces_new, f)
+
+        u_traces_old = None
+        if os.path.exists(f'{self.net_sim_data_path}/u_traces.data'):
+            with open(f'{self.net_sim_data_path}/u_traces.data', 'rb') as f:
+                u_traces_old = pickle.load(f)
+                print('Old', len(u_traces_old[1]))
+        u_traces_new = self.get_u_traces_from_pattern_neurons()
+        print('New', len(u_traces_new[1]))
+        # append new traces to old ones
+        if u_traces_old is not None:
+            for el_old in u_traces_old[0].keys():
+                if el_old in u_traces_new[0]:
+                    u_traces_new[0][el_old] = np.hstack((u_traces_old[0][el_old], u_traces_new[0][el_old]))
+            u_traces_new[1] = np.hstack((u_traces_old[1], u_traces_new[1]))
+        with open(f'{self.net_sim_data_path}/u_traces.data', 'wb+') as f:
+            pickle.dump(u_traces_new, f)
+
+        self.net.remove(self.spk_monitors)
+        self.net.add(self.set_spk_monitors())
+        self.net.remove(self.state_monitors)
+        self.net.add(self.set_state_monitors())
+
+    def load_monitors_from_file(self):
+        for f in glob.glob(os.path.join(self.net_sim_data_path, '*.data')):
+            with open(f, 'rb') as fp:
+                self.dumped_mons_dict[os.path.splitext(os.path.split(f)[1])[0]] = pickle.load(fp)
+
+        return self.dumped_mons_dict
+
     def set_spk_monitors(self):
         self.Input_to_E_mon = SpikeMonitor(
             source=self.Input_to_E,
@@ -656,6 +747,10 @@ class RecurrentCompetitiveNet:
             name='I_mon')
 
         self.E_rate_mon = PopulationRateMonitor(source=self.E, name='E_rate_mon')
+
+        self.spk_monitors = [self.Input_to_E_mon, self.Input_to_I_mon, self.E_mon, self.I_mon]
+
+        return self.spk_monitors
 
     """
     """
@@ -702,6 +797,11 @@ class RecurrentCompetitiveNet:
                                     record=self.I_E_rec_record,
                                     dt=self.rec_dt,
                                     name='I_E_rec')
+
+        self.state_monitors = [self.Input_E_rec, self.Input_I_rec, self.E_rec, self.I_rec, self.E_E_rec, self.E_I_rec,
+                               self.I_E_rec]
+
+        return self.state_monitors
 
     """
     Creates a brian2 network object with the neuron/synapse objects defined.
@@ -841,7 +941,23 @@ class RecurrentCompetitiveNet:
         if not spike_trains:
             return [self.E_mon.t[:], self.E_mon.i[:]]
         else:
-            return self.E_mon.spike_trains()
+            if self.dumped_mons_dict:
+                from collections import OrderedDict
+
+                spike_trains = {}
+                for i, t in zip(self.dumped_mons_dict['E_mon']['i'], self.dumped_mons_dict['E_mon']['t']):
+                    if i not in spike_trains:
+                        spike_trains[i] = [t]
+                    else:
+                        spike_trains[i].append(t)
+
+                for i in range(self.N_e):
+                    if i not in spike_trains:
+                        spike_trains[i] = []
+
+                return OrderedDict(sorted(spike_trains.items()))
+            else:
+                return self.E_mon.spike_trains()
 
     """
     Returns a 2D array containing recorded spikes from I population:
@@ -941,10 +1057,17 @@ class RecurrentCompetitiveNet:
         spk_mon_ids = []
         spk_mon_ts = []
 
-        for x in range(0, len(self.E_mon.i[:])):
-            if self.E_mon.i[x] in self.stimulus_neurons_e_ids:
-                spk_mon_ids.append(self.E_mon.i[x])
-                spk_mon_ts.append(self.E_mon.t[x] / second)
+        if self.dumped_mons_dict:
+            data = self.dumped_mons_dict['E_mon']['i']
+            time = self.dumped_mons_dict['E_mon']['t']
+        else:
+            data = self.E_mon.i[:]
+            time = self.E_mon.t[:]
+
+        for x in range(len(data)):
+            if data[x] in self.stimulus_neurons_e_ids:
+                spk_mon_ids.append(data[x])
+                spk_mon_ts.append(time[x] / second)
 
         if export:
             fn = os.path.join(
@@ -1129,17 +1252,11 @@ class RecurrentCompetitiveNet:
     """
 
     def get_x_traces_from_pattern_neurons(self, export=False):
-        xs_neurs_with_input = []
+        x_traces = {}
 
         for x in range(0, len(self.E_E)):
             if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
-                temp_dict = {
-                    'pre': self.E_E.i[x],
-                    'post': self.E_E.j[x],
-                    'x': self.E_E_rec[self.E_E[x]].x_
-                }
-
-                xs_neurs_with_input.append(temp_dict)
+                x_traces[self.E_E.i[x], self.E_E.j[x]] = self.E_E_rec[self.E_E[x]].x_
 
         if export:
             fn = os.path.join(
@@ -1148,13 +1265,13 @@ class RecurrentCompetitiveNet:
 
             with open(fn, 'wb') as f:
                 pickle.dump((
-                    xs_neurs_with_input,
+                    x_traces,
                     self.E_E_rec.t / second,
                     self.tau_d,
                     # self.stimulus_pulse_duration
                 ), f)
 
-        return xs_neurs_with_input, self.E_E_rec.t / second, self.tau_d
+        return [x_traces, self.E_E_rec.t / second, self.tau_d]
 
     """
     Retrieves the utilization traces (u) recorded during simulation only from synapses connecting (both) neurons part
@@ -1165,16 +1282,11 @@ class RecurrentCompetitiveNet:
     """
 
     def get_u_traces_from_pattern_neurons(self, export=False):
-        us_neurs_with_input = []
+        u_traces = {}
 
         for x in range(0, len(self.E)):
             if x in self.stimulus_neurons_e_ids:
-                temp_dict = {
-                    'pre': x,
-                    'u': self.E_rec[x].u
-                }
-
-                us_neurs_with_input.append(temp_dict)
+                u_traces[x] = self.E_rec[x].u
 
         if export:
             fn = os.path.join(
@@ -1183,14 +1295,14 @@ class RecurrentCompetitiveNet:
 
             with open(fn, 'wb') as f:
                 pickle.dump((
-                    us_neurs_with_input,
+                    u_traces,
                     self.E_E_rec.t / second,
                     self.U,
                     self.tau_f,
                     # self.stimulus_pulse_duration
                 ), f)
 
-        return us_neurs_with_input, self.E_rec.t / second, self.U, self.tau_f
+        return [u_traces, self.E_E_rec.t / second, self.U, self.tau_d]
 
     def get_u_traces_from_pattern_neurons_in_range(self, t_window):
         uTracesValues = []
@@ -1200,8 +1312,7 @@ class RecurrentCompetitiveNet:
 
                 for i in range(len(self.E_rec[x].u)):
 
-                    if self.E_rec.t[i]/second >= t_window[0] and self.E_rec.t[i]/second <= t_window[1]:
-
+                    if self.E_rec.t[i] / second >= t_window[0] and self.E_rec.t[i] / second <= t_window[1]:
                         uTracesValues.append(self.E_rec[x].u[i])
 
         fn = os.path.join(
@@ -1219,8 +1330,7 @@ class RecurrentCompetitiveNet:
 
                 for i in range(len(self.E_rec[x].x_)):
 
-                    if self.E_rec.t[i]/second >= t_window[0] and self.E_rec.t[i]/second <= t_window[1]:
-
+                    if self.E_rec.t[i] / second >= t_window[0] and self.E_rec.t[i] / second <= t_window[1]:
                         uTracesValues.append(self.E_rec[x].x_[i])
 
         fn = os.path.join(

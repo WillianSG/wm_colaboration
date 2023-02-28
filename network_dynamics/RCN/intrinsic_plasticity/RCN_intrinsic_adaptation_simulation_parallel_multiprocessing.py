@@ -9,6 +9,7 @@ import atexit
 import copy
 import glob
 import os
+import pickle
 import random
 import shutil
 import signal
@@ -54,7 +55,7 @@ tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
 
 
-def run_sim(params, plot=True, show_plot=False):
+def run_sim(params, plot=True, seed_init=None):
     pid = os.getpid()
     print(f'RUNNING worker {pid} with params: {params}')
 
@@ -68,7 +69,8 @@ def run_sim(params, plot=True, show_plot=False):
 
     rcn = RecurrentCompetitiveNet(
         plasticity_rule='LR4',
-        parameter_set='2.2')
+        parameter_set='2.2',
+        seed_init=seed_init)
 
     plastic_syn = False
     plastic_ux = True
@@ -140,6 +142,11 @@ def run_sim(params, plot=True, show_plot=False):
         rcn.run_net(duration=a[2])
         a.append(gs)
 
+        # after each cue block dump the monitored values to a file and clear the memory
+        rcn.dump_monitors_to_file()
+
+    rcn.load_monitors_from_file()
+
     # -- calculate score
     atr_ps_counts = count_ps(rcn=rcn, attractor_cueing_order=attractors_cueing_order)
 
@@ -157,7 +164,7 @@ def run_sim(params, plot=True, show_plot=False):
             attractor_cues=attractors_cueing_order,
             pss_categorised=atr_ps_counts,
             num_neurons=len(rcn.E),
-            show=show_plot)
+            show=plot)
 
         # plot_thresholds(
         #     path=rcn.net_sim_data_path,
@@ -173,8 +180,8 @@ def run_sim(params, plot=True, show_plot=False):
     return params, score
 
 
-num_par = 2
-cv = 1
+num_par = 10
+cv = 10
 default_params = [15, 10, 20, 100, 3, 10]
 param_grid = {
     'ba': [default_params[0]],
@@ -204,18 +211,18 @@ def product_dict_to_list(**kwargs):
 
 # ------ TODO debug
 default_params.insert(4, 0.1)
-default_params[5] = 3
+default_params[5] = 2
 default_params[6] = 2
-p, s = run_sim(default_params, plot=True, show_plot=True)
+p, s = run_sim(default_params, plot=True)
 0 / 0
 # ----------------
 
 param_grid_pool = product_dict_to_list(**param_grid) * cv
-num_proc = pathos.multiprocessing.cpu_count()
-estimate_search_time(run_sim, param_grid_pool, cv)
+num_cpus = pathos.multiprocessing.cpu_count() - 2
+# estimate_search_time(run_sim, param_grid_pool, cv, num_cpus=num_cpus)
 
-with pathos.multiprocessing.ProcessPool(num_proc) as p:
-    results = p.map(run_sim, param_grid_pool)
+with pathos.multiprocessing.ProcessPool(num_cpus) as p:
+    results = p.map(partial(run_sim, plot=False), param_grid_pool)
 
 if len(sweeped_params) > 1:
     res_unsweeped_removed = []

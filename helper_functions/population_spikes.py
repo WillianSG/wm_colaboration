@@ -25,8 +25,6 @@ def count_ps(rcn, attractor_cueing_order):
 
     attractor_ps_counts = {}
 
-    us_neurs_with_input, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
-
     attractor_times = {}
     for a in attractor_cueing_order:
         if not a[0] in attractor_times:
@@ -38,13 +36,13 @@ def count_ps(rcn, attractor_cueing_order):
         if not a[0] in attractor_ps_counts:
             attractor_ps_counts[a[0]] = {'triggered': list(), 'spontaneous': list()}
 
-        x, y, y_smooth, pss = find_ps(rcn.net_sim_data_path, sim_t_array[-1], a)
+        x, y, y_smooth, pss = find_ps(rcn.net_sim_data_path, rcn.net.t, a)
 
         # check each PS if it is triggered or spontaneous (4 cases)
         for ps in pss:
             max_sync_t = x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]
-            # if PS in triggered window of this cue
-            if a[3][2][1] <= max_sync_t <= a[3][2][1] + a[2]:
+            # if PS in triggered window of this cue or PS started before another cue block
+            if a[3][2][1] <= max_sync_t <= a[3][2][1] + a[2] or a[3][2][1] < x[ps[0]] <= a[3][2][1] + a[2]:
                 attractor_ps_counts[a[0]]['triggered'].append(max_sync_t)
             # if PS during this cue
             elif a[3][2][0] <= max_sync_t <= a[3][2][1]:

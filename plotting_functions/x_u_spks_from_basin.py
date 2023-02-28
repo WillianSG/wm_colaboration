@@ -73,21 +73,26 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
         figure=fig)
 
     # -- Read x and u from synapses and neurons
-    xs_neurs_with_input, sim_t_array, tau_d = rcn.get_x_traces_from_pattern_neurons()
-    us_neurs_with_input, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
+    if rcn.dumped_mons_dict:
+        x_traces, sim_t_array, tau_d = rcn.dumped_mons_dict['x_traces']
+        u_traces, sim_t_array, U, tau_f = rcn.dumped_mons_dict['u_traces']
+    else:
+        x_traces, sim_t_array, tau_d = rcn.get_x_traces_from_pattern_neurons()
+        u_traces, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
+
     for i, (atr, ids) in enumerate(attractors_unique.items()):
         f_ax1 = fig.add_subplot(spec2[i, 0])
 
         color = colour_cycle[i]
 
         xs_atr = []
-        for syn in xs_neurs_with_input:
-            if syn['pre'] in ids:
-                xs_atr.append(syn['x'])
+        for k in x_traces:
+            if k[0] in ids:
+                xs_atr.append(x_traces[k])
         us_atr = []
-        for syn in us_neurs_with_input:
-            if syn['pre'] in ids:
-                us_atr.append(syn['u'])
+        for k in u_traces:
+            if k in ids:
+                us_atr.append(u_traces[k])
 
         x_mean = np.mean(xs_atr, axis=0)
         x_std = np.std(xs_atr, axis=0)
@@ -182,12 +187,25 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
     # -------------------------------------------------------------------------
     f_thresh = fig.add_subplot(spec2[len(attractors_unique), 0])
 
+    # load dumped data if it exists
+    if rcn.dumped_mons_dict:
+        x = rcn.dumped_mons_dict['E_rec']['t']
+        data = rcn.dumped_mons_dict['E_rec']['Vth_e']
+    else:
+        E_rec = rcn.E_rec
+        x = E_rec.t
+        data = E_rec.Vth_e
+
     # -- plot voltage thresholds --
     for i, (atr, ids) in enumerate(attractors_unique.items()):
+        if rcn.dumped_mons_dict:
+            y = np.mean(data[:, ids], axis=1)
+        else:
+            y = np.mean(data[ids, :], axis=0)
+
         color = colour_cycle[i]
 
-        f_thresh.plot(rcn.E_rec.t, np.mean(rcn.E_rec.Vth_e[ids, :], axis=0),
-                      label=atr, color=color)
+        f_thresh.plot(x, y, label=atr, color=color)
         # f_thresh.set_ylim(np.min(rcn.E_rec.Vth_e), np.max(rcn.E_rec.Vth_e))
         f_thresh.set_xlim(0, sim_t_array[-1])
     f_thresh.set_title('Voltage thresholds', size=title_fontsize)

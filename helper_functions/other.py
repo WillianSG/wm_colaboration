@@ -428,7 +428,7 @@ def hz2sec(hz):
     return (1 / hz)
 
 
-def estimate_search_time(function, param_grid, cv, repeat=1):
+def estimate_search_time(function, param_grid, cv, num_cpus=-1, repeat=1):
     print('Evaluating execution time')
     # -- estimate execution time
     start = datetime.now()
@@ -436,7 +436,7 @@ def estimate_search_time(function, param_grid, cv, repeat=1):
     time_iteration = datetime.now() - start
 
     num_params = len(param_grid)
-    num_cpus = os.cpu_count()
+    num_cpus = os.cpu_count() if num_cpus == -1 else num_cpus
     num_cv_iteration = (num_params * cv) // num_cpus
     if num_cv_iteration == 0:
         time_iterations = num_params * cv * time_iteration * repeat
