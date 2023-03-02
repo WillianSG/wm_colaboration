@@ -14,11 +14,13 @@ import pickle
 import random
 import shutil
 import signal
+import sys
 import time
 from functools import partial
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.ticker import FormatStrFormatter
 from natsort import natsorted
 
 import pathos
@@ -78,13 +80,22 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
     pid = os.getpid()
     # print(f'RUNNING worker {pid} with params: {params}')
 
-    ba = params[0]
-    i_e_w = params[1]
-    i_freq = params[2]
-    cue_percentage = params[3]
-    cue_time = params[4]
-    num_attractors = params[5]
-    num_cues = params[6]
+    if isinstance(params, list):
+        ba = params[0]
+        i_e_w = params[1]
+        i_freq = params[2]
+        cue_percentage = params[3]
+        cue_time = params[4]
+        num_attractors = int(params[5])
+        num_cues = int(params[6])
+    elif isinstance(params, dict) or isinstance(params, pd.Series):
+        ba = params['ba']
+        i_e_w = params['i_e_w']
+        i_freq = params['i_freq']
+        cue_percentage = params['cue_percentage']
+        cue_time = params['cue_time']
+        num_attractors = int(params['num_attractors'])
+        num_cues = int(params['num_cues'])
 
     worker_id = params[7] if len(params) > 7 else None
 
@@ -223,16 +234,16 @@ if __name__ == '__main__':
     tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
     os.makedirs(tmp_folder)
 
-    num_cpus = pathos.multiprocessing.cpu_count() // 2
+    num_cpus = pathos.multiprocessing.cpu_count()
     num_par = 20
-    cv = 3
+    cv = 10
     default_params = [15, 10, 20, 100, 3, 10]
     param_grid = {
         'ba': [default_params[0]],
         'i_e_w': [default_params[1]],
         'i_freq': [default_params[2]],
         'cue_percentage': [default_params[3]],
-        'a2_cue_time': np.linspace(0.1, 1, num=num_par),
+        'cue_time': np.linspace(0.1, 1, num=num_par),
         'num_attractors': [default_params[4]],
         'num_cues': [default_params[5]],
     }
@@ -240,17 +251,17 @@ if __name__ == '__main__':
 
     print(param_grid)
 
-    # ------ TODO debug
-    default_params.insert(4, 0.1)
-    default_params[5] = 2
-    default_params[6] = 5
-    p, s = run_sim(default_params, plot=False, low_memory=True)
-    0 / 0
-    # ----------------
+    # # ------ TODO debug
+    # default_params.insert(4, 0.1)
+    # default_params[5] = 2
+    # default_params[6] = 5
+    # p, s = run_sim(default_params, plot=False, low_memory=True)
+    # 0 / 0
+    # # ----------------
 
     param_grid_pool = list(
         itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(**param_grid)) for _ in range(cv)))
-    estimate_search_time(run_sim, param_grid_pool, cv, num_cpus=num_cpus)
+    estimate_search_time(partial(run_sim, low_memory=False, plot=True), param_grid_pool, cv, num_cpus=num_cpus)
     # hack to keep track of process ids
     for i, g in enumerate(param_grid_pool):
         g.append(i % num_cpus)
@@ -259,7 +270,8 @@ if __name__ == '__main__':
 
     # with pathos.multiprocessing.ProcessPool(num_cpus) as p:
     #     results = p.map(partial(run_sim, plot=False), param_grid_pool)
-    results = tqdm_pathos.map(partial(run_sim, plot=False, progressbar=False), param_grid_pool, n_cpus=num_cpus)
+    results = tqdm_pathos.map(partial(run_sim, plot=False, progressbar=os.isatty(sys.stdout.fileno())), param_grid_pool,
+                              n_cpus=num_cpus)
 
     if len(sweeped_params) > 1:
         res_unsweeped_removed = []
@@ -271,27 +283,36 @@ if __name__ == '__main__':
     else:
         res_unsweeped_removed = results
 
-    df_results = pd.DataFrame([i for i in res_unsweeped_removed], columns=['params', 'score'])
+    sweeped_param_names = [p[0] for p in sweeped_params]
 
-    df_results_print = df_results.copy()
-    df_results_print['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
-    df_results_print = df_results_print.groupby('params').mean().reset_index()
-    df_results_print.sort_values(by='params', ascending=True, inplace=True)
-    df_results_print.set_index('params', inplace=True)
-    df_results_print.index = natsorted(df_results_print.index)
-    df_results_print.to_csv(f'{tmp_folder}/results.csv')
+    # create a dataframe with the raw results
+    df_results = pd.DataFrame(columns=list(param_grid.keys()) + ['score'])
+    for r in res_unsweeped_removed:
+        df_results.loc[len(df_results)] = r[0][:-1] + [r[1]]
 
-    print(df_results.sort_values(by='score', ascending=False))
-    # TODO ordering by parameter is still off
+    # aggregate results by the sweeped parameters
+    df_results_aggregated = df_results.copy()
+    df_results_aggregated = df_results_aggregated.groupby(sweeped_param_names).mean().reset_index()
+    df_results_aggregated.sort_values(by=sweeped_param_names, ascending=True, inplace=True)
+    df_results_aggregated.to_csv(f'{tmp_folder}/results.csv')
+
+    # print best results in order
+    print(df_results_aggregated[sweeped_param_names + ['score']].sort_values(by='score', ascending=False))
+
+    # plot results for cue time
     fig, ax = plt.subplots(figsize=(12, 10))
-    df_results.plot(kind='bar', ax=ax)
+    df_results_aggregated.plot(kind='bar', ax=ax, x='cue_time', y='score', legend=False)
     ax.set_ylabel('Score')
-    ax.set_xlabel('Parameters')
+    ax.set_xlabel(sweeped_param_names)
+    ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax.set_title('Score for different parameters')
     fig.savefig(f'{tmp_folder}/score.png')
     fig.show()
 
-    best_params = df_results.loc[df_results.score.idxmax(), 'params']
+    # Run model with the best parameters and plot output
+    best_params = df_results_aggregated.loc[df_results_aggregated.score.idxmax()]
+    best_score = best_params['score']
+    best_params = best_params.drop('score').to_dict()
     print(f'Best parameters: {best_params}')
     run_sim(best_params, plot=True, low_memory=False)
 
