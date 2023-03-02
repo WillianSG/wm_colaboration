@@ -148,7 +148,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
         a.append(random.uniform(0.5, 5))
 
     overall_sim_time = len(attractors_cueing_order) * cue_time + sum([a[2] for a in attractors_cueing_order])
-    pbar = tqdm(total=overall_sim_time, disable=progressbar is None, unit='sim s', leave=True, position=worker_id,
+    pbar = tqdm(total=overall_sim_time, disable=not progressbar, unit='sim s', leave=True, position=worker_id,
                 desc=f'WORKER {worker_id}',
                 bar_format="{l_bar}{bar}| {n:.2f}/{total:.2f} [{elapsed}<{remaining}, {rate_fmt} {postfix}]")
     pbar.set_description(f'WORKER {worker_id} with params {params}')
@@ -220,8 +220,8 @@ if __name__ == '__main__':
     os.makedirs(tmp_folder)
 
     num_cpus = pathos.multiprocessing.cpu_count() // 2
-    num_par = 20
-    cv = 3
+    num_par = 2
+    cv = 2
     default_params = [15, 10, 20, 100, 3, 10]
     param_grid = {
         'ba': [default_params[0]],
@@ -245,7 +245,7 @@ if __name__ == '__main__':
     # # ----------------
 
     param_grid_pool = list(
-        itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(**param_grid) * 2) for _ in range(cv)))
+        itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(**param_grid)) for _ in range(cv)))
     estimate_search_time(run_sim, param_grid_pool, cv, num_cpus=num_cpus)
     # hack to keep track of process ids
     for i, g in enumerate(param_grid_pool):
@@ -255,7 +255,7 @@ if __name__ == '__main__':
 
     # with pathos.multiprocessing.ProcessPool(num_cpus) as p:
     #     results = p.map(partial(run_sim, plot=False), param_grid_pool)
-    results = tqdm_pathos.map(partial(run_sim, plot=False, progressbar=None), param_grid_pool, n_cpus=num_cpus)
+    results = tqdm_pathos.map(partial(run_sim, plot=False, progressbar=False), param_grid_pool, n_cpus=num_cpus)
 
     if len(sweeped_params) > 1:
         res_unsweeped_removed = []

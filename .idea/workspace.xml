@@ -7,8 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- improved tqdm to use real length of simulation for estimation">
-      <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- improved tqdm for multiple workers">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
@@ -581,14 +580,7 @@
       <workItem from="1677660577632" duration="256000" />
       <workItem from="1677660858263" duration="2394000" />
       <workItem from="1677664577048" duration="14719000" />
-      <workItem from="1677690724667" duration="1529000" />
-    </task>
-    <task id="LOCAL-00028" summary="- fixed bug in count_pss_in_gss() saving to Excel">
-      <created>1647017722661</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1647017722661</updated>
+      <workItem from="1677690724667" duration="3864000" />
     </task>
     <task id="LOCAL-00029" summary="- added handling of case where there are no PSs">
       <created>1647259504174</created>
@@ -926,7 +918,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677601030537</updated>
     </task>
-    <option name="localTasksCounter" value="77" />
+    <task id="LOCAL-00077" summary="- improved tqdm for multiple workers">
+      <created>1677749361792</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1677749361792</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -968,7 +967,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value&#10;- updated calcium_intrinsic_plasticity_test.py to better plot" />
     <MESSAGE value="- defined logistic and sigmoid-logit functions f(u) to map calcium to target threshold value" />
     <MESSAGE value="- added tau to logistic to move function" />
     <MESSAGE value="- added mu to logistic to move function" />
@@ -993,7 +991,8 @@
     <MESSAGE value="- dumping and loading monitors after each simulation implemented by rcn.dump_monitors_to_file()&#10;- adapted plotting and other functions to load monitors from dump" />
     <MESSAGE value="- made PS finding sel-contained in the RCN by implementing rcn.find_ps().  This also lets us improve efficiency by caching results" />
     <MESSAGE value="- improved tqdm to use real length of simulation for estimation" />
-    <option name="LAST_COMMIT_MESSAGE" value="- improved tqdm to use real length of simulation for estimation" />
+    <MESSAGE value="- improved tqdm for multiple workers" />
+    <option name="LAST_COMMIT_MESSAGE" value="- improved tqdm for multiple workers" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

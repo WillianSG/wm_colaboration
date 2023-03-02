@@ -454,8 +454,10 @@ def estimate_search_time(function, param_grid, cv, num_cpus=-1, repeat=1):
                 print(
                     f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv, repeated {repeat} times: {time_iterations.total_seconds() / 60:.2f} minutes')
             print('Estimated end time:', datetime.now() + time_iterations)
+
+            return
         elif estimate_time == 'n':
-            break
+            return
         else:
             print('Invalid input. Please try again.')
 
