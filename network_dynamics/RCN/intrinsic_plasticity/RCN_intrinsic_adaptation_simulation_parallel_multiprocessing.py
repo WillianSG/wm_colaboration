@@ -8,24 +8,28 @@
 import atexit
 import copy
 import glob
+import itertools
 import os
 import pickle
 import random
 import shutil
 import signal
+import time
 from functools import partial
-
-import pathos
 import numpy as np
 import matplotlib.pyplot as plt
-from dill import PicklingWarning, UnpicklingWarning
+import pandas as pd
 from natsort import natsorted
+
+import pathos
+import tqdm_pathos
+from tqdm.auto import tqdm
+from tqdm import TqdmWarning
+from dill import PicklingWarning, UnpicklingWarning
 from numpy import VisibleDeprecationWarning
 import warnings
-import pandas as pd
 
 from brian2 import prefs, ms, Hz, mV, second
-from tqdm import tqdm
 
 from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
 from helper_functions.population_spikes import count_ps
@@ -47,17 +51,29 @@ def cleanup(exit_code=None, frame=None):
         pass
 
 
-atexit.register(cleanup)
-signal.signal(signal.SIGINT, cleanup)
-signal.signal(signal.SIGTERM, cleanup)
-
-tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-os.makedirs(tmp_folder)
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 
-def run_sim(params, plot=True, seed_init=None, low_memory=True):
+def product_dict_to_list(**kwargs):
+    from itertools import product
+
+    vals = kwargs.values()
+
+    out_list = []
+    for instance in product(*vals):
+        out_list.append(list(instance))
+
+    return out_list
+
+
+def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True):
+    warnings.filterwarnings("ignore", category=TqdmWarning)
+
     pid = os.getpid()
-    print(f'RUNNING worker {pid} with params: {params}')
+    # print(f'RUNNING worker {pid} with params: {params}')
 
     ba = params[0]
     i_e_w = params[1]
@@ -66,6 +82,8 @@ def run_sim(params, plot=True, seed_init=None, low_memory=True):
     cue_time = params[4]
     num_attractors = params[5]
     num_cues = params[6]
+
+    worker_id = params[7] if len(params) > 7 else None
 
     rcn = RecurrentCompetitiveNet(
         plasticity_rule='LR4',
@@ -130,9 +148,12 @@ def run_sim(params, plot=True, seed_init=None, low_memory=True):
         a.append(random.uniform(0.5, 5))
 
     overall_sim_time = len(attractors_cueing_order) * cue_time + sum([a[2] for a in attractors_cueing_order])
-
-    pbar = tqdm(total=overall_sim_time, disable=not plot, unit='sim s',
-                bar_format="{l_bar}{bar}| {n:.2f}/{total:.2f} [{elapsed}<{remaining}, {rate_fmt}{postfix}]'")
+    pbar = tqdm(total=overall_sim_time, disable=progressbar is None, unit='sim s', leave=True, position=worker_id,
+                desc=f'WORKER {worker_id}',
+                bar_format="{l_bar}{bar}| {n:.2f}/{total:.2f} [{elapsed}<{remaining}, {rate_fmt} {postfix}]")
+    pbar.set_description(f'WORKER {worker_id} with params {params}')
+    time.sleep(0.1)
+    pbar.update(0)
     for a in attractors_cueing_order:
         gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
         act_ids = rcn.generic_stimulus(
@@ -178,110 +199,117 @@ def run_sim(params, plot=True, seed_init=None, low_memory=True):
         #     attractors=attractors_list,
         #     show=True)
 
-    print(f'FINISHED worker {pid} triggered: {trig}, spontaneous: {spont}, score: {score}')
-    print(atr_ps_counts)
+    # print(f'FINISHED worker {pid} triggered: {trig}, spontaneous: {spont}, score: {score}')
+    # print(atr_ps_counts)
+
+    # cleanup
+    shutil.rmtree(rcn.net_sim_data_path)
+    del rcn
+    pbar.close()
 
     # TODO do we like this way of scoring?
     return params, score
 
 
-num_par = 20
-cv = 10
-default_params = [15, 10, 20, 100, 3, 10]
-param_grid = {
-    'ba': [default_params[0]],
-    'i_e_w': [default_params[1]],
-    'i_freq': [default_params[2]],
-    'cue_percentage': [default_params[3]],
-    'a2_cue_time': np.linspace(0.1, 1, num=num_par),
-    'num_attractors': [default_params[4]],
-    'num_cues': [default_params[5]],
-}
-sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
+if __name__ == '__main__':
+    atexit.register(cleanup)
+    signal.signal(signal.SIGINT, cleanup)
+    signal.signal(signal.SIGTERM, cleanup)
 
-print(param_grid)
+    tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+    os.makedirs(tmp_folder)
 
+    num_cpus = pathos.multiprocessing.cpu_count() // 2
+    num_par = 20
+    cv = 3
+    default_params = [15, 10, 20, 100, 3, 10]
+    param_grid = {
+        'ba': [default_params[0]],
+        'i_e_w': [default_params[1]],
+        'i_freq': [default_params[2]],
+        'cue_percentage': [default_params[3]],
+        'a2_cue_time': np.linspace(0.1, 1, num=num_par),
+        'num_attractors': [default_params[4]],
+        'num_cues': [default_params[5]],
+    }
+    sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
 
-def product_dict_to_list(**kwargs):
-    from itertools import product
+    print(param_grid)
 
-    vals = kwargs.values()
+    # # ------ TODO debug
+    # default_params.insert(4, 1)
+    # default_params[5] = 2
+    # default_params[6] = 2
+    # p, s = run_sim(default_params, plot=True, low_memory=False)
+    # 0 / 0
+    # # ----------------
 
-    out_list = []
-    for instance in product(*vals):
-        out_list.append(list(instance))
+    param_grid_pool = list(
+        itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(**param_grid) * 2) for _ in range(cv)))
+    estimate_search_time(run_sim, param_grid_pool, cv, num_cpus=num_cpus)
+    # hack to keep track of process ids
+    for i, g in enumerate(param_grid_pool):
+        g.append(i % num_cpus)
 
-    return out_list
+    chunked_param_grid = list(chunks(param_grid_pool, num_cpus))
 
+    # with pathos.multiprocessing.ProcessPool(num_cpus) as p:
+    #     results = p.map(partial(run_sim, plot=False), param_grid_pool)
+    results = tqdm_pathos.map(partial(run_sim, plot=False, progressbar=None), param_grid_pool, n_cpus=num_cpus)
 
-# # ------ TODO debug
-# default_params.insert(4, 1)
-# default_params[5] = 2
-# default_params[6] = 2
-# p, s = run_sim(default_params, plot=True, low_memory=False)
-# 0 / 0
-# # ----------------
-
-param_grid_pool = product_dict_to_list(**param_grid) * cv
-num_cpus = pathos.multiprocessing.cpu_count() - 2
-# estimate_search_time(run_sim, param_grid_pool, cv, num_cpus=num_cpus)
-
-with pathos.multiprocessing.ProcessPool(num_cpus) as p:
-    results = p.map(partial(run_sim, plot=False), param_grid_pool)
-
-if len(sweeped_params) > 1:
-    res_unsweeped_removed = []
-    for r in results:
-        res_tmp = []
-        for p in sweeped_params:
-            res_tmp.append(r[0][p[1]])
-        res_unsweeped_removed.append((res_tmp, r[1]))
-else:
-    res_unsweeped_removed = results
-
-df_results = pd.DataFrame([i for i in res_unsweeped_removed], columns=['params', 'score'])
-
-df_results_print = df_results.copy()
-df_results_print['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
-df_results_print = df_results_print.groupby('params').mean().reset_index()
-df_results_print.sort_values(by='params', ascending=True, inplace=True)
-df_results_print.set_index('params', inplace=True)
-df_results_print.index = natsorted(df_results_print.index)
-df_results_print.to_csv(f'{tmp_folder}/results.csv')
-
-print(df_results.sort_values(by='score', ascending=False))
-# TODO ordering by parameter is still off
-fig, ax = plt.subplots(figsize=(12, 10))
-df_results.plot(kind='bar', ax=ax)
-ax.set_ylabel('Score')
-ax.set_xlabel('Parameters')
-ax.set_title('Score for different parameters')
-fig.savefig(f'{tmp_folder}/score.png')
-fig.show()
-
-best_params = df_results.loc[df_results.score.idxmax(), 'params']
-print(f'Best parameters: {best_params}')
-run_sim(best_params, plot=True, show_plot=True)
-
-while True:
-    save = input('Save results? (y/n)')
-    if save == 'y':
-        save_folder = f'SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
-        os.makedirs(save_folder)
-        os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
-        os.rename(f'{tmp_folder}/results.csv', f'{save_folder}/results.csv')
-
-        save2 = input('Saved overall results.  Also save individual plots?: (y/n)')
-        if save2 == 'y':
-            for f in glob.glob(f'{tmp_folder}/**/*.png', recursive=True):
-                pid = os.path.normpath(f).split(os.path.sep)[1]
-                os.makedirs(f'{save_folder}/{pid}', exist_ok=True)
-                os.rename(f, f'{save_folder}/{pid}/{os.path.split(f)[1]}')
-
-        cleanup()
-        exit()
-    elif save == 'n':
-        cleanup()
-        exit()
+    if len(sweeped_params) > 1:
+        res_unsweeped_removed = []
+        for r in results:
+            res_tmp = []
+            for p in sweeped_params:
+                res_tmp.append(r[0][p[1]])
+            res_unsweeped_removed.append((res_tmp, r[1]))
     else:
-        print("Please enter 'y' or 'n'")
+        res_unsweeped_removed = results
+
+    df_results = pd.DataFrame([i for i in res_unsweeped_removed], columns=['params', 'score'])
+
+    df_results_print = df_results.copy()
+    df_results_print['params'] = df_results['params'].astype(str).apply(lambda x: ''.join(x))
+    df_results_print = df_results_print.groupby('params').mean().reset_index()
+    df_results_print.sort_values(by='params', ascending=True, inplace=True)
+    df_results_print.set_index('params', inplace=True)
+    df_results_print.index = natsorted(df_results_print.index)
+    df_results_print.to_csv(f'{tmp_folder}/results.csv')
+
+    print(df_results.sort_values(by='score', ascending=False))
+    # TODO ordering by parameter is still off
+    fig, ax = plt.subplots(figsize=(12, 10))
+    df_results.plot(kind='bar', ax=ax)
+    ax.set_ylabel('Score')
+    ax.set_xlabel('Parameters')
+    ax.set_title('Score for different parameters')
+    fig.savefig(f'{tmp_folder}/score.png')
+    fig.show()
+
+    best_params = df_results.loc[df_results.score.idxmax(), 'params']
+    print(f'Best parameters: {best_params}')
+    run_sim(best_params, plot=True, low_memory=False)
+
+    while True:
+        save = input('Save results? (y/n)')
+        if save == 'y':
+            save_folder = f'SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+            os.makedirs(save_folder)
+            os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
+            os.rename(f'{tmp_folder}/results.csv', f'{save_folder}/results.csv')
+
+            save2 = input('Saved overall results.  Also save individual plots?: (y/n)')
+            if save2 == 'y':
+                for f in glob.glob(f'{tmp_folder}/**/*.png', recursive=True):
+                    pid = os.path.normpath(f).split(os.path.sep)[1]
+                    os.makedirs(f'{save_folder}/{pid}', exist_ok=True)
+                    os.rename(f, f'{save_folder}/{pid}/{os.path.split(f)[1]}')
+
+            cleanup()
+            exit()
+        elif save == 'n':
+            cleanup()
+            exit()
+        else:
+            print("Please enter 'y' or 'n'")

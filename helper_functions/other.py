@@ -429,28 +429,35 @@ def hz2sec(hz):
 
 
 def estimate_search_time(function, param_grid, cv, num_cpus=-1, repeat=1):
-    print('Evaluating execution time')
-    # -- estimate execution time
-    start = datetime.now()
-    function(param_grid[0])
-    time_iteration = datetime.now() - start
+    while True:
+        estimate_time = input('Estimate time? (y/n): ')
+        if estimate_time == 'y':
+            print('Evaluating execution time')
+            # -- estimate execution time
+            start = datetime.now()
+            function(param_grid[0])
+            time_iteration = datetime.now() - start
 
-    num_params = len(param_grid)
-    num_cpus = os.cpu_count() if num_cpus == -1 else num_cpus
-    num_cv_iteration = (num_params * cv) // num_cpus
-    if num_cv_iteration == 0:
-        time_iterations = num_params * cv * time_iteration * repeat
-    else:
-        time_iterations = num_cv_iteration * time_iteration * repeat
+            num_params = len(param_grid)
+            num_cpus = os.cpu_count() if num_cpus == -1 else num_cpus
+            num_cv_iteration = (num_params * cv) // num_cpus
+            if num_cv_iteration == 0:
+                time_iterations = num_params * cv * time_iteration * repeat
+            else:
+                time_iterations = num_cv_iteration * time_iteration * repeat
 
-    print(f'Estimated time for 1 iteration: {time_iteration.total_seconds():.2f} seconds')
-    if repeat == 1:
-        print(
-            f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv: {time_iterations.total_seconds() / 60:.2f} minutes')
-    else:
-        print(
-            f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv, repeated {repeat} times: {time_iterations.total_seconds() / 60:.2f} minutes')
-    print('Estimated end time:', datetime.now() + time_iterations)
+            print(f'Estimated time for 1 iteration: {time_iteration.total_seconds():.2f} seconds')
+            if repeat == 1:
+                print(
+                    f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv: {time_iterations.total_seconds() / 60:.2f} minutes')
+            else:
+                print(
+                    f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv, repeated {repeat} times: {time_iterations.total_seconds() / 60:.2f} minutes')
+            print('Estimated end time:', datetime.now() + time_iterations)
+        elif estimate_time == 'n':
+            break
+        else:
+            print('Invalid input. Please try again.')
 
 
 def compute_ps_score(atr_ps_counts):
