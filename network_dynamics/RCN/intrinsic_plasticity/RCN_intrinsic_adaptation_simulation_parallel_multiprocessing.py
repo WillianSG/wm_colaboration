@@ -72,6 +72,9 @@ def product_dict_to_list(**kwargs):
 def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
+    if (plot == True and low_memory == True):
+        raise ValueError('plotting is only possible with low_memory=True')
+
     pid = os.getpid()
     # print(f'RUNNING worker {pid} with params: {params}')
 
@@ -88,7 +91,8 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
     rcn = RecurrentCompetitiveNet(
         plasticity_rule='LR4',
         parameter_set='2.2',
-        seed_init=seed_init)
+        seed_init=seed_init,
+        low_memory=low_memory)
 
     plastic_syn = False
     plastic_ux = True
@@ -150,7 +154,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
     overall_sim_time = len(attractors_cueing_order) * cue_time + sum([a[2] for a in attractors_cueing_order])
     pbar = tqdm(total=overall_sim_time, disable=not progressbar, unit='sim s', leave=True, position=worker_id,
                 desc=f'WORKER {worker_id}',
-                bar_format="{l_bar}{bar}| {n:.2f}/{total:.2f} [{elapsed}<{remaining}, {rate_fmt} {postfix}]")
+                bar_format="{l_bar}{bar}|{n:.2f}/{total:.2f} [{elapsed}<{remaining},{rate_fmt}{postfix}]")
     pbar.set_description(f'WORKER {worker_id} with params {params}')
     time.sleep(0.1)
     pbar.update(0)
@@ -220,8 +224,8 @@ if __name__ == '__main__':
     os.makedirs(tmp_folder)
 
     num_cpus = pathos.multiprocessing.cpu_count() // 2
-    num_par = 2
-    cv = 2
+    num_par = 20
+    cv = 3
     default_params = [15, 10, 20, 100, 3, 10]
     param_grid = {
         'ba': [default_params[0]],
@@ -236,13 +240,13 @@ if __name__ == '__main__':
 
     print(param_grid)
 
-    # # ------ TODO debug
-    # default_params.insert(4, 1)
-    # default_params[5] = 2
-    # default_params[6] = 2
-    # p, s = run_sim(default_params, plot=True, low_memory=False)
-    # 0 / 0
-    # # ----------------
+    # ------ TODO debug
+    default_params.insert(4, 0.1)
+    default_params[5] = 2
+    default_params[6] = 5
+    p, s = run_sim(default_params, plot=False, low_memory=True)
+    0 / 0
+    # ----------------
 
     param_grid_pool = list(
         itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(**param_grid)) for _ in range(cv)))

@@ -33,9 +33,13 @@ else:
 
 
 class RecurrentCompetitiveNet:
-    def __init__(self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, seed_init=None):
+    def __init__(self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, seed_init=None, low_memory=False):
 
         seed(seed_init)
+
+        # When True then only E_mon is instantiated as it's the only one necessary to compute the PS score
+        # When plotting the network activity, set this to False
+        self.low_memory = low_memory
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -648,7 +652,7 @@ class RecurrentCompetitiveNet:
     """
     """
 
-    def dump_monitors_to_file(self):
+    def dump_monitors_to_file(self, monitors=None):
         # -- incrementally store all monitors to their own file
         for mon in self.spk_monitors + self.state_monitors:
             new_data = mon.get_states()
@@ -753,7 +757,10 @@ class RecurrentCompetitiveNet:
 
         self.E_rate_mon = PopulationRateMonitor(source=self.E, name='E_rate_mon')
 
-        self.spk_monitors = [self.Input_to_E_mon, self.Input_to_I_mon, self.E_mon, self.I_mon]
+        if self.low_memory:
+            self.spk_monitors = [self.E_mon]
+        else:
+            self.spk_monitors = [self.Input_to_E_mon, self.Input_to_I_mon, self.E_mon, self.I_mon]
 
         return self.spk_monitors
 
@@ -803,8 +810,12 @@ class RecurrentCompetitiveNet:
                                     dt=self.rec_dt,
                                     name='I_E_rec')
 
-        self.state_monitors = [self.Input_E_rec, self.Input_I_rec, self.E_rec, self.I_rec, self.E_E_rec, self.E_I_rec,
-                               self.I_E_rec]
+        if self.low_memory:
+            self.state_monitors = []
+        else:
+            self.state_monitors = [self.Input_E_rec, self.Input_I_rec, self.E_rec, self.I_rec, self.E_E_rec,
+                                   self.E_I_rec,
+                                   self.I_E_rec]
 
         return self.state_monitors
 
@@ -865,17 +876,8 @@ class RecurrentCompetitiveNet:
             self.I_E,
             self.E_E,
             # self.I_I,
-            self.Input_to_E_mon,
-            self.Input_to_I_mon,
-            self.E_mon,
-            self.I_mon,
-            self.Input_E_rec,
-            self.Input_I_rec,
-            self.E_rec,
-            self.I_rec,
-            self.E_E_rec,
-            self.E_I_rec,
-            self.I_E_rec,
+            self.spk_monitors,
+            self.state_monitors,
             # stimulus_pulse,
             store_E_E_syn_matrix_snapshot,
             name='rcn_net')
