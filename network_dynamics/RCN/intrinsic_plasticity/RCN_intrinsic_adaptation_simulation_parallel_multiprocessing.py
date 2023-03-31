@@ -17,6 +17,8 @@ import signal
 import sys
 import time
 from functools import partial
+from math import floor
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -88,6 +90,8 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
         cue_time = params[4]
         num_attractors = int(params[5])
         num_cues = int(params[6])
+        attractor_size = int(params[7])
+        network_size = int(params[8])
     elif isinstance(params, dict) or isinstance(params, pd.Series):
         ba = params['ba']
         i_e_w = params['i_e_w']
@@ -96,10 +100,24 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
         cue_time = params['cue_time']
         num_attractors = int(params['num_attractors'])
         num_cues = int(params['num_cues'])
+        attractor_size = int(params['attractor_size'])
+        network_size = int(params['network_size'])
 
-    worker_id = params[7] if len(params) > 7 else None
+    worker_id = params[9] if len(params) > 9 else None
+
+    # TODO I want to use SymPy to do these calculations
+    if num_attractors * (attractor_size + 16) > network_size:
+        print(
+            f'{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons.')
+        choice = input('1- Smaller attractors\n2- Fewer attractors\n3- Larger network\n')
+        if choice == '1':
+            attractor_size = floor((network_size - num_attractors * 16) / num_attractors)
+            print(f'Optimal attractor size: {attractor_size}')
+        if choice == '2':
+            pass
 
     rcn = RecurrentCompetitiveNet(
+        stim_size=attractor_size,
         plasticity_rule='LR4',
         parameter_set='2.2',
         seed_init=seed_init,
@@ -138,7 +156,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
 
     attractors_list = []
     for i in range(num_attractors):
-        if i * (64 + 16) + rcn.stim_size_e > len(rcn.E):
+        if i * (rcn.stim_size_e + 16) + rcn.stim_size_e > len(rcn.E):
             print(
                 f'{num_attractors} attractors of size {rcn.stim_size_e} cannot fit into a network of {len(rcn.E)} neurons.  Instantiating {i} attractors instead.')
             num_attractors = i
@@ -237,7 +255,7 @@ if __name__ == '__main__':
     num_cpus = pathos.multiprocessing.cpu_count()
     num_par = 20
     cv = 10
-    default_params = [15, 10, 20, 100, 3, 10]
+    default_params = [15, 10, 20, 100, 3, 10, 64, 256]
     param_grid = {
         'ba': [default_params[0]],
         'i_e_w': [default_params[1]],
@@ -246,6 +264,8 @@ if __name__ == '__main__':
         'cue_time': np.linspace(0.1, 1, num=num_par),
         'num_attractors': [default_params[4]],
         'num_cues': [default_params[5]],
+        'attractor_size': [default_params[6]],
+        'network_size': [default_params[7]],
     }
     sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
 
@@ -253,7 +273,7 @@ if __name__ == '__main__':
 
     # # ------ TODO debug
     # default_params.insert(4, 0.1)
-    # default_params[5] = 2
+    # default_params[5] = 4
     # default_params[6] = 5
     # p, s = run_sim(default_params, plot=False, low_memory=True)
     # 0 / 0
@@ -304,6 +324,7 @@ if __name__ == '__main__':
     df_results_aggregated.plot(kind='bar', ax=ax, x='cue_time', y='score', legend=False)
     ax.set_ylabel('Score')
     ax.set_xlabel(sweeped_param_names)
+    # TODO the labels look wrong still
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     ax.set_title('Score for different parameters')
     fig.savefig(f'{tmp_folder}/score.png')
@@ -332,9 +353,9 @@ if __name__ == '__main__':
                     os.rename(f, f'{save_folder}/{pid}/{os.path.split(f)[1]}')
 
             cleanup()
-            exit()
+            break
         elif save == 'n':
             cleanup()
-            exit()
+            break
         else:
             print("Please enter 'y' or 'n'")

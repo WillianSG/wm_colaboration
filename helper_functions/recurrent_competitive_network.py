@@ -33,7 +33,8 @@ else:
 
 
 class RecurrentCompetitiveNet:
-    def __init__(self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, seed_init=None, low_memory=False):
+    def __init__(self, stim_size=64, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, seed_init=None,
+                 low_memory=False):
 
         seed(seed_init)
 
@@ -61,7 +62,7 @@ class RecurrentCompetitiveNet:
         # self.stimulus_pulse_duration = self.t_run - 1 * second
         self.stimulus_pulse_clock_dt = 0.1 * ms
 
-        self.stim_size_e = 64
+        self.stim_size_e = stim_size
         self.stim_size_i = 64
 
         # ------ neurons parameters
