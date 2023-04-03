@@ -210,10 +210,10 @@ for ba, gs_percentage, i_e_w, i_freq in parameter_combinations:
         A3 = list(range(180, 244))
         attractors.append(('A3', A3))
 
-    rcn.set_synapses_A_2_B(A_ids = stim2_ids, B_ids = stim1_ids, weight = 1.5*mV) # connects A2 to A1.
+    rcn.set_synapses_A_2_B(A_ids = stim2_ids, B_ids = stim1_ids, weight = 2*mV) # connects A2 to A1.
     
-    rcn.set_synapses_A_2_GO(A_ids = stim1_ids, GO_ids = stim3_ids, weight = 1*mV)
-    rcn.set_synapses_A_2_GO(A_ids = stim2_ids, GO_ids = stim3_ids, weight = 1*mV)
+    # rcn.set_synapses_A_2_GO(A_ids = stim1_ids, GO_ids = stim3_ids, weight = 1*mV)
+    # rcn.set_synapses_A_2_GO(A_ids = stim2_ids, GO_ids = stim3_ids, weight = 1*mV)
 
     rcn.set_E_E_plastic(plastic = plastic_syn)
     rcn.set_E_E_ux_vars_plastic(plastic = plastic_ux)

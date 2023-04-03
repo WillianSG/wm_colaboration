@@ -383,8 +383,10 @@ class RecurrentCompetitiveNet:
         self.A_2_B_synapses = Synapses(     # synapses between different attractors
             source=self.E,
             target=self.E,
-            model='w : volt',
-            on_pre='Vepsp += w',
+            model='''w_ef : volt
+            w : volt''',
+            on_pre='''w_ef = w*int(Vth_e_post < -47*mV)
+            Vepsp += w_ef''',
             delay=self.delay_A2B,
             name='A_2_B_synapses')
         
@@ -725,6 +727,12 @@ class RecurrentCompetitiveNet:
                                     record=self.I_E_rec_record,
                                     dt=self.rec_dt,
                                     name='I_E_rec')
+        
+        self.A_2_B_synapses_rec = StateMonitor(source=self.A_2_B_synapses,
+                                    variables=['w_ef'],
+                                    record=True,
+                                    dt=self.rec_dt,
+                                    name='A_2_B_synapses_rec')
 
     """
     Creates a brian2 network object with the neuron/synapse objects defined.
@@ -793,6 +801,7 @@ class RecurrentCompetitiveNet:
             self.E_rec,
             self.I_rec,
             self.E_E_rec,
+            self.A_2_B_synapses_rec,
             self.E_I_rec,
             self.I_E_rec,
             # stimulus_pulse,
@@ -1253,3 +1262,44 @@ class RecurrentCompetitiveNet:
 
         with open(fn, 'wb') as f:
             pickle.dump((uTracesValues), f)
+
+    def export_attractors_data(self, attractor_A, attractor_B):
+
+        # Excitatory spike trains.
+
+        _E_spk_trains = {key: value for key, value in self.E_mon.spike_trains().items() if key in attractor_A + attractor_B}
+
+        # Inhibitory spike trains.
+
+        _I_spk_trains = self.I_mon.spike_trains()
+
+        # Membrane voltages.
+
+        _A1_Vth = self.E_rec.Vth_e[attractor_A, :]
+        _A2_Vth = self.E_rec.Vth_e[attractor_B, :]
+
+        # Inter attractor connections (get weights from B to A).
+
+        _E_w_interattra = self.A_2_B_synapses_rec[self.A_2_B_synapses[list(attractor_B), list(attractor_A)]].w_ef
+
+        # Sim t.
+
+        sim_t = self.E_rec.t/second
+
+        # Export.
+
+        fn = os.path.join(
+            self.net_sim_data_path,
+            'RCN_attractors_data.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump({
+                'E_spk_trains': _E_spk_trains,
+                'I_spk_trains': _I_spk_trains,
+                'A1_Vth': _A1_Vth,
+                'A2_Vth': _A2_Vth,
+                'E_w_interattra': _E_w_interattra,
+                'sim_t': sim_t,
+                'attractor_A': attractor_A,
+                'attractor_B': attractor_B
+            }, f)
