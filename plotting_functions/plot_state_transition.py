@@ -1,8 +1,17 @@
-import pickle
+import pickle, sys, os
 import numpy as np
 import matplotlib.pyplot as plt
+from brian2 import second, ms
 
-folder = '04-04-2023_16-18-44'
+if sys.platform in ['linux', 'win32']:
+
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
+
+    sys.path.append(os.path.join(root, 'helper_functions'))
+
+    from firing_rate_histograms import firing_rate_histograms
+
+folder = str(sys.argv[1])
 filename = '//RCN_attractors_data.pickle'
 filepath = f'D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition//{folder}//BA_15_GS_100_W_10_I_20'
 
@@ -12,7 +21,7 @@ with open(filepath + filename, 'rb') as file:
 E_spk_trains = data['E_spk_trains']
 
 # Create a figure and axis for the raster plot
-fig, (ax1, ax2, ax3) = plt.subplots(nrows=3, sharex=True, figsize=(10,5))
+fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, sharex=True, figsize=(10,7.5))
 
 # Plot the spikes for neurons in list A in blue
 for neuron_id in data['attractor_A']:
@@ -59,17 +68,35 @@ ax2.fill_between(data['sim_t'], A3_mu-A3_sg, A3_mu+A3_sg, alpha=0.2, color='g')
 
 ax2.set_ylabel('Vth [mv]')
 
-ax2.hlines(y=-data['thr_GO_state'], xmin=data['sim_t'][0], xmax=data['sim_t'][-1], colors='k', linestyles='dashed', lw = 0.5)
+ax2.hlines(y=data['thr_GO_state'], xmin=data['sim_t'][0], xmax=data['sim_t'][-1], colors='k', linestyles='dashed', lw = 0.5)
 
-for i in range(100):
+for i in range(len(data['E_w_interattra'])):
 
-    ax3.plot(data['sim_t'], data['E_w_interattra'][i]*1000, lw = 0.5)
+    ax3.plot(data['sim_t'], data['E_w_interattra'][i]*1000, lw = 0.25)
 
 ax3.set_ylabel('w_ef [mv]')
 
-# ax1.legend(loc = 'best', framealpha = 0.0)
-# ax2.legend(loc = 'best', framealpha = 0.0)
-# ax3.legend(loc = 'best', framealpha = 0.0)
+i_spks = []
+for i_id, i_spkt in data['I_spk_trains'].items():
 
-# Show the plot
+    i_spks += list(i_spkt/second)
+
+[input_e_t_hist_count,
+    input_e_t_hist_edgs,
+    input_e_t_hist_bin_widths,
+    input_e_t_hist_fr ] = firing_rate_histograms(
+        tpoints=np.array(i_spks)*second,
+        inds=list(range(0, 64)),
+        bin_width=100*ms,
+        N_pop=len(list(range(0, 64))),
+        flag_hist='time_resolved' )
+
+ax4.bar( input_e_t_hist_edgs[ :-1 ], input_e_t_hist_fr,
+    input_e_t_hist_bin_widths,
+    edgecolor='k',
+    color='purple',
+    linewidth=1.0 )
+
+ax4.set_ylabel('inh pop [Hz]')
+
 plt.show()

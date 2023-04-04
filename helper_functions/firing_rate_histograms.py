@@ -37,6 +37,7 @@ def firing_rate_histograms(tpoints, inds, bin_width, N_pop, flag_hist):
 		t_start = tpoints[0]
 		t_end = tpoints[-1]
 		t_active = t_end - t_start
+		# print(t_active)
 	else:
 		t_active = 0
 
@@ -46,6 +47,7 @@ def firing_rate_histograms(tpoints, inds, bin_width, N_pop, flag_hist):
 		if len(tpoints) > 0 :      
 			# a) Calculate number of bins with desired bin_width
 			num_bins = t_active / bin_width
+			# print('açlksdkls: ', num_bins)
 			num_bins_rounded = int(round(num_bins))
 		else:
 			# Set arbitrary number of bins

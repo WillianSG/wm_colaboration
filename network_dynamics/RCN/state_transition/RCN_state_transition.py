@@ -110,19 +110,18 @@ parser.add_argument('--inh_rate', type=float, default=20, help='Inhibition mean 
 
 parser.add_argument('--attractors', type=int, default=3, choices=[1, 2, 3], help='Number of attractors')
 
-parser.add_argument('--A1_setting', type=float, default=(0.0, 2.0, 0.1), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
+parser.add_argument('--A1_setting', type=float, default=(0.0, 2.0, 0.2), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
 
-parser.add_argument('--A2_setting', type=float, default=(2.0, 4.0, 0.5), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
+parser.add_argument('--A2_setting', type=float, default=(2.0, 4.0, 0.7), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
 
 parser.add_argument('--cue_A1', type=int, default=1, help='')
 parser.add_argument('--cue_A2', type=int, default=1, help='')
 
-parser.add_argument('--w_acpt', type=float, default=1.4, help='Weight in synapses to GO state (mV).')
+parser.add_argument('--w_acpt', type=float, default=4.4, help='Weight in synapses to GO state (mV).')
+parser.add_argument('--w_trans', type=float, default=6, help='Attractor state transition weight (mV).')
+parser.add_argument('--thr_GO_state', type=float, default=-49, help='Threshold for Vth gated synapses (mV).')
 
-parser.add_argument('--free_dyn_t', type=float, default=1.0, help='Time of simulation where network evolves freely (s).')
-
-parser.add_argument('--thr_GO_state', type=float, default=50, help='')
-
+parser.add_argument('--free_dyn_t', type=float, default=0.5, help='Time of simulation where network evolves freely (s).')
 
 args = parser.parse_args()
 
@@ -201,7 +200,7 @@ if args.attractors >= 3:
     A3 = list(range(180, 244))
     attractors.append(('A3', A3))
 
-rcn.set_synapses_A_2_B(A_ids = stim2_ids, B_ids = stim1_ids, weight = 1.5*mV) # connects A2 to A1.
+rcn.set_synapses_A_2_B(A_ids = stim2_ids, B_ids = stim1_ids, weight = args.w_trans*mV) # connects A2 to A1.
 
 rcn.set_synapses_A_2_GO(A_ids = stim1_ids, GO_ids = stim3_ids, weight = args.w_acpt*mV)
 rcn.set_synapses_A_2_GO(A_ids = stim2_ids, GO_ids = stim3_ids, weight = args.w_acpt*mV)

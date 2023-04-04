@@ -34,13 +34,13 @@ class RecurrentCompetitiveNet:
     def __init__(self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second):
 
         # ------ connections between attractors
-        self.p_A2GO = 0.21
-        self.delay_A2GO = 100*ms
+        self.p_A2GO = 0.15
+        self.delay_A2GO = 0*ms
 
-        self.thr_GO_state = 47
+        self.thr_GO_state = -50
 
         self.p_A2B = 0.15
-        self.delay_A2B = 1.5*second
+        self.delay_A2B = 0.7*second
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -387,7 +387,7 @@ class RecurrentCompetitiveNet:
             target=self.E,
             model='''w_ef : volt
             w : volt''',
-            on_pre=f'''w_ef = w*int(Vth_e_post < {self.thr_GO_state}*mV)
+            on_pre=f'''w_ef = w*int(Vth_e_post < {self.thr_GO_state}*mV)*int(Vth_e_pre < {self.thr_GO_state}*mV)
             Vepsp += w_ef''',
             delay=self.delay_A2B,
             name='A_2_B_synapses')
@@ -396,7 +396,7 @@ class RecurrentCompetitiveNet:
             source=self.E,
             target=self.E,
             model='w : volt',
-            on_pre='Vepsp += w',
+            on_pre=f'Vepsp += w*int(Vth_e_pre < {self.thr_GO_state}*mV)',
             delay=self.delay_A2GO,
             name='A_2_GO_synapses')
 
