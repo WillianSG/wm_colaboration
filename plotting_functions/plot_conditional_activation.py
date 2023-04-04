@@ -2,8 +2,8 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-filename = 'RCN_attractors_data.pickle'
-filepath = ''
+filename = '//RCN_attractors_data.pickle'
+filepath = 'D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition//04-04-2023_14-18-37//BA_15_GS_100_W_10_I_20'
 
 with open(filepath + filename, 'rb') as file:
     data = pickle.load(file)

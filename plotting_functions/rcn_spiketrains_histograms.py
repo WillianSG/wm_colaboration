@@ -12,7 +12,7 @@ from matplotlib import gridspec
 import numpy as np
 from brian2 import mV, Hz, second, ms, mean, std
 
-if sys.platform == 'linux':
+if sys.platform in ['linux', 'win32']:
 
     root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
 

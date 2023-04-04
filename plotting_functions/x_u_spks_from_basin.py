@@ -11,7 +11,7 @@ from matplotlib import gridspec
 from brian2 import second, ms, units
 import numpy as np
 
-if sys.platform == 'linux':
+if sys.platform in ['linux', 'win32']:
 
     root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
 

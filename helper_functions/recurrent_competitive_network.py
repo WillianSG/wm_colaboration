@@ -6,14 +6,14 @@
 """
 import setuptools
 from time import localtime, strftime
-import os, pickle, random
+import os, pickle, random, sys
 
 from brian2 import *
 import numpy as np
 
 prefs.codegen.target = 'numpy'
 
-if sys.platform == 'linux':
+if sys.platform in ['linux', 'win32']:
 
     root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
 
@@ -34,11 +34,13 @@ class RecurrentCompetitiveNet:
     def __init__(self, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second):
 
         # ------ connections between attractors
-        self.p_A2GO = 0.2
-        self.delay_A2GO = 0.1*second
+        self.p_A2GO = 0.21
+        self.delay_A2GO = 100*ms
+
+        self.thr_GO_state = 47
 
         self.p_A2B = 0.15
-        self.delay_A2B = 1*second
+        self.delay_A2B = 1.5*second
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -274,7 +276,7 @@ class RecurrentCompetitiveNet:
             stimulus_type=stimulus,
             stimulus_size=self.stim_size_e,
             offset=offset)
-        self.stimulus_neurons_e_ids = np.append(self.stimulus_neurons_e_ids, stim_ids).astype(np.int)
+        self.stimulus_neurons_e_ids = np.append(self.stimulus_neurons_e_ids, stim_ids).astype(int)
 
         return stim_ids
 
@@ -385,7 +387,7 @@ class RecurrentCompetitiveNet:
             target=self.E,
             model='''w_ef : volt
             w : volt''',
-            on_pre='''w_ef = w*int(Vth_e_post < -47*mV)
+            on_pre=f'''w_ef = w*int(Vth_e_post < {self.thr_GO_state}*mV)
             Vepsp += w_ef''',
             delay=self.delay_A2B,
             name='A_2_B_synapses')
@@ -491,7 +493,7 @@ class RecurrentCompetitiveNet:
     def run_net(self, duration=3 * second, gather_every=0 * second, pulse_ending=False, callback=None):
         from tqdm import tqdm
 
-        if sys.platform == 'linux':
+        if sys.platform in ['linux', 'win32']:
 
             from other import clear_screen
 
@@ -1262,44 +1264,3 @@ class RecurrentCompetitiveNet:
 
         with open(fn, 'wb') as f:
             pickle.dump((uTracesValues), f)
-
-    def export_attractors_data(self, attractor_A, attractor_B):
-
-        # Excitatory spike trains.
-
-        _E_spk_trains = {key: value for key, value in self.E_mon.spike_trains().items() if key in attractor_A + attractor_B}
-
-        # Inhibitory spike trains.
-
-        _I_spk_trains = self.I_mon.spike_trains()
-
-        # Membrane voltages.
-
-        _A1_Vth = self.E_rec.Vth_e[attractor_A, :]
-        _A2_Vth = self.E_rec.Vth_e[attractor_B, :]
-
-        # Inter attractor connections (get weights from B to A).
-
-        _E_w_interattra = self.A_2_B_synapses_rec[self.A_2_B_synapses[list(attractor_B), list(attractor_A)]].w_ef
-
-        # Sim t.
-
-        sim_t = self.E_rec.t/second
-
-        # Export.
-
-        fn = os.path.join(
-            self.net_sim_data_path,
-            'RCN_attractors_data.pickle')
-
-        with open(fn, 'wb') as f:
-            pickle.dump({
-                'E_spk_trains': _E_spk_trains,
-                'I_spk_trains': _I_spk_trains,
-                'A1_Vth': _A1_Vth,
-                'A2_Vth': _A2_Vth,
-                'E_w_interattra': _E_w_interattra,
-                'sim_t': sim_t,
-                'attractor_A': attractor_A,
-                'attractor_B': attractor_B
-            }, f)

@@ -21,7 +21,7 @@ from brian2 import prefs, ms, Hz, mV, second
 
 print_report = True
 
-if sys.platform == 'linux':
+if sys.platform in ['linux', 'win32']:
 
     root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../../..')))
 
@@ -32,7 +32,7 @@ if sys.platform == 'linux':
     from other import *
     from x_u_spks_from_basin import plot_x_u_spks_from_basin
     from rcn_spiketrains_histograms import plot_rcn_spiketrains_histograms
-    from spike_synchronisation import *
+    # from spike_synchronisation import *
     from plot_thresholds import *
     from population_spikes import count_ps
 
@@ -48,8 +48,52 @@ else:
 
 prefs.codegen.target = 'numpy'
 
-np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-warnings.filterwarnings('ignore', category=TqdmWarning)
+# === local functions =================================================================
+
+def export_attractors_data(rcn, attractor_A, attractor_B, attractor_C):
+
+    # Excitatory spike trains.
+
+    _E_spk_trains = {key: value for key, value in rcn.E_mon.spike_trains().items() if key in attractor_A + attractor_B + attractor_C}
+
+    # Inhibitory spike trains.
+
+    _I_spk_trains = rcn.I_mon.spike_trains()
+
+    # Membrane voltages.
+
+    _A1_Vth = rcn.E_rec.Vth_e[attractor_A, :]
+    _A2_Vth = rcn.E_rec.Vth_e[attractor_B, :]
+    _A3_Vth = rcn.E_rec.Vth_e[attractor_C, :]
+
+    # Inter attractor connections (get weights from B to A).
+
+    _E_w_interattra = rcn.A_2_B_synapses_rec[rcn.A_2_B_synapses[list(attractor_B), list(attractor_A)]].w_ef
+
+    # Sim t.
+
+    sim_t = rcn.E_rec.t/second
+
+    # Export.
+
+    fn = os.path.join(
+        rcn.net_sim_data_path,
+        'RCN_attractors_data.pickle')
+
+    with open(fn, 'wb') as f:
+        pickle.dump({
+            'E_spk_trains': _E_spk_trains,
+            'I_spk_trains': _I_spk_trains,
+            'A1_Vth': _A1_Vth,
+            'A2_Vth': _A2_Vth,
+            'A3_Vth': _A3_Vth,
+            'E_w_interattra': _E_w_interattra,
+            'sim_t': sim_t,
+            'attractor_A': attractor_A,
+            'attractor_B': attractor_B,
+            'attractor_C': attractor_C,
+            'thr_GO_state': args.thr_GO_state
+        }, f)
 
 
 # === parsing arguments =================================================================
@@ -64,14 +108,21 @@ parser.add_argument('--W_ie', type=float, default=10, help='I-to-E inhibition we
 
 parser.add_argument('--inh_rate', type=float, default=20, help='Inhibition mean rate (Hz).')
 
-parser.add_argument('--attractors', type=int, default=2, choices=[1, 2, 3], help='Number of attractors')
+parser.add_argument('--attractors', type=int, default=3, choices=[1, 2, 3], help='Number of attractors')
 
 parser.add_argument('--A1_setting', type=float, default=(0.0, 2.0, 0.1), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
 
-parser.add_argument('--A2_setting', type=float, default=(2.0, 4.0, 0.7), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
+parser.add_argument('--A2_setting', type=float, default=(2.0, 4.0, 0.5), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
 
 parser.add_argument('--cue_A1', type=int, default=1, help='')
 parser.add_argument('--cue_A2', type=int, default=1, help='')
+
+parser.add_argument('--w_acpt', type=float, default=1.4, help='Weight in synapses to GO state (mV).')
+
+parser.add_argument('--free_dyn_t', type=float, default=1.0, help='Time of simulation where network evolves freely (s).')
+
+parser.add_argument('--thr_GO_state', type=float, default=50, help='')
+
 
 args = parser.parse_args()
 
@@ -85,11 +136,10 @@ if print_report:
     If attractor A2 is cued after attractor A1 has been active, both A1 and A2 become concurrently active.
     On the other hand, if A1 is cued after A2 has been active, then only A1 stays active.''')
 
-timestamp_folder = make_timestamped_folder('../../../results/RCN_conditional_activation/')
+timestamp_folder = make_timestamped_folder('../../../results/RCN_state_transition/')
 
 plasticity_rule = 'LR4'
 parameter_set = '2.2'
-
 
 # === initializing/running network ======================================================
     
@@ -98,6 +148,8 @@ parameter_set = '2.2'
 rcn = RecurrentCompetitiveNet(
     plasticity_rule = plasticity_rule,
     parameter_set = parameter_set)
+
+rcn.thr_GO_state = args.thr_GO_state
 
 plastic_syn = False
 plastic_ux = True
@@ -151,8 +203,8 @@ if args.attractors >= 3:
 
 rcn.set_synapses_A_2_B(A_ids = stim2_ids, B_ids = stim1_ids, weight = 1.5*mV) # connects A2 to A1.
 
-# rcn.set_synapses_A_2_GO(A_ids = stim1_ids, GO_ids = stim3_ids, weight = 1*mV)
-# rcn.set_synapses_A_2_GO(A_ids = stim2_ids, GO_ids = stim3_ids, weight = 1*mV)
+rcn.set_synapses_A_2_GO(A_ids = stim1_ids, GO_ids = stim3_ids, weight = args.w_acpt*mV)
+rcn.set_synapses_A_2_GO(A_ids = stim2_ids, GO_ids = stim3_ids, weight = args.w_acpt*mV)
 
 rcn.set_E_E_plastic(plastic = plastic_syn)
 rcn.set_E_E_ux_vars_plastic(plastic = plastic_ux)
@@ -225,20 +277,10 @@ def run_sim(A1_setting, A2_setting):
         # --- attractor A1 free activity ---
         rcn.run_net(duration = A1_setting[1] - A1_setting[0])
 
+    rcn.run_net(duration = args.free_dyn_t)
+
 run_sim(args.A1_setting, args.A2_setting)
 
 # 2 ------ plotting simulation data ------
 
-title_addition = f'BA {args.ba_rate} Hz, GS {args.gs_percent} %, I-to-E {args.W_ie} mV, I input {args.inh_rate} Hz'
-filename_addition = f'_BA_{args.ba_rate}_GS_{args.gs_percent}_W_{args.W_ie}_Hz_{args.inh_rate}'
-
-fig1 = plot_x_u_spks_from_basin(
-    path = save_dir,
-    filename = 'x_u_spks_from_basin' + filename_addition,
-    title_addition = title_addition,
-    rcn = rcn,
-    attractors = attractors,
-    num_neurons = len(rcn.E),
-    show = False)
-
-rcn.export_attractors_data(attractor_A = A1, attractor_B = A2)
+export_attractors_data(rcn = rcn, attractor_A = A1, attractor_B = A2, attractor_C = A3)
