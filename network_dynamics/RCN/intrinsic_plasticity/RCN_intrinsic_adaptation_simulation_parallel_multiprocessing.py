@@ -4,40 +4,33 @@
 @university: University of Groningen
 @group: Bernoulli Institute
 """
-
+import argparse
 import atexit
 import copy
 import glob
 import itertools
-import os
-import pickle
 import random
 import shutil
 import signal
 import sys
 import time
+import warnings
 from functools import partial
 from math import floor
 
-import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.ticker import FormatStrFormatter
-from natsort import natsorted
-
 import pathos
 import tqdm_pathos
-from tqdm.auto import tqdm
-from tqdm import TqdmWarning
+from brian2 import Hz
 from dill import PicklingWarning, UnpicklingWarning
+from matplotlib.ticker import FormatStrFormatter
 from numpy import VisibleDeprecationWarning
-import warnings
+from tqdm import TqdmWarning
+from tqdm.auto import tqdm
 
-from brian2 import prefs, ms, Hz, mV, second
-
-from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
-from helper_functions.population_spikes import count_ps
 from helper_functions.other import *
+from helper_functions.population_spikes import count_ps
+from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
 from plotting_functions.plot_thresholds import *
 from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
 
@@ -93,11 +86,11 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
         attractor_size = int(params[7])
         network_size = int(params[8])
     elif isinstance(params, dict) or isinstance(params, pd.Series):
-        ba = params['ba']
-        i_e_w = params['i_e_w']
-        i_freq = params['i_freq']
+        ba = params['background_activity']
+        i_e_w = params['i_e_weight']
+        i_freq = params['i_frequency']
         cue_percentage = params['cue_percentage']
-        cue_time = params['cue_time']
+        cue_time = params['cue_length']
         num_attractors = int(params['num_attractors'])
         num_cues = int(params['num_cues'])
         attractor_size = int(params['attractor_size'])
@@ -252,23 +245,69 @@ if __name__ == '__main__':
     tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
     os.makedirs(tmp_folder)
 
-    num_cpus = pathos.multiprocessing.cpu_count()
-    num_par = 20
-    cv = 10
-    default_params = [15, 10, 20, 100, 3, 10, 64, 256]
-    param_grid = {
-        'ba': [default_params[0]],
-        'i_e_w': [default_params[1]],
-        'i_freq': [default_params[2]],
-        'cue_percentage': [default_params[3]],
-        'cue_time': np.linspace(0.1, 1, num=num_par),
-        'num_attractors': [default_params[4]],
-        'num_cues': [default_params[5]],
-        'attractor_size': [default_params[6]],
-        'network_size': [default_params[7]],
-    }
-    sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
+    parser = argparse.ArgumentParser(
+        description='Parallel sweep for parameters of RCN model with STSP and intrinsic plasticity')
+    parser.add_argument('-ba', '--background_activity', type=float, default=15, nargs='+',
+                        help='Level of background activity in Hz')
+    parser.add_argument('-i_e_w', '--i_e_weight', type=float, default=[10], nargs='+',
+                        help='Weight of I-to-E synapses in mV')
+    parser.add_argument('-i_freq', '--i_frequency', type=float, default=[20], nargs='+',
+                        help='Frequency of I input in Hz')
+    parser.add_argument('-cue_perc', '--cue_percentage', type=float, default=[100], nargs='+',
+                        help='Percentage of neurons in the attractor to be stimulated')
+    parser.add_argument('-cue_len', '--cue_length', type=float, default=[1], nargs='+',
+                        help='Duration of the cue in seconds')
+    parser.add_argument('-num_attractors', '--num_attractors', type=int, default=[3], nargs='+',
+                        help='Number of attractors to be generated')
+    parser.add_argument('-num_cues', '--num_cues', type=int, default=[10], nargs='+',
+                        help='Number of cues per attractor')
+    parser.add_argument('-atr_size', '--attractor_size', type=int, default=[64], nargs='+',
+                        help='Number of neurons in each attractor')
+    parser.add_argument('-net_size', '--network_size', type=int, default=[256], nargs='+',
+                        help='Number of neurons in the network')
+    parser.add_argument('-num_par', '--num_parameters', type=int, default=2,
+                        help='Number of parameters to be investigated')
+    parser.add_argument('-cv', '--cross_validation', type=int, default=2, help='Number of cross validation folds')
+    parser.add_argument('-plot', '--plot', type=bool, default=False, help='Plot the results')
+    parser.add_argument('-param_dist', '--parameter_distribution', type=str, choices=['grid', 'gaussian'],
+                        default='grid', help='Distribution of parameters')
+    args = parser.parse_args()
 
+    if args.parameter_distribution == 'grid':
+        param_dist = np.linspace
+        print(
+            f'Sampling {args.num_parameters} parameters from grid distribution and validating them {args.cross_validation} times')
+    elif args.parameter_distribution == 'gaussian':
+        param_dist = np.random.normal
+        print(
+            f'Sampling {args.num_parameters} parameters from gaussian distribution and validating them {args.cross_validation} times')
+
+    num_cpus = pathos.multiprocessing.cpu_count()
+    cv = args.cross_validation
+    param_grid = {
+        'background_activity': param_dist(args.background_activity[0], args.background_activity[1],
+                                          args.num_parameters) if len(
+            args.background_activity) > 1 else args.background_activity,
+        'i_e_weight': param_dist(args.i_e_weight[0], args.i_e_weight[1], args.num_parameters) if len(
+            args.i_e_weight) > 1 else args.i_e_weight,
+        'i_frequency': param_dist(args.i_frequency[0], args.i_frequency[1], args.num_parameters) if len(
+            args.i_frequency) > 1 else args.i_frequency,
+        'cue_percentage': param_dist(args.cue_percentage[0], args.cue_percentage[1], args.num_parameters) if len(
+            args.cue_percentage) > 1 else args.cue_percentage,
+        'cue_length': param_dist(args.cue_length[0], args.cue_length[1], args.num_parameters) if len(
+            args.cue_length) > 1 else args.cue_length,
+        'num_attractors': param_dist(args.num_attractors[0], args.num_attractors[1], args.num_parameters) if len(
+            args.num_attractors) > 1 else args.num_attractors,
+        'num_cues': param_dist(args.num_cues[0], args.num_cues[1], args.num_parameters) if len(
+            args.num_cues) > 1 else args.num_cues,
+        'attractor_size': param_dist(args.attractor_size[0], args.attractor_size[1], args.num_parameters) if len(
+            args.attractor_size) > 1 else args.attractor_size,
+        'network_size': param_dist(args.network_size[0], args.network_size[1], args.num_parameters) if len(
+            args.network_size) > 1 else args.network_size,
+    }
+    for v in param_grid.values():
+        v.sort()
+    sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
     print(param_grid)
 
     # # ------ TODO debug
@@ -293,21 +332,23 @@ if __name__ == '__main__':
     results = tqdm_pathos.map(partial(run_sim, plot=False, progressbar=os.isatty(sys.stdout.fileno())), param_grid_pool,
                               n_cpus=num_cpus)
 
-    if len(sweeped_params) > 1:
-        res_unsweeped_removed = []
-        for r in results:
-            res_tmp = []
-            for p in sweeped_params:
-                res_tmp.append(r[0][p[1]])
-            res_unsweeped_removed.append((res_tmp, r[1]))
-    else:
-        res_unsweeped_removed = results
+    # if len(sweeped_params) > 1:
+    #     res_unsweeped_removed = []
+    #     for r in results:
+    #         res_tmp = []
+    #         for p in sweeped_params:
+    #             res_tmp.append(r[0][p[1]])
+    #         res_unsweeped_removed.append((res_tmp, r[1]))
+    # else:
+    #     res_unsweeped_removed = results
+    #
+    # res_unsweeped_removed = results
 
     sweeped_param_names = [p[0] for p in sweeped_params]
 
     # create a dataframe with the raw results
     df_results = pd.DataFrame(columns=list(param_grid.keys()) + ['score'])
-    for r in res_unsweeped_removed:
+    for r in results:
         df_results.loc[len(df_results)] = r[0][:-1] + [r[1]]
 
     # aggregate results by the sweeped parameters
@@ -319,21 +360,26 @@ if __name__ == '__main__':
     # print best results in order
     print(df_results_aggregated[sweeped_param_names + ['score']].sort_values(by='score', ascending=False))
 
+    df_results_aggregated['sweeped'] = df_results_aggregated[sweeped_param_names].apply(
+        lambda x: ', '.join(x.apply('{:,.2f}'.format)), axis=1)
+    # df_results_aggregated['sweeped'] = df_results_aggregated['sweeped'].astype(str)
+
     # plot results for cue time
     fig, ax = plt.subplots(figsize=(12, 10))
-    df_results_aggregated.plot(kind='bar', ax=ax, x='cue_time', y='score', legend=False)
+    df_results_aggregated.plot(kind='bar', ax=ax, x='sweeped', y='score', legend=False)
     ax.set_ylabel('Score')
     ax.set_xlabel(sweeped_param_names)
+    ax.set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
     # TODO the labels look wrong still
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    ax.set_title('Score for different parameters')
+    ax.set_title('Score for sweeped parameters')
     fig.savefig(f'{tmp_folder}/score.png')
     fig.show()
 
     # Run model with the best parameters and plot output
     best_params = df_results_aggregated.loc[df_results_aggregated.score.idxmax()]
     best_score = best_params['score']
-    best_params = best_params.drop('score').to_dict()
+    best_params = best_params.drop(['score', 'sweeped']).to_dict()
     print(f'Best parameters: {best_params}')
     run_sim(best_params, plot=True, low_memory=False)
 
