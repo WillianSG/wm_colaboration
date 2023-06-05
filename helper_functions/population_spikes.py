@@ -64,12 +64,11 @@ def count_ps(rcn, attractor_cueing_order):
 
 
 def find_gap_between_PS(rcn, attractor: list, spk_sync_thr: float):
-    from other import find_ps
     import numpy as np
 
     us_neurs_with_input, sim_t_array, U, tau_f = rcn.get_u_traces_from_pattern_neurons()
 
-    x, y, y_smooth, pss = find_ps(rcn.net_sim_data_path, sim_t_array[-1], attractor[0])
+    x, y, y_smooth, pss = rcn.find_ps(rcn.net_sim_data_path, sim_t_array[-1], attractor[0])
 
     psStart = -1
     psEnd = -1
