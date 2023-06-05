@@ -416,8 +416,12 @@ def compute_ps_score(atr_ps_counts, attractors_cueing_order):
         accuracy = 0
 
     # -- compute recall
-    # The maximum frequency of reactivations seems to be 4 Hz with 2.3 parameter set
-    stability = {k: v['triggered'] / (atr_window_lengths[k] * 4) for k, v in atr_pss.items()}
-    mean_stability = sum(stability.values()) / len(stability)
+    # The maximum frequency of reactivations seems to be % Hz with 2.3 parameter set
+    recall = {k: v['triggered'] / (atr_window_lengths[k] * 5) for k, v in atr_pss.items()}
+    mean_recall = sum(recall.values()) / len(recall)
 
-    return trig, spont, accuracy, mean_stability
+    return trig, spont, accuracy, mean_recall, f1_score(accuracy, mean_recall)
+
+
+def f1_score(precision, recall):
+    return 2 * (precision * recall) / (precision + recall)

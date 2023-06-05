@@ -322,13 +322,13 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
 
     plt.xlabel('time (s)', size=axis_label_size)
 
-    trig, spont, accuracy, stability = compute_ps_score(pss_categorised, attractor_cues)
+    trig, spont, accuracy, stability, f1_score = compute_ps_score(pss_categorised, attractor_cues)
 
     fig.suptitle('Attractor Neurons\n' + title_addition, fontsize=suptitle_fontsize)
 
     fig.subplots_adjust(bottom=0.2)
-    plt.figtext(0.2, 0.01,
-                f'Triggered PSs: {trig}, Spontaneous PSs: {spont}, PS accuracy: {accuracy:.2f}, PS stability: {stability:.2f}',
+    plt.figtext(0.1, 0.01,
+                f'F1-Score: {f1_score:.2f}',
                 ha='center', fontsize=title_fontsize,
                 bbox={'facecolor': 'white', 'pad': 5})
 

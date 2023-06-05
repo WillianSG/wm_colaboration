@@ -87,6 +87,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
         num_cues = int(params[8])
         attractor_size = int(params[9])
         network_size = int(params[10])
+        worker_id = params[11] if len(params) == 12 else None
     elif isinstance(params, dict) or isinstance(params, pd.Series):
         ba = params['background_activity']
         i_e_w = params['i_e_weight']
@@ -99,8 +100,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
         num_cues = int(params['num_cues'])
         attractor_size = int(params['attractor_size'])
         network_size = int(params['network_size'])
-
-    worker_id = params[11] if len(params) == 12 else None
+        worker_id = params['worker_id'] if 'worker_id' in params else None
 
     import sympy
     a, s, n = sympy.symbols('a s n')
@@ -190,7 +190,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
 
     # generate random reactivation times in range
     for a in attractors_cueing_order:
-        a.append(random.uniform(4, 4))
+        a.append(random.uniform(1, 5))
 
     overall_sim_time = len(attractors_cueing_order) * cue_time + sum([a[2] for a in attractors_cueing_order])
     pbar = tqdm(total=overall_sim_time, disable=not progressbar, unit='sim s', leave=True, position=worker_id,
@@ -221,7 +221,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
     # -- calculate score
     atr_ps_counts = count_ps(rcn=rcn, attractor_cueing_order=attractors_cueing_order)
 
-    trig, spont, accuracy, stability = compute_ps_score(atr_ps_counts, attractors_cueing_order)
+    trig, spont, accuracy, recall, f1_score = compute_ps_score(atr_ps_counts, attractors_cueing_order)
 
     if plot:
         title_addition = f'BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
@@ -252,7 +252,7 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
     del rcn
     pbar.close()
 
-    return params, (stability, accuracy, trig, spont)
+    return params, (f1_score, recall, accuracy, trig, spont)
 
 
 if __name__ == '__main__':
@@ -373,9 +373,10 @@ if __name__ == '__main__':
     # res_unsweeped_removed = results
 
     sweeped_param_names = [p[0] for p in sweeped_params]
+    score_param_names = ['f1_score', 'recall', 'accuracy', 'triggered', 'spontaneous']
 
     # create a dataframe with the raw results
-    df_results = pd.DataFrame(columns=list(param_grid.keys()) + ['stability', 'accuracy', 'triggered', 'spontaneous'])
+    df_results = pd.DataFrame(columns=list(param_grid.keys()) + score_param_names)
     for r in results:
         df_results.loc[len(df_results)] = r[0][:-1] + [*r[1]]
 
@@ -390,11 +391,11 @@ if __name__ == '__main__':
 
     # print best results in order
     print(
-        df_results_aggregated[sweeped_param_names + ['stability', 'accuracy', 'triggered', 'spontaneous']].sort_values(
-            by='stability',
+        df_results_aggregated[sweeped_param_names + score_param_names].sort_values(
+            by='recall',
             ascending=False))
     print(
-        df_results_aggregated[sweeped_param_names + ['stability', 'accuracy', 'triggered', 'spontaneous']].sort_values(
+        df_results_aggregated[sweeped_param_names + score_param_names].sort_values(
             by='accuracy',
             ascending=False))
 
@@ -403,38 +404,44 @@ if __name__ == '__main__':
     # df_results_aggregated['sweeped'] = df_results_aggregated['sweeped'].astype(str)
 
     # plot results for cue time
-    fig, axes = plt.subplots(1, 3, figsize=(15, 8))
+    fig, axes = plt.subplots(2, 2, figsize=(15, 15))
 
-    df_results_aggregated.plot(kind='bar', ax=axes[0], x='sweeped', y='accuracy', legend=False)
-    axes[0].set_ylabel('Accuracy')
-    axes[0].set_xlabel(sweeped_param_names)
-    axes[0].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-    axes[0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    axes[0].set_title('Accuracy for sweeped parameters')
+    df_results_aggregated.plot(kind='bar', ax=axes[0, 0], x='sweeped', y='f1_score', legend=False)
+    axes[0, 0].set_ylabel('F1 score')
+    axes[0, 0].set_xlabel(sweeped_param_names)
+    axes[0, 0].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
+    axes[0, 0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    axes[0, 0].set_title('F1 score for sweeped parameters')
 
-    df_results_aggregated.plot(kind='bar', ax=axes[1], x='sweeped', y='stability', legend=False)
-    axes[1].set_ylabel('Stability')
-    axes[1].set_xlabel(sweeped_param_names)
-    axes[1].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-    axes[1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    axes[1].set_title('Stability for sweeped parameters')
+    df_results_aggregated.plot(kind='bar', ax=axes[1, 1], x='sweeped', y=['triggered', 'spontaneous'], color=['g', 'r'])
+    axes[0, 1].set_ylabel('Reactivations')
+    axes[0, 1].set_xlabel(sweeped_param_names)
+    axes[0, 1].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
+    axes[0, 1].set_title('Reactivations for sweeped parameters')
 
-    df_results_aggregated.plot(kind='bar', ax=axes[2], x='sweeped', y=['triggered', 'spontaneous'], color=['g', 'r'])
-    axes[2].set_ylabel('Reactivations')
-    axes[2].set_xlabel(sweeped_param_names)
-    axes[2].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-    axes[2].set_title('Reactivations for sweeped parameters')
+    df_results_aggregated.plot(kind='bar', ax=axes[1, 0], x='sweeped', y='recall', legend=False)
+    axes[1, 0].set_ylabel('recall')
+    axes[1, 0].set_xlabel(sweeped_param_names)
+    axes[1, 0].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
+    axes[1, 0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    axes[1, 0].set_title('recall for sweeped parameters')
+
+    df_results_aggregated.plot(kind='bar', ax=axes[0, 1], x='sweeped', y='accuracy', legend=False)
+    axes[1, 1].set_ylabel('Accuracy')
+    axes[1, 1].set_xlabel(sweeped_param_names)
+    axes[1, 1].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
+    axes[1, 1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    axes[1, 1].set_title('Accuracy for sweeped parameters')
 
     fig.suptitle(f'Results', fontsize=16)
     fig.tight_layout()
     fig.savefig(f'{tmp_folder}/score.png')
     fig.show()
 
-    # TODo find best combined accuracy+stability
     # Run model with the best parameters and plot output
-    best_params = df_results_aggregated.loc[df_results_aggregated.stability.idxmax()]
-    best_score = best_params['stability']
-    best_params = best_params.drop(['stability', 'accuracy', 'triggered', 'spontaneous', 'sweeped']).to_dict()
+    best_params = df_results_aggregated.loc[df_results_aggregated.recall.idxmax()]
+    best_score = best_params['f1_score']
+    best_params = best_params.drop(score_param_names).to_dict()
     print(f'Best parameters: {best_params}')
     run_sim(best_params, plot=True, low_memory=False)
 

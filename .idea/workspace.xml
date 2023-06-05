@@ -7,11 +7,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py &#10;* using SymPy for calculations when attractors won't fit into network">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py:&#10;* handling no sweeped parameters&#10;* added reactivation_time parameter&#10;- other.py: &#10;* removed find_ps() &#10;- recurrent_competitive_network.py: &#10;* added temporal filtering to discard PSs that are too close">
+      <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/other.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/other.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/population_spikes.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/population_spikes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotting_functions/x_u_spks_from_basin.py" afterDir="false" />
     </list>
@@ -242,7 +241,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
-      <option name="PARAMETERS" value="-ba 18 24 -num_par 10 -num_attractors 1 -num_cues 1 -cv 1" />
+      <option name="PARAMETERS" value="-ba 18 24 -num_par 20 -num_attractors 1 -num_cues 1 -cv 5" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -615,21 +614,7 @@
       <workItem from="1683300179481" duration="51000" />
       <workItem from="1684936609224" duration="28751000" />
       <workItem from="1685458679093" duration="3804000" />
-      <workItem from="1685522435360" duration="25999000" />
-    </task>
-    <task id="LOCAL-00034" summary="- added ability to normalise the number of PSs by the number of GSs, which should make it independent of BA and total number of PSs">
-      <created>1647519645351</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1647519645351</updated>
-    </task>
-    <task id="LOCAL-00035" summary="- added ability to normalise the number of PSs by the number of GSs, which should make it independent of BA and total number of PSs">
-      <created>1647520533606</created>
-      <option name="number" value="00035" />
-      <option name="presentableId" value="LOCAL-00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1647520533606</updated>
+      <workItem from="1685522435360" duration="31457000" />
     </task>
     <task id="LOCAL-00036" summary="- updated run_net() progress bar">
       <created>1647858283607</created>
@@ -960,7 +945,21 @@
       <option name="project" value="LOCAL" />
       <updated>1685021915590</updated>
     </task>
-    <option name="localTasksCounter" value="83" />
+    <task id="LOCAL-00083" summary="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py:&#10;* handling no sweeped parameters&#10;* added reactivation_time parameter&#10;- other.py: &#10;* removed find_ps() &#10;- recurrent_competitive_network.py: &#10;* added temporal filtering to discard PSs that are too close">
+      <created>1685962975818</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1685962975818</updated>
+    </task>
+    <task id="LOCAL-00084" summary="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py:&#10;* handling no sweeped parameters&#10;* added reactivation_time parameter&#10;- other.py: &#10;* removed find_ps() &#10;- recurrent_competitive_network.py: &#10;* added temporal filtering to discard PSs that are too close">
+      <created>1685962989452</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1685962989452</updated>
+    </task>
+    <option name="localTasksCounter" value="85" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1002,7 +1001,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- finished finding optimal Gompertz f(u) using f(u)_fitting.py but still needs validating" />
     <MESSAGE value="- fixed color gradient for l1 and l2&#10;- made plots nicer" />
     <MESSAGE value="- both f(u0 threshold and fixed-step were active at same time&#10;- remade plot_thresholds.py" />
     <MESSAGE value="- conda install numpy &quot;libblas=*=*accelerate&quot; doubles numpy performance" />
@@ -1027,7 +1025,8 @@
     <MESSAGE value="- fixed final bugs in running model with best parameters" />
     <MESSAGE value="- added attractor_size and network_size parameters" />
     <MESSAGE value="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py &#10;* working correctly with multiple sweeped parameters&#10;* added command-line parameters" />
-    <option name="LAST_COMMIT_MESSAGE" value="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py &#10;* working correctly with multiple sweeped parameters&#10;* added command-line parameters" />
+    <MESSAGE value="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py:&#10;* handling no sweeped parameters&#10;* added reactivation_time parameter&#10;- other.py: &#10;* removed find_ps() &#10;- recurrent_competitive_network.py: &#10;* added temporal filtering to discard PSs that are too close" />
+    <option name="LAST_COMMIT_MESSAGE" value="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py:&#10;* handling no sweeped parameters&#10;* added reactivation_time parameter&#10;- other.py: &#10;* removed find_ps() &#10;- recurrent_competitive_network.py: &#10;* added temporal filtering to discard PSs that are too close" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1062,21 +1061,6 @@
           <line>100</line>
           <option name="timeStamp" value="80" />
         </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py</url>
-          <line>383</line>
-          <option name="timeStamp" value="333" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/helper_functions/other.py</url>
-          <line>419</line>
-          <option name="timeStamp" value="339" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py</url>
-          <line>1222</line>
-          <option name="timeStamp" value="347" />
-        </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
         <breakpoint type="python-exception">
@@ -1095,7 +1079,7 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast.coverage" NAME="One attractor reactivation fast Coverage Results" MODIFIED="1647443654690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$plot_PS_count_grid_search.coverage" NAME="plot_PS_count_grid_search Coverage Results" MODIFIED="1675862386211" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/helper_PS_count_grids" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_fast_BA_GS_sweep.coverage" NAME="One attractor reactivation fast BA GS sweep Coverage Results" MODIFIED="1647859456656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation_parallel_multiprocessing__1_.coverage" NAME="RCN_intrinsic_adaptation_simulation_parallel_multiprocessing (1) Coverage Results" MODIFIED="1685962296224" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation_parallel_multiprocessing__1_.coverage" NAME="RCN_intrinsic_adaptation_simulation_parallel_multiprocessing (1) Coverage Results" MODIFIED="1685976621442" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$gompertz_fit.coverage" NAME="f(u)_fitting Coverage Results" MODIFIED="1654700280403" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_ba.coverage" NAME="RCN_item_reactivation_ba Coverage Results" MODIFIED="1646331179889" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_BA_GS_sweep.coverage" NAME="One attractor reactivation full BA GS sweep Coverage Results" MODIFIED="1647615005571" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
