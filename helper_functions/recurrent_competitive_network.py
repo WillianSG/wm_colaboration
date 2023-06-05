@@ -5,13 +5,11 @@
 @group: Bio-Inspired Circuits and System
 """
 import glob
-
-import setuptools
+import pickle
 from time import localtime, strftime
-import os, pickle, random
+import os
 
 from brian2 import *
-import numpy as np
 
 prefs.codegen.target = 'numpy'
 
@@ -129,8 +127,8 @@ class RecurrentCompetitiveNet:
         self.w_input_i = 60 * mV
         self.w_e_i = 1 * mV
         self.w_i_e = 1 * mV
-        self.w_e_e = 0.5 * mV
-        self.w_i_i = 0.5 * mV
+        # self.w_e_e = 0.5 * mV
+        # self.w_i_i = 0.5 * mV
 
         # data save
         self.M_ee = []
@@ -483,15 +481,14 @@ class RecurrentCompetitiveNet:
     """
 
     def run_net(self, duration=3 * second, gather_every=0 * second, pulse_ending=False, callback=None):
-        from tqdm import tqdm
 
         if sys.platform == 'linux':
 
-            from other import clear_screen
+            pass
 
         else:
 
-            from helper_functions.other import clear_screen
+            pass
 
         if not isinstance(duration, Quantity):
             duration *= second
@@ -1192,7 +1189,7 @@ class RecurrentCompetitiveNet:
     """
     """
 
-    def find_ps(self, attractor, threshold=0.8, verbose=False):
+    def find_ps(self, attractor, threshold=0.7, verbose=False):
         from scipy.ndimage.filters import uniform_filter1d
         from pyspike import spike_sync_profile
         from helper_functions.other import contiguous_regions
@@ -1220,6 +1217,9 @@ class RecurrentCompetitiveNet:
             pss = np.array([[]])
         else:
             pss = contiguous_regions(y_smooth > threshold)
+
+        # temporal filter removing PSs that are too close to each other
+        pss = pss[np.insert(np.diff(np.ravel(pss))[1::2] > 50, 0, True), :]
 
         self.x_pss[attractor[0]], self.y_pss[attractor[0]], self.y_smooth_pss[attractor[0]], self.pss[
             attractor[0]] = x, y, y_smooth, pss

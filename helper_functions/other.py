@@ -129,76 +129,6 @@ def append_df_to_excel(df, excel_path, sheet_name, index=False):
         result.to_excel(writer, index=index, sheet_name=sheet_name, engine='openpyxl')
 
 
-# TODO add temporal filter s.t. spikes too close don't get found
-def find_ps(path, sim_time, attractor, write_to_file=False, parameters=None, verbose=False):
-    import pyspike as spk
-    from scipy.ndimage.filters import uniform_filter1d
-    import pandas as pd
-
-    spike_trains = spk.load_spike_trains_from_txt(os.path.join(path, 'spikes_pyspike.txt'),
-                                                  edges=(0, sim_time),
-                                                  ignore_empty_lines=False)
-
-    spike_sync_profile = spk.spike_sync_profile(spike_trains, indices=attractor[1])
-
-    x, y = spike_sync_profile.get_plottable_data()
-    # mean_filter_size = round( len( x ) / 10 )
-    mean_filter_size = 20
-
-    try:
-        y_smooth = uniform_filter1d(y, size=mean_filter_size)
-    except:
-        y_smooth = np.zeros(len(x))
-
-    # if there are no spikes we need to force it to count zero PSs
-    if np.count_nonzero([i for i in spike_trains]) == 0:
-        pss = np.array([[]])
-    else:
-        pss = contiguous_regions(y_smooth > 0.8)
-
-    if write_to_file:
-        assert parameters is not None
-
-        parameter_names = list(parameters.keys())
-        parameter_values = list(parameters.values())
-
-        df = pd.DataFrame(columns=['atr'] +
-                                  list(parameter_names) +
-                                  ['start_s', 'end_s', 'center', 'max', 'mean', 'std'])
-
-        if pss.size:
-            for ps in pss:
-                df = pd.concat([df, pd.DataFrame([[attractor[0]] +
-                                                  parameter_values +
-                                                  [x[ps[0]],
-                                                   x[ps[1]],
-                                                   x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])],
-                                                   np.max(y_smooth[ps[0]:ps[1]]),
-                                                   np.mean(y_smooth[ps[0]:ps[1]]),
-                                                   np.std(y_smooth[ps[0]:ps[1]])]],
-                                                 columns=['atr'] +
-                                                         list(parameter_names) +
-                                                         ['start_s', 'end_s', 'center', 'max', 'mean', 'std'])])
-
-        fn = os.path.join(path, "pss.xlsx")
-
-        ensure_excel_exists(fn)
-
-        append_df_to_excel(df, fn, sheet_name="PSs")
-
-    if verbose:
-        for ps in pss:
-            print(f'Found PS in {attractor[0]} '
-                  f'between {x[ps[0]]} s and {x[ps[1]]} s '
-                  f'centered at {x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]} s '
-                  f'with max value {np.max(y_smooth[ps[0]:ps[1]])} '
-                  f'(mean={np.mean(y_smooth[ps[0]:ps[1]])}, '
-                  f'std={np.std(y_smooth[ps[0]:ps[1]])}'
-                  )
-
-    return x, y, y_smooth, pss
-
-
 def count_pss_in_gss(pss_path, normalise_by_PS=False, num_gss=None, write_to_file=False, ba=None, gss=None,
                      verbose=True):
     import pandas as pd
@@ -462,19 +392,32 @@ def estimate_search_time(function, param_grid, cv, num_cpus=-1, repeat=1):
             print('Invalid input. Please try again.')
 
 
-def compute_ps_score(atr_ps_counts):
-    # -- count reactivations
-    trig = 0
-    spont = 0
-    for k, v in atr_ps_counts.items():
-        for k, v in v.items():
-            if k == 'triggered':
-                trig += len(v)
-            if k == 'spontaneous':
-                spont += len(v)
-    try:
-        score = trig / (trig + spont)
-    except ZeroDivisionError:
-        score = 0
+def compute_ps_score(atr_ps_counts, attractors_cueing_order):
+    # -- count window length per attractor
+    atr_window_lengths = dict.fromkeys(atr_ps_counts.keys(), 0)
+    for a in attractors_cueing_order:
+        atr_window_lengths[a[0]] += a[2]
 
-    return trig, spont, score
+    # -- count reactivations per attractor
+    atr_pss = {k: {'triggered': 0, 'spontaneous': 0} for k in atr_ps_counts.keys()}
+    for k, v in atr_ps_counts.items():
+        atr_pss[k]['triggered'] += len(v['triggered'])
+        atr_pss[k]['spontaneous'] += len(v['spontaneous'])
+
+    # -- compute accuracy
+    spont = 0
+    trig = 0
+    for k, v in atr_pss.items():
+        spont += v['spontaneous']
+        trig += v['triggered']
+    try:
+        accuracy = trig / (trig + spont)
+    except ZeroDivisionError:
+        accuracy = 0
+
+    # -- compute recall
+    # The maximum frequency of reactivations seems to be 4 Hz with 2.3 parameter set
+    stability = {k: v['triggered'] / (atr_window_lengths[k] * 4) for k, v in atr_pss.items()}
+    mean_stability = sum(stability.values()) / len(stability)
+
+    return trig, spont, accuracy, mean_stability
