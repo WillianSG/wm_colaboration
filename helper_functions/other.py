@@ -424,4 +424,7 @@ def compute_ps_score(atr_ps_counts, attractors_cueing_order):
 
 
 def f1_score(precision, recall):
-    return 2 * (precision * recall) / (precision + recall)
+    try:
+        return 2 * (precision * recall) / (precision + recall)
+    except ZeroDivisionError:
+        return 0

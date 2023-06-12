@@ -3,6 +3,13 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/3sigma_sweep/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/network_dynamics/RCN/intrinsic_plasticity/SAVED_(2023-03-02_15-00-55)/results.csv">
           <value>
             <Attribute>
@@ -31,7 +38,63 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/SAVED_(2023-06-08_17-19-10)/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/SAVED_(2023-06-08_18-13-29)/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-03-02_19-33-48/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-05-24_17-41-18/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-05-25_13-52-31/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-05-25_19-48-25/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-05-31_15-16-37/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-05-31_15-21-03/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-05-31_15-31-54/results.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

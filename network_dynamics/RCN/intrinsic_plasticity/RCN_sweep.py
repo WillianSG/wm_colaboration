@@ -54,14 +54,12 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 
-def product_dict_to_list(**kwargs):
+def product_dict_to_list(dic):
     from itertools import product
 
-    vals = kwargs.values()
-
     out_list = []
-    for instance in product(*vals):
-        out_list.append(list(instance))
+    for instance in product(*dic.values()):
+        out_list.append(dict(zip(dic.keys(), instance)))
 
     return out_list
 
@@ -75,32 +73,18 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
     pid = os.getpid()
     # print(f'RUNNING worker {pid} with params: {params}')
 
-    if isinstance(params, list):
-        ba = params[0]
-        i_e_w = params[1]
-        e_i_w = params[2]
-        e_e_maxw = params[3]
-        i_freq = params[4]
-        cue_percentage = params[5]
-        cue_time = params[6]
-        num_attractors = int(params[7])
-        num_cues = int(params[8])
-        attractor_size = int(params[9])
-        network_size = int(params[10])
-        worker_id = params[11] if len(params) == 12 else None
-    elif isinstance(params, dict) or isinstance(params, pd.Series):
-        ba = params['background_activity']
-        i_e_w = params['i_e_weight']
-        e_i_w = params['e_i_weight']
-        e_e_maxw = params['e_e_max_weight']
-        i_freq = params['i_frequency']
-        cue_percentage = params['cue_percentage']
-        cue_time = params['cue_length']
-        num_attractors = int(params['num_attractors'])
-        num_cues = int(params['num_cues'])
-        attractor_size = int(params['attractor_size'])
-        network_size = int(params['network_size'])
-        worker_id = params['worker_id'] if 'worker_id' in params else None
+    ba = params['background_activity']
+    i_e_w = params['i_e_weight']
+    e_i_w = params['e_i_weight']
+    e_e_maxw = params['e_e_max_weight']
+    i_freq = params['i_frequency']
+    cue_percentage = params['cue_percentage']
+    cue_time = params['cue_length']
+    num_attractors = int(params['num_attractors'])
+    num_cues = int(params['num_cues'])
+    attractor_size = int(params['attractor_size'])
+    network_size = int(params['network_size'])
+    worker_id = params['worker_id'] if 'worker_id' in params else None
 
     import sympy
     a, s, n = sympy.symbols('a s n')
@@ -252,7 +236,10 @@ def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True
     del rcn
     pbar.close()
 
-    return params, (f1_score, recall, accuracy, trig, spont)
+    params.pop('worker_id', None)
+
+    return params | {'f1_score': f1_score, 'recall': recall, 'accuracy': accuracy, 'triggered': trig,
+                     'spontaneous': spont}
 
 
 if __name__ == '__main__':
@@ -264,9 +251,9 @@ if __name__ == '__main__':
     os.makedirs(tmp_folder)
 
     parser = argparse.ArgumentParser(
-        description='Parallel sweep for parameters of RCN model with STSP and intrinsic plasticity.  '
-                    'When --parameter_distribution is "grid" the first parameter is the start value and the second the end value.'
-                    'When --parameter_distribution is "gaussian" the first parameter is the mean value and the second the standard deviation.')
+        description='Parallel sweep for parameters of RCN model with STSP and intrinsic plasticity.\n'
+                    'Passing one value for parameter will default to using Gaussian distribution with that value as mu'
+                    'Passing two values for parameter will default to using grid distribution with those values lower and upper bounds')
     parser.add_argument('-ba', '--background_activity', type=float, default=[15], nargs='+',
                         help='Level of background activity in Hz')
     parser.add_argument('-i_e_w', '--i_e_weight', type=float, default=[10], nargs='+',
@@ -289,69 +276,100 @@ if __name__ == '__main__':
                         help='Number of neurons in the network')
     parser.add_argument('-num_cues', '--num_cues', type=int, default=[10], nargs='+',
                         help='Number of cues given to the network')
-    parser.add_argument('-num_par', '--num_parameters', type=int, default=2,
+    parser.add_argument('-num_smp', '--num_samples', type=int, default=2,
                         help='Number of parameters to pick from each distribution')
-    parser.add_argument('-param_dist', '--parameter_distribution', type=str, choices=['grid', 'gaussian'],
-                        default='grid', help='Distribution of parameters')
+    parser.add_argument('-sigma', '--sigma', type=float, default=3,
+                        help='Sigma when using gaussian distribution (pass one value for all parameters)')
+    parser.add_argument('-joint', '--joint_distribution', action='store_true', help='Use joint distribution')
     parser.add_argument('-cv', '--cross_validation', type=int, default=2, help='Number of cross validation folds')
     parser.add_argument('-plot', '--plot', type=bool, default=False, help='Plot the results')
     args = parser.parse_args()
 
-    if args.parameter_distribution == 'grid':
-        param_dist = np.linspace
-        print(
-            f'Sampling {args.num_parameters} parameters from grid distribution and validating them {args.cross_validation} times')
-    elif args.parameter_distribution == 'gaussian':
-        param_dist = np.random.normal
-        print(
-            f'Sampling {args.num_parameters} parameters from gaussian distribution and validating them {args.cross_validation} times')
+    # TODO passing something like num_cues also sweeps that parameter
+    sweepable_params = ['background_activity', 'i_e_weight', 'e_i_weight', 'e_e_max_weight', 'i_frequency',
+                        'cue_percentage', 'cue_length', 'attractor_size', 'network_size']
+
+    # -- detect which arguments were set explicitly by user
+    sentinel_ns = argparse.Namespace(**{key: None for key in vars(args)})
+    parser.parse_args(namespace=sentinel_ns)
+    explicit_params = argparse.Namespace(**{key: (value is not None) for key, value in vars(sentinel_ns).items()})
 
     num_cpus = pathos.multiprocessing.cpu_count()
     cv = args.cross_validation
-    param_grid = {
-        'background_activity': param_dist(args.background_activity[0], args.background_activity[1],
-                                          args.num_parameters) if len(
-            args.background_activity) > 1 else args.background_activity,
-        'i_e_weight': param_dist(args.i_e_weight[0], args.i_e_weight[1], args.num_parameters) if len(
-            args.i_e_weight) > 1 else args.i_e_weight,
-        'e_i_weight': param_dist(args.e_i_weight[0], args.e_i_weight[1], args.num_parameters) if len(
-            args.e_i_weight) > 1 else args.e_i_weight,
-        'e_e_max_weight': param_dist(args.e_e_max_weight[0], args.e_e_max_weight[1], args.num_parameters) if len(
-            args.e_e_max_weight) > 1 else args.e_e_max_weight,
-        'i_frequency': param_dist(args.i_frequency[0], args.i_frequency[1], args.num_parameters) if len(
-            args.i_frequency) > 1 else args.i_frequency,
-        'cue_percentage': param_dist(args.cue_percentage[0], args.cue_percentage[1], args.num_parameters) if len(
-            args.cue_percentage) > 1 else args.cue_percentage,
-        'cue_length': param_dist(args.cue_length[0], args.cue_length[1], args.num_parameters) if len(
-            args.cue_length) > 1 else args.cue_length,
-        'num_attractors': param_dist(args.num_attractors[0], args.num_attractors[1], args.num_parameters) if len(
-            args.num_attractors) > 1 else args.num_attractors,
-        'num_cues': param_dist(args.num_cues[0], args.num_cues[1], args.num_parameters) if len(
-            args.num_cues) > 1 else args.num_cues,
-        'attractor_size': param_dist(args.attractor_size[0], args.attractor_size[1], args.num_parameters) if len(
-            args.attractor_size) > 1 else args.attractor_size,
-        'network_size': param_dist(args.network_size[0], args.network_size[1], args.num_parameters) if len(
-            args.network_size) > 1 else args.network_size,
-    }
-    for v in param_grid.values():
-        v.sort()
-    sweeped_params = [(k, i) for i, (k, v) in enumerate(param_grid.items()) if len(v) > 1]
-    print(param_grid)
 
-    # # ------ TODO debug
-    # default_params.insert(4, 0.1)
-    # default_params[5] = 4
-    # default_params[6] = 5
-    # p, s = run_sim(default_params, plot=False, low_memory=True)
-    # 0 / 0
-    # # ----------------
+    if args.joint_distribution:
+        assert all([len(x) == 1 for x in vars(args).values() if isinstance(x, list)])
 
-    param_grid_pool = list(
-        itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(**param_grid)) for _ in range(cv)))
+        param_grid = {k: v for k, v in vars(args).items() if isinstance(v, list)}
+        param_names = vars(args).keys()
+        # -- generate samples
+        param_samples = np.random.multivariate_normal(np.ravel(list(param_grid.values())),
+                                                      np.eye(len(param_grid)) * np.square(args.sigma),
+                                                      args.num_samples).tolist()
+
+        param_list_dict = []
+        for p in param_samples:
+            param_list_dict.append({k: v for k, v in zip(param_names, p)})
+        # -- parameters that were not explicitly set are given their default value
+        for p in param_list_dict:
+            for k in p.keys():
+                if not vars(explicit_params)[k]:
+                    p[k] = vars(args)[k][0]
+
+        # -- generate cv samples
+        param_grid_pool = [x.copy() for x in param_list_dict for _ in range(cv)]
+
+        sweeped_params = [k for k in vars(explicit_params).keys() if
+                          vars(explicit_params)[k] and isinstance(vars(args)[k], list)]
+    else:
+        def float_sample(param):
+            params = vars(args)
+            if not vars(explicit_params)[param]:
+                return params[param]
+            elif len(params[param]) > 1:
+                return np.linspace(params[param][0], params[param][1], args.num_samples)
+            else:
+                return np.random.normal(params[param][0], args.sigma, args.num_samples)
+
+
+        def int_sample(param):
+            from scipy.stats import norm
+
+            params = vars(args)
+            if not vars(explicit_params)[param]:
+                return params[param]
+            elif len(params[param]) > 1:
+                assert args.num_samples == params[param][0] - params[param][1] + 1, \
+                    f'{param}: Number of samples must match grid size for integer parameters'
+                return np.linspace(params[param][0], params[param][1], args.num_samples)
+            else:
+                return norm.ppf(np.random.random(args.num_samples), loc=params[param][0], scale=args.sigma).astype(int)
+
+
+        def param_sample(param):
+            for a in parser._actions:
+                if a.dest == param:
+                    if a.type.__name__ == 'int':
+                        return int_sample(param)
+                    elif a.type.__name__ == 'float':
+                        return float_sample(param)
+
+
+        param_grid = {k: param_sample(k) for k, v in vars(args).items() if isinstance(v, list)}
+
+        for v in param_grid.values():
+            v.sort()
+        sweeped_params = [k for k, v in param_grid.items() if len(v) > 1]
+        print(param_grid)
+
+        param_grid_pool = list(
+            itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(param_grid)) for _ in range(cv)))
+
     estimate_search_time(partial(run_sim, low_memory=False, plot=True), param_grid_pool, cv, num_cpus=num_cpus)
+
     # hack to keep track of process ids
     for i, g in enumerate(param_grid_pool):
-        g.append(i % num_cpus)
+        g['worker_id'] = i % num_cpus
 
     chunked_param_grid = list(chunks(param_grid_pool, num_cpus))
 
@@ -372,34 +390,27 @@ if __name__ == '__main__':
     #
     # res_unsweeped_removed = results
 
-    sweeped_param_names = [p[0] for p in sweeped_params]
     score_param_names = ['f1_score', 'recall', 'accuracy', 'triggered', 'spontaneous']
 
     # create a dataframe with the raw results
-    df_results = pd.DataFrame(columns=list(param_grid.keys()) + score_param_names)
-    for r in results:
-        df_results.loc[len(df_results)] = r[0][:-1] + [*r[1]]
+    df_results = pd.DataFrame(results)
 
     # aggregate results by the sweeped parameters
-    if not sweeped_param_names:
+    if not sweeped_params:
         sweeped_param_names = list(df_results.columns[:-4])
     df_results_aggregated = df_results.copy()
-    df_results_aggregated = df_results_aggregated.groupby(sweeped_param_names).mean().reset_index()
-    df_results_aggregated.sort_values(by=sweeped_param_names, ascending=True, inplace=True)
+    df_results_aggregated = df_results_aggregated.groupby(sweeped_params).mean().reset_index()
+    df_results_aggregated.sort_values(by=sweeped_params, ascending=True, inplace=True)
     # df_results_aggregated['weighted_score'] = df_results_aggregated['score'] * df_results_aggregated['triggered']
     df_results_aggregated.to_csv(f'{tmp_folder}/results.csv')
 
     # print best results in order
     print(
-        df_results_aggregated[sweeped_param_names + score_param_names].sort_values(
-            by='recall',
-            ascending=False))
-    print(
-        df_results_aggregated[sweeped_param_names + score_param_names].sort_values(
-            by='accuracy',
+        df_results_aggregated[sweeped_params + score_param_names].sort_values(
+            by='f1_score',
             ascending=False))
 
-    df_results_aggregated['sweeped'] = df_results_aggregated[sweeped_param_names].apply(
+    df_results_aggregated['sweeped'] = df_results_aggregated[sweeped_params].apply(
         lambda x: ', '.join(x.apply('{:,.2f}'.format)), axis=1)
     # df_results_aggregated['sweeped'] = df_results_aggregated['sweeped'].astype(str)
 
@@ -408,27 +419,27 @@ if __name__ == '__main__':
 
     df_results_aggregated.plot(kind='bar', ax=axes[0, 0], x='sweeped', y='f1_score', legend=False)
     axes[0, 0].set_ylabel('F1 score')
-    axes[0, 0].set_xlabel(sweeped_param_names)
+    axes[0, 0].set_xlabel(sweeped_params)
     axes[0, 0].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
     axes[0, 0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     axes[0, 0].set_title('F1 score for sweeped parameters')
 
     df_results_aggregated.plot(kind='bar', ax=axes[1, 1], x='sweeped', y=['triggered', 'spontaneous'], color=['g', 'r'])
     axes[0, 1].set_ylabel('Reactivations')
-    axes[0, 1].set_xlabel(sweeped_param_names)
+    axes[0, 1].set_xlabel(sweeped_params)
     axes[0, 1].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
     axes[0, 1].set_title('Reactivations for sweeped parameters')
 
     df_results_aggregated.plot(kind='bar', ax=axes[1, 0], x='sweeped', y='recall', legend=False)
     axes[1, 0].set_ylabel('recall')
-    axes[1, 0].set_xlabel(sweeped_param_names)
+    axes[1, 0].set_xlabel(sweeped_params)
     axes[1, 0].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
     axes[1, 0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    axes[1, 0].set_title('recall for sweeped parameters')
+    axes[1, 0].set_title('Recall for sweeped parameters')
 
     df_results_aggregated.plot(kind='bar', ax=axes[0, 1], x='sweeped', y='accuracy', legend=False)
     axes[1, 1].set_ylabel('Accuracy')
-    axes[1, 1].set_xlabel(sweeped_param_names)
+    axes[1, 1].set_xlabel(sweeped_params)
     axes[1, 1].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
     axes[1, 1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
     axes[1, 1].set_title('Accuracy for sweeped parameters')
@@ -439,7 +450,7 @@ if __name__ == '__main__':
     fig.show()
 
     # Run model with the best parameters and plot output
-    best_params = df_results_aggregated.loc[df_results_aggregated.recall.idxmax()]
+    best_params = df_results_aggregated.loc[df_results_aggregated.f1_score.idxmax()]
     best_score = best_params['f1_score']
     best_params = best_params.drop(score_param_names).to_dict()
     print(f'Best parameters: {best_params}')
