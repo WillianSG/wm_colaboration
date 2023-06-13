@@ -1219,7 +1219,10 @@ class RecurrentCompetitiveNet:
             pss = contiguous_regions(y_smooth > threshold)
 
         # temporal filter removing PSs that are too close to each other
-        pss = pss[np.insert(np.diff(np.ravel(pss))[1::2] > 50, 0, True), :]
+        try:
+            pss = pss[np.insert(np.diff(np.ravel(pss))[1::2] > 50, 0, True), :]
+        except:
+            pass
 
         self.x_pss[attractor[0]], self.y_pss[attractor[0]], self.y_smooth_pss[attractor[0]], self.pss[
             attractor[0]] = x, y, y_smooth, pss
