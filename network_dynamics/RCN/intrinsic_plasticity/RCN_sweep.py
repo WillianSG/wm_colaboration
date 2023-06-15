@@ -274,6 +274,7 @@ if __name__ == '__main__':
     print(f'Best parameters: {best_params}')
     run_rcn(best_params, plot=True, low_memory=False)
 
+    # TODO save plot of best model
     while True:
         save = input('Save results? (y/n)')
         if save == 'y':

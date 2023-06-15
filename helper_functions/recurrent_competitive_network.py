@@ -40,7 +40,7 @@ def run_rcn(params, tmp_folder='.', plot=True, progressbar=True, seed_init=None,
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
     if (plot == True and low_memory == True):
-        raise ValueError('plotting is only possible with low_memory=True')
+        raise ValueError('plotting is only possible with low_memory=False')
 
     pid = os.getpid()
     # print(f'RUNNING worker {pid} with params: {params}')

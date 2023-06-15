@@ -52,6 +52,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-06-15_16-22-03/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>
