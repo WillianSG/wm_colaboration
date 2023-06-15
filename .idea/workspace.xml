@@ -7,7 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- renamed RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py to RCN_sweep.py&#10;- can now sweep joint distribution with Gaussian or combination of parameters with Gaussian or grid">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- RCN_sweep.py&#10;* joint gaussian and disjoint gaussian+grid sweeps working&#10;* adding default parameter set to sweeps for comparison">
+      <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" beforeDir="false" afterPath="$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" afterDir="false" />
@@ -115,7 +116,7 @@
       <recent name="$PROJECT_DIR$/plotting_functions" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.disjoint grid sweep">
+  <component name="RunManager" selected="Python.joint sweep">
     <configuration name="One attractor ba full experiment" type="PythonConfigurationType" factoryName="Python">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -452,6 +453,7 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
         <env name="OBJC_DISABLE_INITIALIZE_FORK_SAFETY" value="YES" />
       </envs>
       <option name="SDK_HOME" value="" />
@@ -461,7 +463,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" />
-      <option name="PARAMETERS" value="-num_cues 3 -sigma 3 -sweep e_i_weight background_activity -num_samples 2 -cross_validation 2" />
+      <option name="PARAMETERS" value="-num_cues 3 -background_activity 19 -sigma 3 -sweep e_i_weight background_activity -num_samples 2 -cross_validation 2" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -474,6 +476,7 @@
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
         <env name="OBJC_DISABLE_INITIALIZE_FORK_SAFETY" value="YES" />
       </envs>
       <option name="SDK_HOME" value="" />
@@ -483,7 +486,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" />
-      <option name="PARAMETERS" value="-num_cues 3 -e_i_weight 10 20 -background_activity 10 20 -sweep e_i_weight background_activity -num_samples 2 -cross_validation 2" />
+      <option name="PARAMETERS" value="-num_cues 3 -e_i_weight 5 20 -background_activity 5 20 -sweep e_i_weight background_activity -num_samples 2 -cross_validation 2" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -505,7 +508,7 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" />
-      <option name="PARAMETERS" value="-num_cues 3 -e_e_max_weight 10 -sweep background_activity e_e_max_weight -joint_distribution -sigma 3 -num_samples 2 -cross_validation 2" />
+      <option name="PARAMETERS" value="-e_e_max_weight 8 -sweep background_activity e_e_max_weight -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3" />
       <option name="SHOW_COMMAND_LINE" value="true" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -663,14 +666,14 @@
       <workItem from="1684936609224" duration="28751000" />
       <workItem from="1685458679093" duration="3804000" />
       <workItem from="1685522435360" duration="39994000" />
-      <workItem from="1686210219891" duration="49390000" />
-    </task>
-    <task id="LOCAL-00038" summary="- fixed bug where PSs for attractors &gt; A1 were not counted">
-      <created>1647864263104</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1647864263104</updated>
+      <workItem from="1686210219891" duration="49937000" />
+      <workItem from="1686661801963" duration="10000" />
+      <workItem from="1686662227949" duration="3026000" />
+      <workItem from="1686668164675" duration="513000" />
+      <workItem from="1686668812145" duration="2000" />
+      <workItem from="1686668823078" duration="1000" />
+      <workItem from="1686736405919" duration="1878000" />
+      <workItem from="1686816243605" duration="877000" />
     </task>
     <task id="LOCAL-00039" summary="- updated GS visualization to make it clear when a GS is given to one attractor&#10;- added weights to attractor plots&#10;- added support for multiple GS types together">
       <created>1648823566187</created>
@@ -1008,7 +1011,14 @@
       <option name="project" value="LOCAL" />
       <updated>1686586388535</updated>
     </task>
-    <option name="localTasksCounter" value="87" />
+    <task id="LOCAL-00087" summary="- RCN_sweep.py&#10;* joint gaussian and disjoint gaussian+grid sweeps working&#10;* adding default parameter set to sweeps for comparison">
+      <created>1686661690819</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1686661690819</updated>
+    </task>
+    <option name="localTasksCounter" value="88" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1050,7 +1060,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- conda install numpy &quot;libblas=*=*accelerate&quot; doubles numpy performance" />
     <MESSAGE value="- normalised short term plasticity to be equal to w_max" />
     <MESSAGE value="- fixed imports and figures not generating in RCN_intrinsic_adaptation_simulation.py" />
     <MESSAGE value="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
@@ -1075,7 +1084,8 @@
     <MESSAGE value="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py:&#10;* handling no sweeped parameters&#10;* added reactivation_time parameter&#10;- other.py: &#10;* removed find_ps() &#10;- recurrent_competitive_network.py: &#10;* added temporal filtering to discard PSs that are too close" />
     <MESSAGE value="- RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py:&#10;* calculating F1-score for sweep and using that to score models" />
     <MESSAGE value="- renamed RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py to RCN_sweep.py&#10;- can now sweep joint distribution with Gaussian or combination of parameters with Gaussian or grid" />
-    <option name="LAST_COMMIT_MESSAGE" value="- renamed RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py to RCN_sweep.py&#10;- can now sweep joint distribution with Gaussian or combination of parameters with Gaussian or grid" />
+    <MESSAGE value="- RCN_sweep.py&#10;* joint gaussian and disjoint gaussian+grid sweeps working&#10;* adding default parameter set to sweeps for comparison" />
+    <option name="LAST_COMMIT_MESSAGE" value="- RCN_sweep.py&#10;* joint gaussian and disjoint gaussian+grid sweeps working&#10;* adding default parameter set to sweeps for comparison" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1117,8 +1127,8 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/helper_functions/recurrent_competitive_network.py</url>
-          <line>1222</line>
-          <option name="timeStamp" value="206" />
+          <line>44</line>
+          <option name="timeStamp" value="85" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -1157,14 +1167,16 @@
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_test_inh.coverage" NAME="RCN_intrinsic_adaptation_test inh Coverage Results" MODIFIED="1652350790199" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$One_attractor_reactivation_full_experiment_BA_GS_sweep.coverage" NAME="One attractor reactivation full experiment BA GS sweep Coverage Results" MODIFIED="1647341862665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$numpy_test.coverage" NAME="numpy_test Coverage Results" MODIFIED="1676569342503" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/helper_functions" />
-    <SUITE FILE_PATH="coverage/wm_colaboration$disjoint_grid_sweep.coverage" NAME="disjoint grid sweep Coverage Results" MODIFIED="1686661130830" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$disjoint_grid_sweep.coverage" NAME="disjoint grid sweep Coverage Results" MODIFIED="1686664889088" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$Three_attractor_reactivation_fast.coverage" NAME="Three attractor reactivation fast Coverage Results" MODIFIED="1647272565998" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$e_e_maxw_sweep.coverage" NAME="e_e_maxw sweep Coverage Results" MODIFIED="1686240432804" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_item_reactivation_gs_attractors.coverage" NAME="One attractor reactivation full experiment Coverage Results" MODIFIED="1646939769841" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_noise_param_set.coverage" NAME="RCN_noise_param_set Coverage Results" MODIFIED="1686239406142" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.coverage" NAME="RCN_intrinsic_adaptation_simulation_parallel_multiprocessing Coverage Results" MODIFIED="1685983071966" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation.coverage" NAME="network_visualisation Coverage Results" MODIFIED="1644490029113" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$disjoint_gaussian_sweep.coverage" NAME="disjoint gaussian sweep Coverage Results" MODIFIED="1686664850510" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$RCN_sweep_periodic_fixed_GS.coverage" NAME="RCN_sweep_periodic_fixed_GS Coverage Results" MODIFIED="1649338503686" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN" />
+    <SUITE FILE_PATH="coverage/wm_colaboration$joint_sweep.coverage" NAME="joint sweep Coverage Results" MODIFIED="1686817065719" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity" />
     <SUITE FILE_PATH="coverage/wm_colaboration$attractor_viz_lite.coverage" NAME="attractor_viz_lite Coverage Results" MODIFIED="1644337682622" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />
     <SUITE FILE_PATH="coverage/wm_colaboration$gompertz_vs_linear.coverage" NAME="gompertz_vs_linear Coverage Results" MODIFIED="1654696855937" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/synapse_dynamics" />
     <SUITE FILE_PATH="coverage/wm_colaboration$network_visualisation_lite.coverage" NAME="network_visualisation_lite Coverage Results" MODIFIED="1644336752261" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/graph_analysis" />

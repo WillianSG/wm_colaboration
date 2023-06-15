@@ -29,10 +29,8 @@ from tqdm import TqdmWarning
 from tqdm.auto import tqdm
 
 from helper_functions.other import *
-from helper_functions.population_spikes import count_ps
-from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
 from plotting_functions.plot_thresholds import *
-from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
+from helper_functions.recurrent_competitive_network import run_rcn
 
 warnings.simplefilter("ignore", PicklingWarning)
 warnings.simplefilter("ignore", UnpicklingWarning)
@@ -46,6 +44,12 @@ def cleanup(exit_code=None, frame=None):
         shutil.rmtree(tmp_folder)
     except FileNotFoundError:
         pass
+
+
+def get_default(param):
+    for a in parser._actions:
+        if a.dest == param:
+            return a.default[0]
 
 
 def chunks(lst, n):
@@ -62,184 +66,6 @@ def product_dict_to_list(dic):
         out_list.append(dict(zip(dic.keys(), instance)))
 
     return out_list
-
-
-def run_sim(params, plot=True, progressbar=True, seed_init=None, low_memory=True):
-    warnings.filterwarnings("ignore", category=TqdmWarning)
-
-    if (plot == True and low_memory == True):
-        raise ValueError('plotting is only possible with low_memory=True')
-
-    pid = os.getpid()
-    # print(f'RUNNING worker {pid} with params: {params}')
-
-    ba = params['background_activity']
-    i_e_w = params['i_e_weight']
-    e_i_w = params['e_i_weight']
-    e_e_maxw = params['e_e_max_weight']
-    i_freq = params['i_frequency']
-    cue_percentage = params['cue_percentage']
-    cue_time = params['cue_length']
-    num_attractors = int(params['num_attractors'])
-    num_cues = int(params['num_cues'])
-    attractor_size = int(params['attractor_size'])
-    network_size = int(params['network_size'])
-    worker_id = params['worker_id'] if 'worker_id' in params else None
-
-    import sympy
-    a, s, n = sympy.symbols('a s n')
-    expr = a * (s + 16) <= n
-    if not expr.subs([(a, num_attractors), (s, attractor_size), (n, network_size)]):
-        print(
-            f'{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons.')
-        choice = input('1- Smaller attractors\n2- Fewer attractors\n3- Larger network\n')
-        if choice == '1':
-            asol = sympy.solveset(expr.subs([(a, num_attractors), (n, network_size)]), s, sympy.Integers)
-            attractor_size = asol.sup
-            # attractor_size = floor((network_size - num_attractors * 16) / num_attractors)
-            print(f'Optimal attractor size: {attractor_size}')
-        if choice == '2':
-            asol = sympy.solveset(expr.subs([(s, attractor_size), (n, network_size)]), a, sympy.Integers)
-            num_attractors = asol.sup
-            print(f'Optimal number of attractors: {num_attractors}')
-        if choice == '3':
-            asol = sympy.solveset(expr.subs([(a, num_attractors), (s, attractor_size)]), n, sympy.Integers)
-            network_size = asol.inf
-            print(f'Optimal network size: {network_size}')
-
-    rcn = RecurrentCompetitiveNet(
-        stim_size=attractor_size,
-        plasticity_rule='LR4',
-        parameter_set='2.2',
-        seed_init=seed_init,
-        low_memory=low_memory)
-
-    plastic_syn = False
-    plastic_ux = True
-    rcn.E_E_syn_matrix_snapshot = False
-    rcn.w_max = e_e_maxw * mV  # for param. 2.1: 10*mV
-    rcn.w_e_i = e_i_w * mV  # 3 mV default
-    rcn.w_i_e = i_e_w * mV  # 10 mV default
-    rcn.spont_rate = ba * Hz
-
-    # -- intrinsic plasticity setup (Vth_e_decr for naive / tau_Vth_e for calcium-based)
-    rcn.tau_Vth_e = 0.1 * second  # 0.1 s default
-    # rcn.Vth_e_init = -51.6 * mV           # -52 mV default
-    rcn.k = 4  # 2 default
-
-    rcn.net_init()
-
-    # -- synaptic augmentation setup
-    rcn.U = 0.2  # 0.2 default
-
-    rcn.set_stimulus_i(
-        stimulus='flat_to_I',
-        frequency=i_freq * Hz)  # default: 15 Hz
-
-    # --folder for simulation results
-    rcn.net_sim_data_path = make_timestamped_folder(os.path.join(tmp_folder, f'{pid}'))
-
-    # output .txt with simulation summary.
-    _f = os.path.join(rcn.net_sim_data_path, 'simulation_summary.txt')
-
-    attractors_list = []
-    for i in range(num_attractors):
-        if i * (rcn.stim_size_e + 16) + rcn.stim_size_e > len(rcn.E):
-            print(
-                f'{num_attractors} attractors of size {rcn.stim_size_e} cannot fit into a network of {len(rcn.E)} neurons.  Instantiating {i} attractors instead.')
-            num_attractors = i
-            break
-        stim_id = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=i * (64 + 16))
-        rcn.set_potentiated_synapses(stim_id)
-        attractors_list.append([f'A{i}', stim_id])
-
-    rcn.set_E_E_plastic(plastic=plastic_syn)
-    rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
-
-    # generate shuffled attractors
-    '''Attractor cueing order:
-        - Attractor name
-        - Neuron IDs belonging to attractor
-        - Length of triggered window
-        - Generic stimulus
-            - % of neurons targeted within attractor
-            - IDs of targeted neurons
-            - (start time of GS, end time of GS)'''
-    attractors_cueing_order = [copy.deepcopy(random.choice(attractors_list))]
-    for i in range(num_cues - 1):
-        atr_sel = copy.deepcopy(random.choice(attractors_list))
-        while attractors_cueing_order[i][0] == atr_sel[0]:
-            atr_sel = copy.deepcopy(random.choice(attractors_list))
-        attractors_cueing_order.append(atr_sel)
-
-    # generate random reactivation times in range
-    for a in attractors_cueing_order:
-        a.append(random.uniform(1, 5))
-
-    overall_sim_time = len(attractors_cueing_order) * cue_time + sum([a[2] for a in attractors_cueing_order])
-    pbar = tqdm(total=overall_sim_time, disable=not progressbar, unit='sim s', leave=True, position=worker_id,
-                desc=f'WORKER {worker_id}',
-                bar_format="{l_bar}{bar}|{n:.2f}/{total:.2f} [{elapsed}<{remaining},{rate_fmt}{postfix}]")
-    pbar.set_description(f'WORKER {worker_id} with params {params}')
-    time.sleep(0.1)
-    pbar.update(0)
-    for a in attractors_cueing_order:
-        gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
-        act_ids = rcn.generic_stimulus(
-            frequency=rcn.stim_freq_e,
-            stim_perc=gs[0],
-            subset=gs[1])
-        rcn.run_net(duration=cue_time)
-        rcn.generic_stimulus_off(act_ids)
-        # # wait for 2 seconds before cueing next attractor
-        rcn.run_net(duration=a[2])
-        a.append(gs)
-        pbar.update(cue_time + a[2])
-
-        # after each cue block dump the monitored values to a file and clear the memory
-        if low_memory:
-            rcn.dump_monitors_to_file()
-
-    rcn.load_monitors_from_file()
-
-    # -- calculate score
-    atr_ps_counts = count_ps(rcn=rcn, attractor_cueing_order=attractors_cueing_order)
-
-    trig, spont, accuracy, recall, f1_score = compute_ps_score(atr_ps_counts, attractors_cueing_order)
-
-    if plot:
-        title_addition = f'BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
-        filename_addition = f'_BA_{ba}_GS_{cue_percentage}_W_{i_e_w}_Hz_{i_freq}'
-
-        plot_x_u_spks_from_basin(
-            path=rcn.net_sim_data_path,
-            filename='x_u_spks_from_basin' + filename_addition,
-            title_addition=title_addition,
-            rcn=rcn,
-            attractor_cues=attractors_cueing_order,
-            pss_categorised=atr_ps_counts,
-            num_neurons=len(rcn.E),
-            show=plot)
-
-        # plot_thresholds(
-        #     path=rcn.net_sim_data_path,
-        #     file_name='thresholds' + filename_addition,
-        #     rcn=rcn,
-        #     attractors=attractors_list,
-        #     show=True)
-
-    # print(f'FINISHED worker {pid} triggered: {trig}, spontaneous: {spont}, score: {score}')
-    # print(atr_ps_counts)
-
-    # cleanup
-    shutil.rmtree(rcn.net_sim_data_path)
-    del rcn
-    pbar.close()
-
-    params.pop('worker_id', None)
-
-    return params | {'f1_score': f1_score, 'recall': recall, 'accuracy': accuracy, 'triggered': trig,
-                     'spontaneous': spont}
 
 
 if __name__ == '__main__':
@@ -307,7 +133,7 @@ if __name__ == '__main__':
             for k in p.keys():
                 if k not in args.sweep:
                     p[k] = vars(args)[k][0]
-        param_list_dict.append({k: v[0] for k, v in param_grid.items()})
+        param_list_dict.append({k: get_default(k) for k, v in param_grid.items()})
 
         print_dict = {k: [] for k in param_list_dict[0].keys()}
         for p in param_list_dict:
@@ -355,10 +181,12 @@ if __name__ == '__main__':
 
         param_grid_sweep = {k: param_sample(k) for k, v in vars(args).items()
                             if isinstance(v, list) and k in args.sweep}
+
         for k, v in param_grid_sweep.items():
-            param_grid_sweep[k] = np.append(param_grid_sweep[k], vars(args)[k][0])
+            param_grid_sweep[k] = np.append(param_grid_sweep[k], get_default(k))
         param_grid_default = {k: v for k, v in vars(args).items() if isinstance(v, list) and k not in args.sweep}
         param_grid = param_grid_sweep | param_grid_default
+        param_grid.pop('sweep')
 
         for v in param_grid.values():
             v.sort()
@@ -368,15 +196,15 @@ if __name__ == '__main__':
             itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(param_grid)) for _ in range(cv)))
 
     if args.estimate_time:
-        estimate_search_time(partial(run_sim, low_memory=False, plot=True), param_grid_pool, cv, num_cpus=num_cpus)
+        estimate_search_time(partial(run_rcn, low_memory=False, plot=True), param_grid_pool, cv, num_cpus=num_cpus)
 
     # hack to keep track of process ids
     for i, g in enumerate(param_grid_pool):
         g['worker_id'] = i % num_cpus
 
-    chunked_param_grid = list(chunks(param_grid_pool, num_cpus))
+    # chunked_param_grid = list(chunks(param_grid_pool, num_cpus))
 
-    results = tqdm_pathos.map(partial(run_sim, plot=False, progressbar=os.isatty(sys.stdout.fileno())), param_grid_pool,
+    results = tqdm_pathos.map(partial(run_rcn, plot=False, progressbar=os.isatty(sys.stdout.fileno())), param_grid_pool,
                               n_cpus=num_cpus)
 
     score_param_names = ['f1_score', 'recall', 'accuracy', 'triggered', 'spontaneous']
@@ -444,7 +272,7 @@ if __name__ == '__main__':
     best_score = best_params['f1_score']
     best_params = best_params.drop(score_param_names + ['sweeped']).to_dict()
     print(f'Best parameters: {best_params}')
-    run_sim(best_params, plot=True, low_memory=False)
+    run_rcn(best_params, plot=True, low_memory=False)
 
     while True:
         save = input('Save results? (y/n)')
