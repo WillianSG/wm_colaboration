@@ -197,7 +197,7 @@ def load_rule_parameters(
             thr_stop_h = 0.59
             thr_stop_l = 0.1
             U = 0.2
-            tau_d = 100 * ms  # x's
+            tau_d = 120 * ms  # x's
             tau_f = 500 * ms  # u's'
         elif parameter_set == '2.3':
             tau_xpre = 20 * ms

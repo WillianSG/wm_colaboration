@@ -35,12 +35,12 @@ class RecurrentCompetitiveNet:
 
         # ------ connections between attractors
         self.p_A2GO = 0.15
-        self.delay_A2GO = 0*ms
+        self.delay_A2GO = 2.0*second
 
         self.thr_GO_state = -50
 
         self.p_A2B = 0.15
-        self.delay_A2B = 0.7*second
+        self.delay_A2B = 0.6*second
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -142,17 +142,17 @@ class RecurrentCompetitiveNet:
         # ------ data (monitors) parameters
         self.rec_dt = 1 * ms
 
-        self.Input_to_E_mon_record = True
-        self.Input_to_I_mon_record = True
+        self.Input_to_E_mon_record = False
+        self.Input_to_I_mon_record = False
         self.E_mon_record = True
         self.I_mon_record = True
-        self.Input_E_rec_record = True
-        self.Input_I_rec_record = True
+        self.Input_E_rec_record = False
+        self.Input_I_rec_record = False
         self.E_rec_record = True
-        self.I_rec_record = True
-        self.E_E_rec_record = True
-        self.E_I_rec_record = True
-        self.I_E_rec_record = True
+        self.I_rec_record = False
+        self.E_E_rec_record = False
+        self.E_I_rec_record = False
+        self.I_E_rec_record = False
 
         self.Input_E_rec_attributes = ('w')
         self.Input_I_rec_attributes = ('w')
@@ -382,6 +382,7 @@ class RecurrentCompetitiveNet:
             method=self.int_meth_syn,
             name='E_E')
 
+        # f'''w_ef = w*int(Vth_e_post < {self.thr_GO_state}*mV)*int(Vth_e_pre < {self.thr_GO_state}*mV), Vepsp += w_ef'''
         self.A_2_B_synapses = Synapses(     # synapses between different attractors
             source=self.E,
             target=self.E,
@@ -392,11 +393,13 @@ class RecurrentCompetitiveNet:
             delay=self.delay_A2B,
             name='A_2_B_synapses')
         
-        self.A_2_GO_synapses = Synapses(     # synapses between different attractors
+        self.A_2_GO_synapses = Synapses(
             source=self.E,
             target=self.E,
-            model='w : volt',
-            on_pre=f'Vepsp += w*int(Vth_e_pre < {self.thr_GO_state}*mV)',
+            model='''w_ef : volt
+            w : volt''',
+            on_pre=f'''w_ef = w
+            Vepsp += w_ef''',
             delay=self.delay_A2GO,
             name='A_2_GO_synapses')
 

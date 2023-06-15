@@ -50,7 +50,7 @@ prefs.codegen.target = 'numpy'
 
 # === local functions =================================================================
 
-def export_attractors_data(rcn, attractor_A, attractor_B, attractor_C):
+def export_attractors_data(rcn, attractor_A, attractor_B, attractor_C, A_t_window, B_t_window):
 
     # Excitatory spike trains.
 
@@ -92,7 +92,11 @@ def export_attractors_data(rcn, attractor_A, attractor_B, attractor_C):
             'attractor_A': attractor_A,
             'attractor_B': attractor_B,
             'attractor_C': attractor_C,
-            'thr_GO_state': args.thr_GO_state
+            'thr_GO_state': args.thr_GO_state,
+            'delay_A2GO': rcn.delay_A2GO,
+            'A_t_window': A_t_window,
+            'B_t_window': B_t_window,
+            'delay_A2B': rcn.delay_A2B
         }, f)
 
 
@@ -110,18 +114,18 @@ parser.add_argument('--inh_rate', type=float, default=20, help='Inhibition mean 
 
 parser.add_argument('--attractors', type=int, default=3, choices=[1, 2, 3], help='Number of attractors')
 
-parser.add_argument('--A1_setting', type=float, default=(0.0, 2.0, 0.2), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
+parser.add_argument('--A1_setting', type=float, default=(0.0, 0.7, 0.1), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
 
-parser.add_argument('--A2_setting', type=float, default=(2.0, 4.0, 0.7), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
+parser.add_argument('--A2_setting', type=float, default=(0.9, 1.7, 0.6), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
 
 parser.add_argument('--cue_A1', type=int, default=1, help='')
 parser.add_argument('--cue_A2', type=int, default=1, help='')
 
-parser.add_argument('--w_acpt', type=float, default=4.4, help='Weight in synapses to GO state (mV).')
-parser.add_argument('--w_trans', type=float, default=6, help='Attractor state transition weight (mV).')
-parser.add_argument('--thr_GO_state', type=float, default=-49, help='Threshold for Vth gated synapses (mV).')
+parser.add_argument('--w_acpt', type=float, default=1.55,help='Weight in synapses to GO state (mV).')
+parser.add_argument('--w_trans', type=float, default=14, help='Attractor state transition weight (mV).')
+parser.add_argument('--thr_GO_state', type=float, default=-49.85, help='Threshold for Vth gated synapses (mV).')
 
-parser.add_argument('--free_dyn_t', type=float, default=0.5, help='Time of simulation where network evolves freely (s).')
+parser.add_argument('--free_dyn_t', type=float, default=2.5, help='Time of simulation where network evolves freely (s).')
 
 args = parser.parse_args()
 
@@ -131,9 +135,10 @@ args = parser.parse_args()
 if print_report:
 
     print('''\n
-    In this experiment the conditional activation of two attractors is simulated.
-    If attractor A2 is cued after attractor A1 has been active, both A1 and A2 become concurrently active.
-    On the other hand, if A1 is cued after A2 has been active, then only A1 stays active.''')
+        In this experiment the acceptance of paired attractors is tested.
+    If attractor A2 (red) is cued after attractor A1 (blue) has been active, attractor
+    A3 (green, "acceptance attractor") becomes active. On the other hand, if A1 is 
+    cued after A2 has been active, then only A1 stays active (pairing not accepted).''')
 
 timestamp_folder = make_timestamped_folder('../../../results/RCN_state_transition/')
 
@@ -282,4 +287,10 @@ run_sim(args.A1_setting, args.A2_setting)
 
 # 2 ------ plotting simulation data ------
 
-export_attractors_data(rcn = rcn, attractor_A = A1, attractor_B = A2, attractor_C = A3)
+export_attractors_data(
+    rcn = rcn, 
+    attractor_A = A1, 
+    attractor_B = A2, 
+    attractor_C = A3, 
+    A_t_window = args.A1_setting, 
+    B_t_window = args.A2_setting)

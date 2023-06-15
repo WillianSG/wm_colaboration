@@ -48,6 +48,17 @@ for neuron_id in data['attractor_C']:
 ax1.set_xlabel('Time (s)')
 ax1.set_ylabel('Neuron ID')
 
+A1_twindow = data['A_t_window']
+A2_twindow = data['B_t_window']
+
+ax1.axvline(
+    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
+    color = 'r', lw = 1.0, ls = '--')
+
+ax1.axvline(
+    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
+    color = 'b', lw = 1.25, ls = '--')
+
 A1_mu = np.mean(data['A1_Vth']*1000, axis = 0)
 A1_sg = np.std(data['A1_Vth']*1000, axis = 0)
 
@@ -74,6 +85,14 @@ for i in range(len(data['E_w_interattra'])):
 
     ax3.plot(data['sim_t'], data['E_w_interattra'][i]*1000, lw = 0.25)
 
+ax2.axvline(
+    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
+    color = 'r', lw = 1.0, ls = '--')
+
+ax2.axvline(
+    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
+    color = 'b', lw = 1.25, ls = '--')
+
 ax3.set_ylabel('w_ef [mv]')
 
 i_spks = []
@@ -98,5 +117,10 @@ ax4.bar( input_e_t_hist_edgs[ :-1 ], input_e_t_hist_fr,
     linewidth=1.0 )
 
 ax4.set_ylabel('inh pop [Hz]')
+
+ax1.set_xlim(0, round(data['sim_t'][-1]))
+ax2.set_xlim(0, round(data['sim_t'][-1]))
+ax3.set_xlim(0, round(data['sim_t'][-1]))
+ax4.set_xlim(0, round(data['sim_t'][-1]))
 
 plt.show()
