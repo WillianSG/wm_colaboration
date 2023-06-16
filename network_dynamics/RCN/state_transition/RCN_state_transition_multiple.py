@@ -12,7 +12,7 @@
 import os
 from progress.bar import Bar
 
-_reps = 25
+_reps = 10
 
 bar = Bar(
 	'A1 -> A2 -> GO (1)', 

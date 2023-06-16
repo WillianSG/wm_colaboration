@@ -114,18 +114,18 @@ parser.add_argument('--inh_rate', type=float, default=20, help='Inhibition mean 
 
 parser.add_argument('--attractors', type=int, default=3, choices=[1, 2, 3], help='Number of attractors')
 
-parser.add_argument('--A1_setting', type=float, default=(0.0, 0.8, 0.2), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.') 
+parser.add_argument('--A1_setting', type=float, default=(0.0, 1.0, 0.2), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.') 
 
-parser.add_argument('--A2_setting', type=float, default=(0.8, 1.6, 0.6), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
+parser.add_argument('--A2_setting', type=float, default=(1.0, 2.0, 0.6), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
 
 parser.add_argument('--cue_A1', type=int, default=1, help='')
 parser.add_argument('--cue_A2', type=int, default=1, help='')
 
-parser.add_argument('--w_acpt', type=float, default=2.75,help='Weight in synapses to GO state (mV).')
+parser.add_argument('--w_acpt', type=float, default=2.65,help='Weight in synapses to GO state (mV).')
 parser.add_argument('--w_trans', type=float, default=14, help='Attractor state transition weight (mV).')
 parser.add_argument('--thr_GO_state', type=float, default=-48.5, help='Threshold for Vth gated synapses (mV).')
 
-parser.add_argument('--free_dyn_t', type=float, default=1.5, help='Time of simulation where network evolves freely (s).')
+parser.add_argument('--free_dyn_t', type=float, default=3.0, help='Time of simulation where network evolves freely (s).')
 
 args = parser.parse_args()
 

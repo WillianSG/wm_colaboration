@@ -11,126 +11,134 @@ if sys.platform in ['linux', 'win32']:
 
     from firing_rate_histograms import firing_rate_histograms
 
-folder = str(sys.argv[1])
-# folders = os.listdir('D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition')
+# folder = str(sys.argv[1])
+folders = os.listdir('D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition')
 
-# for folder in folders:
+for folder in folders:
 
-filename = '//RCN_attractors_data.pickle'
-filepath = f'D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition//{folder}//BA_15_GS_100_W_10_I_20'
+    filename = '//RCN_attractors_data.pickle'
+    filepath = f'D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition//{folder}//BA_15_GS_100_W_10_I_20'
 
-with open(filepath + filename, 'rb') as file:
-    data = pickle.load(file)
+    with open(filepath + filename, 'rb') as file:
+        data = pickle.load(file)
 
-E_spk_trains = data['E_spk_trains']
+    E_spk_trains = data['E_spk_trains']
 
-# Create a figure and axis for the raster plot
-fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, sharex=True, figsize=(10,7.5))
+    # Create a figure and axis for the raster plot
+    # fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, sharex=True, figsize=(10, 7.5))
+    fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(10, 3.75))
 
-# Plot the spikes for neurons in list A in blue
-for neuron_id in data['attractor_A']:
-    if neuron_id in E_spk_trains.keys():
-        spikes = E_spk_trains[neuron_id]
-        y = np.ones_like(spikes) * neuron_id
-        ax1.scatter(spikes, y, c='b', s=5, label = 'A1')
+    # Plot the spikes for neurons in list A in blue
+    for neuron_id in data['attractor_A']:
+        if neuron_id in E_spk_trains.keys():
+            spikes = E_spk_trains[neuron_id]
+            y = np.ones_like(spikes) * neuron_id
+            ax1.scatter(spikes, y, c='b', s=5, label = 'A1')
 
-# Plot the spikes for neurons in list B in red
-for neuron_id in data['attractor_B']:
-    if neuron_id in E_spk_trains.keys():
-        spikes = E_spk_trains[neuron_id]
-        y = np.ones_like(spikes) * neuron_id
-        ax1.scatter(spikes, y, c='r', s=5, label = 'A2')
+    # Plot the spikes for neurons in list B in red
+    for neuron_id in data['attractor_B']:
+        if neuron_id in E_spk_trains.keys():
+            spikes = E_spk_trains[neuron_id]
+            y = np.ones_like(spikes) * neuron_id
+            ax1.scatter(spikes, y, c='r', s=5, label = 'A2')
 
-# Plot the spikes for neurons in list C in red
-for neuron_id in data['attractor_C']:
-    if neuron_id in E_spk_trains.keys():
-        spikes = E_spk_trains[neuron_id]
-        y = np.ones_like(spikes) * neuron_id
-        ax1.scatter(spikes, y, c='g', s=5, label = 'A3')
+    # Plot the spikes for neurons in list C in red
+    for neuron_id in data['attractor_C']:
+        if neuron_id in E_spk_trains.keys():
+            spikes = E_spk_trains[neuron_id]
+            y = np.ones_like(spikes) * neuron_id
+            ax1.scatter(spikes, y, c='g', s=5, label = 'A3')
 
-# Set the axis labels and title
-ax1.set_xlabel('Time (s)')
-ax1.set_ylabel('Neuron ID')
+    # Set the axis labels and title
+    # ax1.set_xlabel('Time (s)')
+    ax1.set_ylabel('Neuron ID')
+    ax1.set_yticks(np.arange(0, 300, 50))
+    ax1.set_ylim(0, 250)
 
-A1_twindow = data['A_t_window']
-A2_twindow = data['B_t_window']
+    A1_twindow = data['A_t_window']
+    A2_twindow = data['B_t_window']
 
-ax1.axvline(
-    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
-    color = 'r', lw = 1.0, ls = '-')
+    ax1.axvline(
+        x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
+        color = 'r', lw = 1.0, ls = '-')
 
-ax1.axvline(
-    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
-    color = 'b', lw = 1.25, ls = '-')
+    ax1.axvline(
+        x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
+        color = 'b', lw = 1.0, ls = '-')
 
-A1_mu = np.mean(data['A1_Vth']*1000, axis = 0)
-A1_sg = np.std(data['A1_Vth']*1000, axis = 0)
+    A1_mu = np.mean(data['A1_Vth']*1000, axis = 0)
+    A1_sg = np.std(data['A1_Vth']*1000, axis = 0)
 
-A2_mu = np.mean(data['A2_Vth']*1000, axis = 0)
-A2_sg = np.std(data['A2_Vth']*1000, axis = 0)
+    A2_mu = np.mean(data['A2_Vth']*1000, axis = 0)
+    A2_sg = np.std(data['A2_Vth']*1000, axis = 0)
 
-A3_mu = np.mean(data['A3_Vth']*1000, axis = 0)
-A3_sg = np.std(data['A3_Vth']*1000, axis = 0)
+    A3_mu = np.mean(data['A3_Vth']*1000, axis = 0)
+    A3_sg = np.std(data['A3_Vth']*1000, axis = 0)
 
-ax2.plot(data['sim_t'], A1_mu, color = 'b', label = 'A1')
-ax2.plot(data['sim_t'], np.max(data['A1_Vth']*1000, axis = 0), color = 'b', ls = '--', lw = 0.8)
-ax2.plot(data['sim_t'], np.min(data['A1_Vth']*1000, axis = 0), color = 'b', ls = '--', lw = 0.8)
-ax2.fill_between(data['sim_t'], A1_mu-A1_sg, A1_mu+A1_sg, alpha=0.2, color='b')
-                 
-ax2.plot(data['sim_t'], np.mean(data['A2_Vth']*1000, axis = 0), color = 'r', label = 'A2')
-ax2.plot(data['sim_t'], np.max(data['A2_Vth']*1000, axis = 0), color = 'r', ls = '--', lw = 0.8)
-ax2.plot(data['sim_t'], np.min(data['A2_Vth']*1000, axis = 0), color = 'r', ls = '--', lw = 0.8)
-ax2.fill_between(data['sim_t'], A2_mu-A2_sg, A2_mu+A2_sg, alpha=0.2, color='r')
+    ax2.plot(data['sim_t'], A1_mu, color = 'b', label = 'A1')
+    ax2.plot(data['sim_t'], np.max(data['A1_Vth']*1000, axis = 0), color = 'b', ls = '--', lw = 0.8)
+    ax2.plot(data['sim_t'], np.min(data['A1_Vth']*1000, axis = 0), color = 'b', ls = '--', lw = 0.8)
+    ax2.fill_between(data['sim_t'], A1_mu-A1_sg, A1_mu+A1_sg, alpha=0.2, color='b')
+                     
+    ax2.plot(data['sim_t'], np.mean(data['A2_Vth']*1000, axis = 0), color = 'r', label = 'A2')
+    ax2.plot(data['sim_t'], np.max(data['A2_Vth']*1000, axis = 0), color = 'r', ls = '--', lw = 0.8)
+    ax2.plot(data['sim_t'], np.min(data['A2_Vth']*1000, axis = 0), color = 'r', ls = '--', lw = 0.8)
+    ax2.fill_between(data['sim_t'], A2_mu-A2_sg, A2_mu+A2_sg, alpha=0.2, color='r')
 
-ax2.plot(data['sim_t'], np.mean(data['A3_Vth']*1000, axis = 0), color = 'g', label = 'A3')
-ax2.plot(data['sim_t'], np.max(data['A3_Vth']*1000, axis = 0), color = 'g', ls = '--', lw = 0.8)
-ax2.plot(data['sim_t'], np.min(data['A3_Vth']*1000, axis = 0), color = 'g', ls = '--', lw = 0.8)
-ax2.fill_between(data['sim_t'], A3_mu-A3_sg, A3_mu+A3_sg, alpha=0.2, color='g')
+    ax2.plot(data['sim_t'], np.mean(data['A3_Vth']*1000, axis = 0), color = 'g', label = 'A3')
+    ax2.plot(data['sim_t'], np.max(data['A3_Vth']*1000, axis = 0), color = 'g', ls = '--', lw = 0.8)
+    ax2.plot(data['sim_t'], np.min(data['A3_Vth']*1000, axis = 0), color = 'g', ls = '--', lw = 0.8)
+    ax2.fill_between(data['sim_t'], A3_mu-A3_sg, A3_mu+A3_sg, alpha=0.2, color='g')
 
-ax2.set_ylabel('Vth [mv]')
+    ax2.set_ylabel(r'$V_{th}$ [mv]')
 
-ax2.hlines(y=data['thr_GO_state'], xmin=data['sim_t'][0], xmax=data['sim_t'][-1], colors='k', linestyles='dashed', lw = 0.5)
+    ax2.hlines(y=data['thr_GO_state'], xmin=data['sim_t'][0], xmax=data['sim_t'][-1], colors='k', linestyles='dashed', lw = 0.5)
 
-for i in range(len(data['E_w_interattra'])):
+    ax2.axvline(
+        x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
+        color = 'r', lw = 1.0, ls = '-')
 
-    ax3.plot(data['sim_t'], data['E_w_interattra'][i]*1000, lw = 0.25)
+    ax2.axvline(
+        x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
+        color = 'b', lw = 1.0, ls = '-')
 
-ax2.axvline(
-    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
-    color = 'r', lw = 1.0, ls = '-')
+    ax2.set_ylim(-55, -40)
+    ax2.set_xlabel('time [s]')
 
-ax2.axvline(
-    x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
-    color = 'b', lw = 1.25, ls = '-')
+    # for i in range(len(data['E_w_interattra'])):
 
-ax3.set_ylabel('w_ef [mv]')
+    #     ax3.plot(data['sim_t'], data['E_w_interattra'][i]*1000, lw = 0.25)
 
-i_spks = []
-for i_id, i_spkt in data['I_spk_trains'].items():
+    # ax3.set_ylabel('w_ef [mv]')
 
-    i_spks += list(i_spkt/second)
+    # i_spks = []
+    # for i_id, i_spkt in data['I_spk_trains'].items():
 
-[input_e_t_hist_count,
-    input_e_t_hist_edgs,
-    input_e_t_hist_bin_widths,
-    input_e_t_hist_fr ] = firing_rate_histograms(
-        tpoints=np.array(i_spks)*second,
-        inds=list(range(0, 64)),
-        bin_width=100*ms,
-        N_pop=len(list(range(0, 64))),
-        flag_hist='time_resolved' )
+    #     i_spks += list(i_spkt/second)
 
-ax4.bar( input_e_t_hist_edgs[ :-1 ], input_e_t_hist_fr,
-    input_e_t_hist_bin_widths,
-    edgecolor='k',
-    color='purple',
-    linewidth=1.0 )
+    # [input_e_t_hist_count,
+    #     input_e_t_hist_edgs,
+    #     input_e_t_hist_bin_widths,
+    #     input_e_t_hist_fr ] = firing_rate_histograms(
+    #         tpoints=np.array(i_spks)*second,
+    #         inds=list(range(0, 64)),
+    #         bin_width=100*ms,
+    #         N_pop=len(list(range(0, 64))),
+    #         flag_hist='time_resolved' )
 
-ax4.set_ylabel('inh pop [Hz]')
+    # ax4.bar( input_e_t_hist_edgs[ :-1 ], input_e_t_hist_fr,
+    #     input_e_t_hist_bin_widths,
+    #     edgecolor='k',
+    #     color='purple',
+    #     linewidth=1.0 )
 
-ax1.set_xlim(0, round(data['sim_t'][-1]))
-ax2.set_xlim(0, round(data['sim_t'][-1]))
-ax3.set_xlim(0, round(data['sim_t'][-1]))
-ax4.set_xlim(0, round(data['sim_t'][-1]))
+    # ax4.set_ylabel('inh pop [Hz]')
 
-plt.show()
+    ax1.set_xlim(0, round(data['sim_t'][-1]))
+    ax2.set_xlim(0, round(data['sim_t'][-1]))
+    # ax3.set_xlim(0, round(data['sim_t'][-1]))
+    # ax4.set_xlim(0, round(data['sim_t'][-1]))
+
+    plt.tight_layout()
+
+    plt.show()
