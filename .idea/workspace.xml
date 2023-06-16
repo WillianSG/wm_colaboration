@@ -8,7 +8,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- Small QoL updates to RCN_bayesian_search.py">
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_bayesian_search.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_bayesian_search.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,7 +114,7 @@
       <recent name="$PROJECT_DIR$/plotting_functions" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.RCN_bayesian_search">
+  <component name="RunManager" selected="Python.joint sweep best">
     <configuration name="One attractor ba full experiment" type="PythonConfigurationType" factoryName="Python">
       <module name="wm_colaboration" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -714,14 +715,7 @@
       <workItem from="1686668812145" duration="2000" />
       <workItem from="1686668823078" duration="1000" />
       <workItem from="1686736405919" duration="1878000" />
-      <workItem from="1686816243605" duration="22562000" />
-    </task>
-    <task id="LOCAL-00042" summary="- fixed bug with GSs not being periodic">
-      <created>1649331144119</created>
-      <option name="number" value="00042" />
-      <option name="presentableId" value="LOCAL-00042" />
-      <option name="project" value="LOCAL" />
-      <updated>1649331144119</updated>
+      <workItem from="1686816243605" duration="22997000" />
     </task>
     <task id="LOCAL-00043" summary="- updated GS visualisation to show exactly which neurons are being targeted">
       <created>1649339543483</created>
@@ -1059,7 +1053,14 @@
       <option name="project" value="LOCAL" />
       <updated>1686920957574</updated>
     </task>
-    <option name="localTasksCounter" value="91" />
+    <task id="LOCAL-00091" summary="- Small QoL updates to RCN_bayesian_search.py">
+      <created>1686921058699</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1686921058699</updated>
+    </task>
+    <option name="localTasksCounter" value="92" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

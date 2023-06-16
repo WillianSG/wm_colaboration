@@ -215,6 +215,8 @@ if __name__ == '__main__':
     # aggregate results by the sweeped parameters
     if not args.sweep:
         sweeped_param_names = list(df_results.columns[:-5])
+    else:
+        sweeped_param_names = args.sweep
     df_results_aggregated = df_results.copy()
     df_results_aggregated = df_results_aggregated.groupby(sweeped_param_names).mean().reset_index()
     df_results_aggregated.sort_values(by=args.sweep, ascending=True, inplace=True)
@@ -274,7 +276,7 @@ if __name__ == '__main__':
     print(f'Best parameters: {best_params}')
     run_rcn(best_params, plot=True, low_memory=False)
 
-    # TODO save plot of best model
+    # TODO also save plot of best model
     while True:
         save = input('Save results? (y/n)')
         if save == 'y':
