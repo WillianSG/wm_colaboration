@@ -7,7 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- Small QoL updates to RCN_bayesian_search.py">
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- Bugfix in RCN_sweep.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" afterDir="false" />
     </list>
@@ -715,14 +715,7 @@
       <workItem from="1686668812145" duration="2000" />
       <workItem from="1686668823078" duration="1000" />
       <workItem from="1686736405919" duration="1878000" />
-      <workItem from="1686816243605" duration="22997000" />
-    </task>
-    <task id="LOCAL-00043" summary="- updated GS visualisation to show exactly which neurons are being targeted">
-      <created>1649339543483</created>
-      <option name="number" value="00043" />
-      <option name="presentableId" value="LOCAL-00043" />
-      <option name="project" value="LOCAL" />
-      <updated>1649339543483</updated>
+      <workItem from="1686816243605" duration="23707000" />
     </task>
     <task id="LOCAL-00044" summary="- push to switch PC">
       <created>1650617590721</created>
@@ -1060,7 +1053,14 @@
       <option name="project" value="LOCAL" />
       <updated>1686921058699</updated>
     </task>
-    <option name="localTasksCounter" value="92" />
+    <task id="LOCAL-00092" summary="- Bugfix in RCN_sweep.py">
+      <created>1686921633800</created>
+      <option name="number" value="00092" />
+      <option name="presentableId" value="LOCAL-00092" />
+      <option name="project" value="LOCAL" />
+      <updated>1686921633800</updated>
+    </task>
+    <option name="localTasksCounter" value="93" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1102,7 +1102,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- added simple plot to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- added logic to cleanup parameter results RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- generalised attractor number in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
@@ -1127,7 +1126,8 @@
     <MESSAGE value="- moved run_sim() to recurrent_competitive_network.py in order to be able to re-use it in future scripts" />
     <MESSAGE value="- Added RCN_bayesian_search.py to run a parallel Bayesian search for optimal RCN parameters" />
     <MESSAGE value="- Small QoL updates to RCN_bayesian_search.py" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Small QoL updates to RCN_bayesian_search.py" />
+    <MESSAGE value="- Bugfix in RCN_sweep.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Bugfix in RCN_sweep.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

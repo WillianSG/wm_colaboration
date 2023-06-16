@@ -299,3 +299,4 @@ if __name__ == '__main__':
             break
         else:
             print("Please enter 'y' or 'n'")
+# TODO ordering of parameters in sweeped plot is missing so it makes sense to calculate performance metric and visualise that or calculate robusnes to one parameter at a time
