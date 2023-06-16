@@ -7,11 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- Added RCN_bayesian_search.py to run a parallel Bayesian search for optimal RCN parameters">
-      <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="76692ba1-b4fb-4a04-bc11-3ba0a7f5caf1" name="Changes" comment="- Small QoL updates to RCN_bayesian_search.py">
       <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_bayesian_search.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_bayesian_search.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" beforeDir="false" afterPath="$PROJECT_DIR$/network_dynamics/RCN/intrinsic_plasticity/RCN_sweep.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -717,14 +714,7 @@
       <workItem from="1686668812145" duration="2000" />
       <workItem from="1686668823078" duration="1000" />
       <workItem from="1686736405919" duration="1878000" />
-      <workItem from="1686816243605" duration="22407000" />
-    </task>
-    <task id="LOCAL-00041" summary="- corrected weight in plot being scaled wrong">
-      <created>1649325854009</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1649325854009</updated>
+      <workItem from="1686816243605" duration="22562000" />
     </task>
     <task id="LOCAL-00042" summary="- fixed bug with GSs not being periodic">
       <created>1649331144119</created>
@@ -1062,7 +1052,14 @@
       <option name="project" value="LOCAL" />
       <updated>1686839748905</updated>
     </task>
-    <option name="localTasksCounter" value="90" />
+    <task id="LOCAL-00090" summary="- Small QoL updates to RCN_bayesian_search.py">
+      <created>1686920957574</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1686920957574</updated>
+    </task>
+    <option name="localTasksCounter" value="91" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -1104,7 +1101,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="RELOAD_CONTEXT" value="false" />
-    <MESSAGE value="- parallel grid search implemented in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- catching zero-division in RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- added simple plot to RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
     <MESSAGE value="- added logic to cleanup parameter results RCN_intrinsic_adaptation_simulation_parallel_multiprocessing.py" />
@@ -1129,7 +1125,8 @@
     <MESSAGE value="- RCN_sweep.py&#10;* joint gaussian and disjoint gaussian+grid sweeps working&#10;* adding default parameter set to sweeps for comparison" />
     <MESSAGE value="- moved run_sim() to recurrent_competitive_network.py in order to be able to re-use it in future scripts" />
     <MESSAGE value="- Added RCN_bayesian_search.py to run a parallel Bayesian search for optimal RCN parameters" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Added RCN_bayesian_search.py to run a parallel Bayesian search for optimal RCN parameters" />
+    <MESSAGE value="- Small QoL updates to RCN_bayesian_search.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Small QoL updates to RCN_bayesian_search.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

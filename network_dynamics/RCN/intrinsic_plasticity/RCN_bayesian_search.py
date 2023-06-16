@@ -151,13 +151,15 @@ try:
     mongod.terminate()
     print('Terminated mongod')
 except:
-    print('Could not terminate mongod')
+    print('Could not terminate mongod gracefully')
+    subprocess.run(['killall', 'mongod'])
 for i, w in enumerate(workers):
     try:
         w.terminate()
         print(f'Terminated hyperopt-mongo-worker {i}')
     except:
-        print(f'Could not terminate hyperopt-mongo-worker {i}')
+        print(f'Could not terminate hyperopt-mongo-worker {i} gracefully')
+        subprocess.run(['killall', 'hyperopt-mongo-worker'])
 
 best_params = results_df.iloc[0]['params']
 best_score = results_df.iloc[0]['score']
