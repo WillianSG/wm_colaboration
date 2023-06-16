@@ -52,7 +52,28 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/SAVED_(2023-06-16_12-20-31)/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/SAVED_(2023-06-16_14-13-37)/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-06-15_16-22-03/results.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="/network_dynamics/RCN/intrinsic_plasticity/tmp_2023-06-15_16-47-44/results.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

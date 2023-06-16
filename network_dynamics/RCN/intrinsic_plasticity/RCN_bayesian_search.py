@@ -14,6 +14,7 @@ import seaborn as sns
 import subprocess
 
 from hyperopt import hp, tpe, fmin, Trials, STATUS_OK
+from hyperopt.pyll.base import Apply
 from hyperopt.pyll.stochastic import sample
 
 from helper_functions.recurrent_competitive_network import run_rcn
@@ -65,9 +66,14 @@ print('VENV:', venv_path)
 
 db_folder = f'{tmp_folder}/db'
 os.mkdir(db_folder)
-mongod = subprocess.Popen(['mongod', '--dbpath', db_folder, '--port', '1234'], stdout=subprocess.DEVNULL)
+try:
+    mongod = subprocess.Popen(['mongod', '--dbpath', db_folder, '--port', '1234'], stdout=subprocess.DEVNULL)
+    print(f'Started mongod --dbpath {db_folder} --port 1234')
+except:
+    sys.exit('Could not start mongod')
 
 
+# TODO the RCN is creating multiple subdirs in the tmp folder
 def objective(x):
     r = run_rcn(x, tmp_folder=tmp_folder, plot=False, progressbar=False)
 
@@ -107,18 +113,19 @@ for i in range(os.cpu_count()):
         my_env = os.environ.copy()
         my_env["PYTHONPATH"] = "{}:{}".format(os.environ["PATH"], python_path)
         workers.append(subprocess.Popen(
-            [f'{venv_path}/bin/hyperopt-mongo-worker', '--mongo', 'localhost:1234/db', '--poll-interval', '0.1'],
+            [f'{venv_path}/bin/hyperopt-mongo-worker', '--mongo', 'localhost:1234/db', '--workdir', tmp_folder],
             env=my_env,
             stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            cwd=tmp_folder
+            stderr=subprocess.DEVNULL
         ))
+        print(
+            f'{i} Started hyperopt-mongo-worker {venv_path}/bin/hyperopt-mongo-worker --mongo localhost:1234/db --workdir {tmp_folder}')
     except:
-        sys.exit('Could not start hyperopt-mongo-worker')
+        sys.exit(f'Could not start hyperopt-mongo-worker {i}')
 
 # Run the tpe algorithm
 tpe_best = fmin(fn=objective, space=space, algo=tpe_algo, trials=trials,
-                max_evals=10, rstate=np.random.default_rng(50),
+                max_evals=2000, rstate=np.random.default_rng(50),
                 max_queue_len=os.cpu_count())
 results = trials.results
 results = [r.to_dict() for r in results]
@@ -140,17 +147,35 @@ results_df = results_df.sort_values('score', ascending=False)
 results_df.to_csv(f'{tmp_folder}/results.csv')
 
 # -- Kill all subprocesses
-mongod.terminate()
-for w in workers:
-    w.terminate()
+try:
+    mongod.terminate()
+    print('Terminated mongod')
+except:
+    print('Could not terminate mongod')
+for i, w in enumerate(workers):
+    try:
+        w.terminate()
+        print(f'Terminated hyperopt-mongo-worker {i}')
+    except:
+        print(f'Could not terminate hyperopt-mongo-worker {i}')
 
-# Run model with the best parameters and plot output
 best_params = results_df.iloc[0]['params']
 best_score = results_df.iloc[0]['score']
 print(f'Best parameters: {best_params}')
+best_string = '-sweep'
+for k, v in best_params.items():
+    if isinstance(space[k], Apply):
+        best_string += f' {k}'
+for k, v in best_params.items():
+    if isinstance(space[k], Apply):
+        best_string += f' -{k} {v}'
+best_string += ' -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3'
+print('Use this string as command-line parameters for RCN_sweep.py:', best_string)
+
+# Run model with the best parameters and plot output
 run_rcn(best_params, plot=True, low_memory=False)
 
-# TODO save plot of best model
+# TODO also save plot of best model
 while True:
     save = input('Save results? (y/n)')
     if save == 'y':

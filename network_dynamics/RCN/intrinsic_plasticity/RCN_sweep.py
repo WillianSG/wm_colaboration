@@ -216,7 +216,7 @@ if __name__ == '__main__':
     if not args.sweep:
         sweeped_param_names = list(df_results.columns[:-5])
     df_results_aggregated = df_results.copy()
-    df_results_aggregated = df_results_aggregated.groupby(args.sweep).mean().reset_index()
+    df_results_aggregated = df_results_aggregated.groupby(sweeped_param_names).mean().reset_index()
     df_results_aggregated.sort_values(by=args.sweep, ascending=True, inplace=True)
     df_results_aggregated.to_csv(f'{tmp_folder}/results.csv')
 
