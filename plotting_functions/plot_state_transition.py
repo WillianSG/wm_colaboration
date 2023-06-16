@@ -12,6 +12,10 @@ if sys.platform in ['linux', 'win32']:
     from firing_rate_histograms import firing_rate_histograms
 
 folder = str(sys.argv[1])
+# folders = os.listdir('D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition')
+
+# for folder in folders:
+
 filename = '//RCN_attractors_data.pickle'
 filepath = f'D://A_PhD//GitHub//wm_colaboration//results//RCN_state_transition//{folder}//BA_15_GS_100_W_10_I_20'
 
@@ -53,11 +57,11 @@ A2_twindow = data['B_t_window']
 
 ax1.axvline(
     x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
-    color = 'r', lw = 1.0, ls = '--')
+    color = 'r', lw = 1.0, ls = '-')
 
 ax1.axvline(
     x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
-    color = 'b', lw = 1.25, ls = '--')
+    color = 'b', lw = 1.25, ls = '-')
 
 A1_mu = np.mean(data['A1_Vth']*1000, axis = 0)
 A1_sg = np.std(data['A1_Vth']*1000, axis = 0)
@@ -69,12 +73,18 @@ A3_mu = np.mean(data['A3_Vth']*1000, axis = 0)
 A3_sg = np.std(data['A3_Vth']*1000, axis = 0)
 
 ax2.plot(data['sim_t'], A1_mu, color = 'b', label = 'A1')
+ax2.plot(data['sim_t'], np.max(data['A1_Vth']*1000, axis = 0), color = 'b', ls = '--', lw = 0.8)
+ax2.plot(data['sim_t'], np.min(data['A1_Vth']*1000, axis = 0), color = 'b', ls = '--', lw = 0.8)
 ax2.fill_between(data['sim_t'], A1_mu-A1_sg, A1_mu+A1_sg, alpha=0.2, color='b')
                  
 ax2.plot(data['sim_t'], np.mean(data['A2_Vth']*1000, axis = 0), color = 'r', label = 'A2')
+ax2.plot(data['sim_t'], np.max(data['A2_Vth']*1000, axis = 0), color = 'r', ls = '--', lw = 0.8)
+ax2.plot(data['sim_t'], np.min(data['A2_Vth']*1000, axis = 0), color = 'r', ls = '--', lw = 0.8)
 ax2.fill_between(data['sim_t'], A2_mu-A2_sg, A2_mu+A2_sg, alpha=0.2, color='r')
 
 ax2.plot(data['sim_t'], np.mean(data['A3_Vth']*1000, axis = 0), color = 'g', label = 'A3')
+ax2.plot(data['sim_t'], np.max(data['A3_Vth']*1000, axis = 0), color = 'g', ls = '--', lw = 0.8)
+ax2.plot(data['sim_t'], np.min(data['A3_Vth']*1000, axis = 0), color = 'g', ls = '--', lw = 0.8)
 ax2.fill_between(data['sim_t'], A3_mu-A3_sg, A3_mu+A3_sg, alpha=0.2, color='g')
 
 ax2.set_ylabel('Vth [mv]')
@@ -87,11 +97,11 @@ for i in range(len(data['E_w_interattra'])):
 
 ax2.axvline(
     x = A2_twindow[0] + A1_twindow[2] + data['delay_A2GO']/second,
-    color = 'r', lw = 1.0, ls = '--')
+    color = 'r', lw = 1.0, ls = '-')
 
 ax2.axvline(
     x = A2_twindow[0] + A1_twindow[2] + data['delay_A2B']/second + data['delay_A2GO']/second,
-    color = 'b', lw = 1.25, ls = '--')
+    color = 'b', lw = 1.25, ls = '-')
 
 ax3.set_ylabel('w_ef [mv]')
 

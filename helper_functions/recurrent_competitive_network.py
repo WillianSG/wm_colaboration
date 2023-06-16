@@ -80,7 +80,7 @@ class RecurrentCompetitiveNet:
         self.N_e = 256  # num. of neurons
         self.Vr_e = -65 * mV  # resting potential
         self.Vrst_e = -65 * mV  # reset potential
-        self.Vth_e_init = -45 * mV  # initial threshold voltage
+        self.Vth_e_init = -42.5 * mV  # initial threshold voltage
         self.Vth_e_decr = 5 * mV  # post-spike threshold voltage increase
         self.tau_Vth_e = 20 * ms  # time constant of threshold decay
         self.taum_e = 20 * ms  # membrane time constant
@@ -191,7 +191,7 @@ class RecurrentCompetitiveNet:
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
             du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = (Vth_e_init - (0.002 * (3 * exp(-exp(3.4 - 12.48 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
+            dVth_e/dt = (Vth_e_init - (0.004 * (3 * exp(-exp(3.4 - 9.5 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
             ''',
                                Vr_e=self.Vr_e,
                                taum_e=self.taum_e,
