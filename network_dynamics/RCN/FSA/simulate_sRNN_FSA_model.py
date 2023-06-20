@@ -48,6 +48,26 @@ else:
 
 prefs.codegen.target = 'numpy'
 
+# === parsing arguments =================================================================
+
+_input_sequence = ['I', 'x', 'y', 'z', 'u']
+
+parser = argparse.ArgumentParser(description='RNN_sFSA')
+
+parser.add_argument('--ba_rate', type=float, default=15, help='Background mean rate (Hz).')
+
+parser.add_argument('--gs_percent', type=float, default=100, help='Percentage of stimulated neurons in attractor.')
+
+parser.add_argument('--W_ie', type=float, default=7, help='I-to-E inhibition weight.')
+
+parser.add_argument('--inh_rate', type=float, default=20, help='Inhibition mean rate (Hz).')
+
+parser.add_argument('--w_acpt', type=float, default=2.725,help='Weight in synapses to GO state (mV).')
+parser.add_argument('--w_trans', type=float, default=22, help='Attractor state transition weight (mV).')
+parser.add_argument('--thr_GO_state', type=float, default=-48.5, help='Threshold for Vth gated synapses (mV).')
+
+args = parser.parse_args()
+
 # === local functions =================================================================
 
 def set_sFSA(rcn, args, stimulus_size = 64):
@@ -80,9 +100,9 @@ def set_sFSA(rcn, args, stimulus_size = 64):
     # _S = input('> states (comma separated): ').split(', ')
     # _I = input('> inputs (comma separated): ').split(', ')
 
-    _S = ['I', 'II']
-    _I = ['x', 'y']
-    _T = ['(I, x)->II', '(II, y)->I']
+    _S = ['I', 'II', 'III']
+    _I = ['x', 'y', 'z', 'u']
+    _T = ['(I, x)->II', '(II, y)->I', '(I, z)->III', '(III, u)->II']
 
     # _ = input(f'> transition (type \'end\' to stop): ')
 
@@ -120,11 +140,11 @@ def set_sFSA(rcn, args, stimulus_size = 64):
 
         _aux += 1
 
-    if print_report:
+    # if print_report:
 
-        for key, val in sFSA_state_dictionary.items():
+    #     for key, val in sFSA_state_dictionary.items():
 
-            print(key, val)
+    #         print(key, val)
 
     # --- initializing network ---
 
@@ -133,6 +153,9 @@ def set_sFSA(rcn, args, stimulus_size = 64):
 
     rcn.stim_size_e = sFSA_state_dictionary['N_i']
     rcn.stim_size_i = sFSA_state_dictionary['N_i']
+
+    rcn.N_e = sFSA_state_dictionary['N_e']
+    rcn.N_i = sFSA_state_dictionary['N_i']
 
     rcn.net_init()
 
@@ -154,14 +177,24 @@ def set_sFSA(rcn, args, stimulus_size = 64):
 
                 rcn.set_potentiated_synapses(neur_IDs)
 
-                print(f'set {token}: {neur_IDs}')
+                if print_report:
+
+                    print(f'set {token}')
 
 
     # --- setting state transitions ---
 
+    if print_report:
+
+        print('\nConfiguring state transitions...\n')
+
     for t_id, t in sFSA_state_dictionary['T'].items():
 
         set_state_transition(t, rcn, sFSA_state_dictionary)
+
+        if print_report:
+
+            print(f'transition {t_id}: {t}')
 
     return sFSA_state_dictionary
 
@@ -221,7 +254,7 @@ def feed_input_sequece(sequence, rcn, sFSA):
 
             # free network activity
 
-            rcn.run_net(duration = 0.8)
+            rcn.run_net(duration = 0.4)
 
         else:
 
@@ -235,9 +268,9 @@ def feed_input_sequece(sequence, rcn, sFSA):
 
             # free network activity
 
-            rcn.run_net(duration = 6.4)
+            rcn.run_net(duration = 3.4)
 
-    rcn.run_net(duration = 3.0)
+    # rcn.run_net(duration = 1.0)
 
     return _input_tokens_twin
 
@@ -268,44 +301,14 @@ def export_attractors_data(rcn, sFSA, _input_sequence, _input_tokens_twin = []):
         }, f)
 
 
-# === parsing arguments =================================================================
-
-parser = argparse.ArgumentParser(description='RCN_item_reactivation_gs_attractors')
-
-parser.add_argument('--ba_rate', type=float, default=15, help='Background mean rate (Hz).')
-
-parser.add_argument('--gs_percent', type=float, default=100, help='Percentage of stimulated neurons in attractor.')
-
-parser.add_argument('--W_ie', type=float, default=10, help='I-to-E inhibition weight.')
-
-parser.add_argument('--inh_rate', type=float, default=20, help='Inhibition mean rate (Hz).')
-
-parser.add_argument('--attractors', type=int, default=3, choices=[1, 2, 3], help='Number of attractors')
-
-parser.add_argument('--A1_setting', type=float, default=(0.0, 1.0, 0.2), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.') 
-
-parser.add_argument('--A2_setting', type=float, default=(1.0, 2.0, 0.6), nargs='+', help='Attractor sim. setting (A, B, C), with A = start, B = end, C = cue time.')
-
-parser.add_argument('--cue_A1', type=int, default=1, help='')
-parser.add_argument('--cue_A2', type=int, default=1, help='')
-
-parser.add_argument('--w_acpt', type=float, default=2.45,help='Weight in synapses to GO state (mV).')
-parser.add_argument('--w_trans', type=float, default=16.25, help='Attractor state transition weight (mV).')
-parser.add_argument('--thr_GO_state', type=float, default=-48.5, help='Threshold for Vth gated synapses (mV).')
-
-parser.add_argument('--free_dyn_t', type=float, default=5.0, help='Time of simulation where network evolves freely (s).')
-
-args = parser.parse_args()
-
-
 # === simulation parameters =============================================================
 
 if print_report:
 
     print('''\n
         This script instanciate and simulates our spiking Finite-State Automata (sFSA)
-    You\'ll be asked to input a list S of states, a list I of input symbols and a set of
-    state transitions in the form form (x, i)->y with x, i in S.''')
+    You\'ll be asked to input a list S of states, a list I of input symbols and a list T
+    of transitions in the form (x, i)->y with x, y in S and i in I.''')
 
 timestamp_folder = make_timestamped_folder('../../../results/RCN_FSA/')
 
@@ -321,8 +324,6 @@ rcn = RecurrentCompetitiveNet(
     parameter_set = parameter_set)
 
 sFSA = set_sFSA(rcn, args)
-
-_input_sequence = ['I', 'x', 'y', 'x']
 
 _input_tokens_twin = feed_input_sequece(_input_sequence, rcn, sFSA)
 

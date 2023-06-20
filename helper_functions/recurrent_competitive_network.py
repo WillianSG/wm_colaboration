@@ -35,7 +35,7 @@ class RecurrentCompetitiveNet:
 
         # ------ connections between attractors
         self.p_A2GO = 0.15
-        self.delay_A2GO = 3.0*second
+        self.delay_A2GO = 2.0*second
 
         self.thr_GO_state = -50
 
