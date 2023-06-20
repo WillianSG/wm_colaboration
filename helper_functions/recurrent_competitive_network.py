@@ -35,12 +35,12 @@ class RecurrentCompetitiveNet:
 
         # ------ connections between attractors
         self.p_A2GO = 0.15
-        self.delay_A2GO = 2.0*second
+        self.delay_A2GO = 3.0*second
 
         self.thr_GO_state = -50
 
         self.p_A2B = 0.15
-        self.delay_A2B = 0.6*second
+        self.delay_A2B = 0.59*second
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -62,14 +62,14 @@ class RecurrentCompetitiveNet:
         # self.stimulus_pulse_duration = self.t_run - 1 * second
         self.stimulus_pulse_clock_dt = 0.1 * ms
 
-        self.stim_size_e = 64
-        self.stim_size_i = 64
-
         # ------ neurons parameters
         self.neuron_type = 'LIF'
 
         self.N_input_e = 256  # num. of input neurons for E
         self.N_input_i = 64  # num. of input neurons for I
+
+        self.stim_size_e = 64
+        self.stim_size_i = 64
 
         # excitatory population
 
@@ -77,12 +77,12 @@ class RecurrentCompetitiveNet:
         self.stim_freq_i = 3900 * Hz
         self.spont_rate = 10 * Hz
 
-        self.N_e = 256  # num. of neurons
+        self.N_e = self.N_input_e  # num. of neurons
         self.Vr_e = -65 * mV  # resting potential
         self.Vrst_e = -65 * mV  # reset potential
         self.Vth_e_init = -42.5 * mV  # initial threshold voltage
         self.Vth_e_decr = 5 * mV  # post-spike threshold voltage increase
-        self.tau_Vth_e = 20 * ms  # time constant of threshold decay
+        self.tau_Vth_e = 16.5 * ms  # time constant of threshold decay
         self.taum_e = 20 * ms  # membrane time constant
         self.tref_e = 2 * ms  # refractory period
         self.tau_epsp_e = 3.5 * ms  # time constant of EPSP
@@ -92,7 +92,7 @@ class RecurrentCompetitiveNet:
 
         # inhibitory population
 
-        self.N_i = 64  # num. of neurons
+        self.N_i = self.N_input_i  # num. of neurons
         self.Vr_i = -60 * mV  # resting voltage
         self.Vrst_i = -60 * mV  # reset potential
         self.Vth_i = -40 * mV  # threshold voltage
@@ -145,10 +145,10 @@ class RecurrentCompetitiveNet:
         self.Input_to_E_mon_record = False
         self.Input_to_I_mon_record = False
         self.E_mon_record = True
-        self.I_mon_record = True
+        self.I_mon_record = False
         self.Input_E_rec_record = False
         self.Input_I_rec_record = False
-        self.E_rec_record = True
+        self.E_rec_record = False
         self.I_rec_record = False
         self.E_E_rec_record = False
         self.E_I_rec_record = False

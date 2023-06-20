@@ -121,11 +121,11 @@ parser.add_argument('--A2_setting', type=float, default=(1.0, 2.0, 0.6), nargs='
 parser.add_argument('--cue_A1', type=int, default=1, help='')
 parser.add_argument('--cue_A2', type=int, default=1, help='')
 
-parser.add_argument('--w_acpt', type=float, default=2.65,help='Weight in synapses to GO state (mV).')
-parser.add_argument('--w_trans', type=float, default=14, help='Attractor state transition weight (mV).')
+parser.add_argument('--w_acpt', type=float, default=2.45,help='Weight in synapses to GO state (mV).')
+parser.add_argument('--w_trans', type=float, default=16.25, help='Attractor state transition weight (mV).')
 parser.add_argument('--thr_GO_state', type=float, default=-48.5, help='Threshold for Vth gated synapses (mV).')
 
-parser.add_argument('--free_dyn_t', type=float, default=3.0, help='Time of simulation where network evolves freely (s).')
+parser.add_argument('--free_dyn_t', type=float, default=5.0, help='Time of simulation where network evolves freely (s).')
 
 args = parser.parse_args()
 

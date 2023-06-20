@@ -12,25 +12,17 @@
 import os
 from progress.bar import Bar
 
-_reps = 10
+_reps = 50
 
 bar = Bar(
-	'A1 -> A2 -> GO (1)', 
-	max = _reps)
+	'state transition', 
+	max = _reps*2)
 
 for i in range(_reps):
 
 	os.system('py RCN_state_transition.py')
-	
+
 	bar.next()
-
-bar.finish()
-
-bar = Bar(
-	'A1 -> A2 -> GO (2)', 
-	max = _reps)
-
-for i in range(_reps):
 
 	os.system('py RCN_state_transition.py --cue_A1 0')
 	
