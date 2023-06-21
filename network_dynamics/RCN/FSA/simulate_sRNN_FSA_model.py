@@ -48,6 +48,16 @@ else:
 
 prefs.codegen.target = 'numpy'
 
+def gaussian_search(args):
+
+    sigma = 3.0
+
+    args.ba_rate = np.round(np.random.normal(args.ba_rate, sigma, 1)[0], 3)
+    args.W_ie = np.round(np.random.normal(args.W_ie, sigma, 1)[0], 3)
+    inh_rate = np.round(np.random.normal(args.inh_rate, sigma, 1)[0], 3)
+    w_acpt = np.round(np.random.normal(args.w_acpt, sigma, 1)[0], 3)
+    w_trans = np.round(np.random.normal(args.w_trans, sigma, 1)[0], 3)
+
 # === parsing arguments =================================================================
 
 _input_sequence = ['I', 'x', 'y', 'z', 'u']
@@ -55,20 +65,29 @@ _input_sequence = ['I', 'x', 'y', 'z', 'u']
 parser = argparse.ArgumentParser(description='RNN_sFSA')
 
 parser.add_argument('--ba_rate', type=float, default=15, help='Background mean rate (Hz).')
-
 parser.add_argument('--gs_percent', type=float, default=100, help='Percentage of stimulated neurons in attractor.')
-
 parser.add_argument('--W_ie', type=float, default=7, help='I-to-E inhibition weight.')
-
 parser.add_argument('--inh_rate', type=float, default=20, help='Inhibition mean rate (Hz).')
-
 parser.add_argument('--w_acpt', type=float, default=2.725,help='Weight in synapses to GO state (mV).')
 parser.add_argument('--w_trans', type=float, default=22, help='Attractor state transition weight (mV).')
 parser.add_argument('--thr_GO_state', type=float, default=-48.5, help='Threshold for Vth gated synapses (mV).')
+parser.add_argument('--gauss_search', type=int, default=0, help='Gaussian search of parameters.')
 
 args = parser.parse_args()
 
+if args.gauss_search:
+
+    gaussian_search(args)
+
 # === local functions =================================================================
+
+def save_config(args, path):
+
+    with open(os.path.join(path, 'parameters.txt'), "w") as file:
+        for arg in vars(args):
+            arg_value = getattr(args, arg)
+            if arg_value is not None:
+                file.write(f"\n{arg}: {arg_value}\n")
 
 def set_sFSA(rcn, args, stimulus_size = 64):
 
@@ -213,6 +232,12 @@ def set_state_transition(transition, rcn, sFSA):
 
 def feed_input_sequece(sequence, rcn, sFSA):
 
+    _t0 = 0.2
+    _t1 = 0.4
+    _t2 = 0.6
+    _t3 = 3.4
+    _t4 = 1.0
+
     _input_tokens_twin = []
 
     def find_stimulus_ids(pattern, sFSA):
@@ -244,7 +269,7 @@ def feed_input_sequece(sequence, rcn, sFSA):
 
         if a == 0:
 
-            rcn.run_net(duration = 0.2)
+            rcn.run_net(duration = _t0)
 
             rcn.generic_stimulus_off(act_ids)
 
@@ -254,11 +279,11 @@ def feed_input_sequece(sequence, rcn, sFSA):
 
             # free network activity
 
-            rcn.run_net(duration = 0.4)
+            rcn.run_net(duration = _t1)
 
         else:
 
-            rcn.run_net(duration = 0.6)
+            rcn.run_net(duration = _t2)
 
             if _class == 'I':
 
@@ -268,14 +293,14 @@ def feed_input_sequece(sequence, rcn, sFSA):
 
             # free network activity
 
-            rcn.run_net(duration = 3.4)
+            rcn.run_net(duration = _t3)
 
-    # rcn.run_net(duration = 1.0)
+    rcn.run_net(duration = _t4)
 
-    return _input_tokens_twin
+    return _input_tokens_twin, [_t0, _t1, _t2, _t3, _t4]
 
 
-def export_attractors_data(rcn, sFSA, _input_sequence, _input_tokens_twin = []):
+def export_attractors_data(rcn, sFSA, _input_sequence, _input_tokens_twin = [], stimulation_twin = []):
 
     # Excitatory spike trains.
 
@@ -297,7 +322,8 @@ def export_attractors_data(rcn, sFSA, _input_sequence, _input_tokens_twin = []):
             'sim_t': sim_t,
             'sFSA': sFSA,
             'i_tokens_twindows': _input_tokens_twin,
-            'input_sequence': _input_sequence
+            'input_sequence': _input_sequence,
+            'stimulation_time_windows': stimulation_twin
         }, f)
 
 
@@ -325,13 +351,14 @@ rcn = RecurrentCompetitiveNet(
 
 sFSA = set_sFSA(rcn, args)
 
-_input_tokens_twin = feed_input_sequece(_input_sequence, rcn, sFSA)
-
-# --folder for simulation results
 save_dir = os.path.join(os.path.join(timestamp_folder, f'BA_{args.ba_rate}_GS_{args.gs_percent}_W_{args.W_ie}_I_{args.inh_rate}'))
 os.mkdir(save_dir)
 rcn.net_sim_data_path = save_dir
 
+save_config(args, rcn.net_sim_data_path)
+
+_input_tokens_twin, stimulation_twin = feed_input_sequece(_input_sequence, rcn, sFSA)
+
 # 2 ------ plotting simulation data ------
 
-export_attractors_data(rcn, sFSA, _input_sequence, _input_tokens_twin)
+export_attractors_data(rcn, sFSA, _input_sequence, _input_tokens_twin, stimulation_twin)
