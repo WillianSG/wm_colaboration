@@ -54,13 +54,13 @@ def gaussian_search(args):
 
     args.ba_rate = np.round(np.random.normal(args.ba_rate, sigma, 1)[0], 3)
     args.W_ie = np.round(np.random.normal(args.W_ie, sigma, 1)[0], 3)
-    inh_rate = np.round(np.random.normal(args.inh_rate, sigma, 1)[0], 3)
-    w_acpt = np.round(np.random.normal(args.w_acpt, sigma, 1)[0], 3)
-    w_trans = np.round(np.random.normal(args.w_trans, sigma, 1)[0], 3)
+    args.inh_rate = np.round(np.random.normal(args.inh_rate, sigma, 1)[0], 3)
+    args.w_acpt = np.round(np.random.normal(args.w_acpt, sigma, 1)[0], 3)
+    args.w_trans = np.round(np.random.normal(args.w_trans, sigma, 1)[0], 3)
 
 # === parsing arguments =================================================================
 
-_input_sequence = ['I', 'x', 'y', 'z', 'u']
+_input_sequence = ['I']
 
 parser = argparse.ArgumentParser(description='RNN_sFSA')
 
