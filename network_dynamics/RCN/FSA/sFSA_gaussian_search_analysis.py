@@ -25,33 +25,45 @@ for file in files:
         'rb') as f:(
         pickle_dat) = pickle.load(f)
 
-    _CR = 0
+    _use_data = True
 
     for param, val in pickle_dat.items():
 
-        if param == 'CR':
+        if val < 0:
 
-            _CR = val
+            _use_data = False
 
             break
 
-    for param, val in pickle_dat.items():
+    if _use_data:
 
-        if param != 'CR':
+        _CR = 0
 
-            if param not in post_proc_optimal:
-                post_proc_optimal[param] = []
+        for param, val in pickle_dat.items():
 
-            if param not in post_proc_subopt:
-                post_proc_subopt[param] = []
+            if param == 'CR':
 
-            if _CR == 1:
+                _CR = val
 
-                post_proc_optimal[param].append(val)
+                break
 
-            else:
+        for param, val in pickle_dat.items():
 
-                post_proc_subopt[param].append(val)
+            if param != 'CR':
+
+                if param not in post_proc_optimal:
+                    post_proc_optimal[param] = []
+
+                if param not in post_proc_subopt:
+                    post_proc_subopt[param] = []
+
+                if _CR == 1:
+
+                    post_proc_optimal[param].append(val)
+
+                else:
+
+                    post_proc_subopt[param].append(val)
 
 for key, val in post_proc_optimal.items():
 

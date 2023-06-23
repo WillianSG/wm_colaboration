@@ -36,7 +36,8 @@ def extract_parameters(file_path, output_path, CR):
     parameters = {}  # Dictionary to store the extracted parameters
 
     # Specify the lines to extract from the file
-    lines_to_extract = ['ba_rate', 'W_ie', 'inh_rate', 'w_acpt', 'w_trans']
+    # lines_to_extract = ['ba_rate', 'W_ie', 'inh_rate', 'w_acpt', 'w_trans']
+    lines_to_extract = ['inh_rate', 'w_acpt', 'w_trans']
 
     with open(file_path, 'r') as file:
         for line in file:
@@ -53,13 +54,13 @@ def extract_parameters(file_path, output_path, CR):
 
     parameters['CR'] = CR
 
-    # Export the dictionary to a pickle file
-    with open(output_path, 'wb') as pickle_file:
-        pickle.dump(parameters, pickle_file)
+    with open(output_path, 'wb') as f:
+            pickle.dump(
+                parameters, f)
 
 
-if not os.path.exists('D://A_PhD//GitHub//wm_colaboration//results//sFSA_gauss_search'):
-        os.makedirs('D://A_PhD//GitHub//wm_colaboration//results//sFSA_gauss_search')
+if not os.path.exists('D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search'):
+        os.makedirs('D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search')
 
 for folder in folders:
 
@@ -74,53 +75,6 @@ for folder in folders:
             data = pickle.load(file)
 
         E_spk_trains = data['E_spk_trains']
-
-        # # Create a figure and axis for the raster plot
-        # fig, ax1 = plt.subplots(nrows=1, sharex=True, figsize=(15, 5))
-
-        # states_colors = ['mediumslateblue', 'magenta', 'darkorange', 'purple', 'b', 'r', 'g', 'darkred']
-
-        # _aux_c = 0
-
-        # for _s, neur_IDs in data['sFSA']['S'].items():
-
-        #     for neuron_id in neur_IDs:
-        #         if neuron_id in E_spk_trains.keys():
-        #             spikes = E_spk_trains[neuron_id]
-        #             y = np.ones_like(spikes) * neuron_id
-        #             ax1.scatter(spikes, y, c=states_colors[_aux_c], s=1.0, marker = '|')
-
-        #     _aux_c += 1
-
-        # for _s, neur_IDs in data['sFSA']['I'].items():
-
-        #     for neuron_id in neur_IDs:
-        #         if neuron_id in E_spk_trains.keys():
-        #             spikes = E_spk_trains[neuron_id]
-        #             y = np.ones_like(spikes) * neuron_id
-        #             ax1.scatter(spikes, y, c='k', s=1.0, marker = '|')
-
-        # if len(data['i_tokens_twindows']) != 0:
-
-        #     _inp_seq = [i for i in data['input_sequence'] if i not in [__s for __s, neur_IDs in data['sFSA']['S'].items()]]
-
-        #     for i in range(len(_inp_seq)):
-
-        #         _s = _inp_seq[i]
-
-        #         _x = np.round((data['i_tokens_twindows'][i][1]+data['i_tokens_twindows'][i][0])/2, 1)
-        #         _y = np.round((data['sFSA']['I'][_s][-1]+data['sFSA']['I'][_s][0])/2, 1)
-
-        #         _size = 30
-
-        #         ax1.text(
-        #             _x, 
-        #             _y-15, 
-        #             _s,
-        #             color = 'w',
-        #             fontsize = _size)
-
-        # =======================================================================================================================
 
         def check_is_active(mean_rate):
 
@@ -153,12 +107,6 @@ for folder in folders:
 
             _state_sequence_list_twin.append((_nextstate_start, _nextstate_end))
 
-            # ax1.axvline(x=_currentstate_start, color='k', linestyle='--')
-            # ax1.axvline(x=_currentstate_end, color='k', linestyle='--')
-
-            # ax1.axvline(x=_nextstate_start, color='g', linestyle='-', alpha = 0.25)
-            # ax1.axvline(x=_nextstate_end, color='g', linestyle='-', alpha = 0.25)
-
         for i in range(len(_state_sequence_list)):
 
             _states_correct_sequence[_state_sequence_list_twin[i]] = _state_sequence_list[i].split('_')[0]
@@ -184,9 +132,6 @@ for folder in folders:
 
                     _twindow_activestate[t_win].append(_s)
 
-
-                # print(_s, t_win, t_win_rate)
-
         _correct = 0
         _wrong = 0
 
@@ -200,30 +145,12 @@ for folder in folders:
 
                 _wrong += 1
 
-            # print(key, val)
-
 
         _CR = _correct/(_correct+_wrong)
 
-        if _CR >= 0.8:
+        print(f'> folder: {folder}, {_sub_folder} | correctness: {_CR} ({_correct}, {_wrong})')
 
-            print(f'> folder: {folder}, {_sub_folder} | correctness: {_CR} ({_correct}, {_wrong})')
-
-            extract_parameters(
-                filepath+'//parameters.txt', 
-                f'D://A_PhD//GitHub//wm_colaboration//results//sFSA_gauss_search//{folder}_params_CR.pickle',
-                _CR)
-
-        # =======================================================================================================================
-
-        # Set the axis labels and title
-        # ax1.set_ylabel('Neuron ID')
-        # ax1.set_xlabel('time [s]')
-        # ax1.set_yticks(np.arange(0, data['sFSA']['N_e'], 64))
-        # ax1.set_ylim(0, data['sFSA']['N_e'])
-
-        # ax1.set_xlim(0, round(data['sim_t'][-1]))
-
-        # plt.tight_layout()
-
-        # plt.show()
+        extract_parameters(
+            filepath+'//parameters.txt', 
+            f'D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search//{folder}_params_CR.pickle',
+            _CR)
