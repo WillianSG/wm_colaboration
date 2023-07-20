@@ -66,7 +66,8 @@ except KeyError:
 print('VENV:', venv_path)
 
 sock = socket.socket()
-sock.bind(('', 0))
+sock.bind(('localhost', 0))
+sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 db_port = sock.getsockname()[1]
 db_folder = f'{tmp_folder}/db'
 os.mkdir(db_folder)
@@ -100,8 +101,10 @@ space = {'background_activity': param_dist('background_activity', 10, 30),
          'num_attractors': 3,
          'attractor_size': 64,
          'network_size': 256,
-         'num_cues': 10
+         'num_cues': 1
          }
+
+from hyperopt import mongoexp
 
 # Create the algorithm
 tpe_algo = tpe.suggest
