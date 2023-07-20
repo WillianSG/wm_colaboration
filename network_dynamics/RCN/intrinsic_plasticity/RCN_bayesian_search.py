@@ -12,6 +12,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import subprocess
+import socket
 
 from hyperopt import hp, tpe, fmin, Trials, STATUS_OK
 from hyperopt.pyll.base import Apply
@@ -64,11 +65,14 @@ except KeyError:
         sys.exit('No virtual environment found')
 print('VENV:', venv_path)
 
+sock = socket.socket()
+sock.bind(('', 0))
+db_port = sock.getsockname()[1]
 db_folder = f'{tmp_folder}/db'
 os.mkdir(db_folder)
 try:
-    mongod = subprocess.Popen(['mongod', '--dbpath', db_folder, '--port', '1234'], stdout=subprocess.DEVNULL)
-    print(f'Started mongod --dbpath {db_folder} --port 1234')
+    mongod = subprocess.Popen(['mongod', '--dbpath', db_folder, '--port', f'{db_port}'], stdout=subprocess.DEVNULL)
+    print(f'Started mongod --dbpath {db_folder} --port {db_port}')
 except:
     sys.exit('Could not start mongod')
 
@@ -104,7 +108,7 @@ tpe_algo = tpe.suggest
 
 # Create trials objects ( MongoTrials is for parallel execution )
 # trials = Trials()
-trials = MongoTrials('mongo://localhost:1234/db/jobs')
+trials = MongoTrials(f'mongo://localhost:{db_port}/db/jobs')
 
 workers = []
 for i in range(os.cpu_count()):
@@ -113,19 +117,19 @@ for i in range(os.cpu_count()):
         my_env = os.environ.copy()
         my_env["PYTHONPATH"] = "{}:{}".format(os.environ["PATH"], python_path)
         workers.append(subprocess.Popen(
-            [f'{venv_path}/bin/hyperopt-mongo-worker', '--mongo', 'localhost:1234/db', '--workdir', tmp_folder],
+            [f'{venv_path}/bin/hyperopt-mongo-worker', '--mongo', f'localhost:{db_port}/db', '--workdir', tmp_folder],
             env=my_env,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL
         ))
         print(
-            f'{i} Started hyperopt-mongo-worker {venv_path}/bin/hyperopt-mongo-worker --mongo localhost:1234/db --workdir {tmp_folder}')
+            f'{i} Started hyperopt-mongo-worker {venv_path}/bin/hyperopt-mongo-worker --mongo localhost:{db_port}/db --workdir {tmp_folder}')
     except:
         sys.exit(f'Could not start hyperopt-mongo-worker {i}')
 
 # Run the tpe algorithm
 tpe_best = fmin(fn=objective, space=space, algo=tpe_algo, trials=trials,
-                max_evals=2000, rstate=np.random.default_rng(50),
+                max_evals=2, rstate=np.random.default_rng(50),
                 max_queue_len=os.cpu_count())
 results = trials.results
 results = [r.to_dict() for r in results]
