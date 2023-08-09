@@ -27,7 +27,7 @@ for folder in folders:
     E_spk_trains = data['E_spk_trains']
 
     # Create a figure and axis for the raster plot
-    fig, ax1 = plt.subplots(nrows=1, sharex=True, figsize=(15, 5))
+    fig, ax1 = plt.subplots(nrows = 1, sharex = True, figsize = (15, 5))
 
     states_colors = ['mediumslateblue', 'magenta', 'darkorange', 'purple', 'b', 'r', 'g', 'darkred']
 

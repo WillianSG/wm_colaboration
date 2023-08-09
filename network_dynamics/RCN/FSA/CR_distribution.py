@@ -12,7 +12,7 @@ if sys.platform in ['linux', 'win32']:
 
 sys.path.append(os.path.join(root, 'helper_functions'))
 
-path = 'D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search_2'
+path = 'D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search'
 
 files = os.listdir(path)
 
@@ -49,11 +49,11 @@ for i in range(len(counts)):
     count = counts[i]
     bin_center = (bins[i] + bins[i+1]) / 2
     percentage = count / total_count * 100
-    plt.text(bin_center, count, f'{percentage:.1f}%', ha='center', va='bottom', color = 'darkgray')
+    plt.text(bin_center, count, f'{percentage:.1f}%', ha='center', va='bottom', color = 'k')
 
 plt.xlabel('sFSA CR')
 plt.ylabel('count')
-plt.ylim(0, 500)
+plt.ylim(0, 600)
 plt.xlim(0, 1.0)
 plt.xticks(np.arange(0.0, 1.1, 0.1))
 plt.title(path.split('//')[-1])

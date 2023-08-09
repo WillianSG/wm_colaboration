@@ -62,6 +62,8 @@ def extract_parameters(file_path, output_path, CR):
 if not os.path.exists('D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search'):
         os.makedirs('D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search')
 
+_CRs = []
+
 for folder in folders:
 
     _sub_folder = os.listdir(f'D://A_PhD//GitHub//wm_colaboration//results//RCN_FSA//{folder}')[0]
@@ -150,7 +152,17 @@ for folder in folders:
 
         print(f'> folder: {folder}, {_sub_folder} | correctness: {_CR} ({_correct}, {_wrong})')
 
+        _CRs.append(_CR)
+
         extract_parameters(
             filepath+'//parameters.txt', 
             f'D://A_PhD//GitHub//wm_colaboration//results//sFSA_surface_gauss_search//{folder}_params_CR.pickle',
             _CR)
+        
+plt.hist(_CRs, bins = np.arange(0.0, 1.05, 0.05))
+plt.ylim(0, 600)
+plt.xlim(0, 1)
+plt.xlabel('accuracy')
+
+plt.show()
+plt.close()
