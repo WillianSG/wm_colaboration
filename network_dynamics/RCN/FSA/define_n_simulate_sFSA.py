@@ -18,20 +18,20 @@ else:
 
 parser = argparse.ArgumentParser(description = 'sFSA')
 
-parser.add_argument('--ba_rate', type = float,      default = 17.2,  help = 'Background mean rate (Hz).')
-parser.add_argument('--gs_percent', type = float,   default = 100,   help = 'Percentage of stimulated neurons in attractor.')
-parser.add_argument('--W_ie', type = float,         default = 9.3,   help = 'I-to-E inhibition weight.')
-parser.add_argument('--inh_rate', type = float,     default = 19.56, help = 'Inhibition mean rate (Hz).')
-parser.add_argument('--w_acpt', type = float,       default = 3.46,  help = 'Weight in synapses to GO state (mV).')
-parser.add_argument('--w_trans', type = float,      default = 22.15, help = 'Attractor state transition weight (mV).')
+parser.add_argument('--ba_rate', type = float,      default = 15.0,  help = 'Background mean rate (Hz).')
+parser.add_argument('--W_ie', type = float,         default = 11.5,   help = 'I-to-E inhibition weight.')
+parser.add_argument('--inh_rate', type = float,     default = 20.00, help = 'Inhibition mean rate (Hz).')
+parser.add_argument('--w_acpt', type = float,       default = 1.75,  help = 'Weight in synapses to GO state (mV).')
+parser.add_argument('--w_trans', type = float,      default = 24.00, help = 'Cue transfer weight (mV).')
 parser.add_argument('--thr_GO_state', type = float, default = -48.5, help = 'Threshold for Vth gated synapses (mV).')
+parser.add_argument('--gs_percent', type = float,   default = 100,   help = 'Percentage of stimulated neurons in attractor.')
 
 args = parser.parse_args()
 
 fsa = {
-    'S': ['I', 'II'],                       # 1st state taken as 'start' state.
+    'S': ['A', 'B'],                       # 1st state taken as 'start' state.
     'I': ['0', '1'],
-    'T': ['(I, 0)->II', '(I, 1)->I', '(II, 0)->I', '(II, 1)->II']
+    'T': ['(A, 0)->B', '(A, 1)->A', '(B, 0)->A', '(B, 1)->B']
 }
 
 sFSA_model = sFSA(fsa, args)                # create sFSA.
