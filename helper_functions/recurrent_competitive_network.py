@@ -35,13 +35,13 @@ class RecurrentCompetitiveNet:
 
         # ------ connections between attractors
         self.p_A2GO = 0.15
-        self.delay_A2GO_1 = 2.0*second
-        self.delay_A2GO_2 = 1.5*second
+        self.delay_A2GO_1 = 1.5*second
+        self.delay_A2GO_2 = 1.4*second
 
         self.thr_GO_state = -48.5
 
         self.p_A2B = 0.15
-        self.delay_A2B = 0.5*second
+        self.delay_A2B = 0.6*second
         # self.delay_A2B_trans = 0.59*second
 
         # ------ simulation parameters
@@ -410,7 +410,7 @@ class RecurrentCompetitiveNet:
             target=self.E,
             model='''w_ef : volt
             w : volt''',
-            on_pre=f'''w_ef = w*int(Vth_e_pre < {self.thr_GO_state}*mV)
+            on_pre=f'''w_ef = w
             Vepsp += w_ef''',
             delay=self.delay_A2GO_1,
             name='A_2_GO_synapses_1')
@@ -420,7 +420,7 @@ class RecurrentCompetitiveNet:
             target=self.E,
             model='''w_ef : volt
             w : volt''',
-            on_pre=f'''w_ef = w*int(Vth_e_pre < {self.thr_GO_state}*mV)
+            on_pre=f'''w_ef = w
             Vepsp += w_ef''',
             delay=self.delay_A2GO_2,
             name='A_2_GO_synapses_2')

@@ -152,7 +152,7 @@ class sFSA:
             if self.__sfsa_state['S'][_s0] != self.__sfsa_state['S'][_s1]:
 
                 # if _i != '0' and _s1 != 'B':
-                self.__RCN.set_synapses_A_2_GO_1(A_ids = self.__sfsa_state['I'][_i], GO_ids = self.__sfsa_state['S'][_s1], weight = (self.__args.w_acpt*1.25)*mV)
+                self.__RCN.set_synapses_A_2_GO_1(A_ids = self.__sfsa_state['I'][_i], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args.w_acpt*mV)
                 print(f'> red (1) conns.: {_i}->{_s1}')
 
                 # if _s0 != 'A' and _s1 != 'B':
@@ -176,7 +176,7 @@ class sFSA:
 
         # - Running network without external input (attractor evolution after stimulation).
 
-        self.__RCN.run_net(duration = 0.3)
+        self.__RCN.run_net(duration = 0.1)
 
         # @TODO return sequence of activations from network activity.
 
@@ -198,13 +198,13 @@ class sFSA:
                 stim_perc = self.__args.gs_percent, 
                 subset = self.__sfsa_state['I'][input_token])
         
-        self.__RCN.run_net(duration = 0.5)
+        self.__RCN.run_net(duration = 0.6)
 
         self.__RCN.generic_stimulus_off(act_ids)
 
         # - Running network without external input (attractor evolution after stimulation).
 
-        self.__RCN.run_net(duration = 3.0)
+        self.__RCN.run_net(duration = 3.4)
 
         # @TODO return sequence of activations from network activity.
 
@@ -216,7 +216,7 @@ class sFSA:
 
             self.__feedInputToken(token)
 
-        self.__RCN.run_net(duration = 1.0)
+        self.__RCN.run_net(duration = 0.7)
 
     def exportSfsaData(self):
         import numpy as np
