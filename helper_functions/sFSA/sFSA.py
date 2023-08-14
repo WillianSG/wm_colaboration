@@ -5,7 +5,7 @@
 @group: Bio-Inspired Circuits and System / Artificial Intelligence
 """
 import sys, os, pickle
-from brian2 import Hz, mV, second, prefs
+from brian2 import Hz, mV, second, ms, prefs
 from datetime import datetime
 
 prefs.codegen.target = 'numpy'
@@ -13,8 +13,10 @@ prefs.codegen.target = 'numpy'
 if sys.platform in ['linux', 'win32']:
     sys.path.append(os.path.abspath(os.path.join(__file__ , '../../')))
     from recurrent_competitive_network import RecurrentCompetitiveNet
+    from firing_rate_histograms import firing_rate_histograms
 else:
     from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+    from helper_functions.firing_rate_histograms import firing_rate_histograms
 
 class sFSA:
     def __init__(self, FSA_model: dict, args):
@@ -32,6 +34,10 @@ class sFSA:
 
         self.record_traces = True
 
+        self.start_twindow = (0.2, 0.1)     # 1st: cuing period; 2nd: free net. evolution period.
+        self.input_twindow = (0.6, 3.4)
+        self.free_activity = 0.7            # free net. evolution after last input toke.     
+
         self.__loadSfsaArgs()
         self.__loadSfsaModel()
         self.__enterStartState()
@@ -41,6 +47,9 @@ class sFSA:
     # - Private Functions -
 
     def __loadSfsaArgs(self):
+            '''
+            Initializes some network hyperparameters relating to attractor and state transition dynamics.
+            '''
 
             self.__RCN.thr_GO_state = self.__args.thr_GO_state
             self.__RCN.E_E_syn_matrix_snapshot = False
@@ -54,6 +63,11 @@ class sFSA:
             self.__RCN.U = 0.2
 
     def __loadSfsaModel(self):
+        '''
+            Creates a dictionary that will be used later to initialize the RCN. The dictionary contains the total number of E/I neurons
+        necessary to encode each state and input symbol as attractors (the list of neuron ids in each attractor is also created here). The 
+        list of state transition rules is parsed to initialize the necessary connections between attractors.
+        '''
         
         self.__sfsa_state = {'S': {}, 'I': {}, 'T': {}, 'N_e': 0, 'N_i': 0}
 
@@ -98,6 +112,11 @@ class sFSA:
         self.__setStateTransitions()
 
     def __initRcn4Fsa(self):
+        '''
+            Configure and initializes the network (RCN) objects necessary to implement the FSA passed as input. This method
+        goes over the list of states S and inputs I and creates an attractor (set weights of synapses between E neurons to 
+        potentiated) for each of them.
+        '''
 
         if self.record_traces:
 
@@ -132,6 +151,10 @@ class sFSA:
                     self.__RCN.set_potentiated_synapses(neur_IDs)
 
     def __setStateTransitions(self):
+        '''
+            The state transition rules are used to initialize (set potentiated) the synapases between attractors 
+        that implement the transition of activity between attractors.
+        '''
 
         for tid, transition in self.__sfsa_state['T'].items():
 
@@ -160,6 +183,9 @@ class sFSA:
                 print(f'> red (2) conns.: {_s0}->{_s1}')
 
     def __enterStartState(self):
+        '''
+        Cues the 1st state in the state list to set it active (the first state is assumed to be the FSA's starting state).
+        '''
 
         # - Setting/sending input to attractor representing starting state of the FSA.
 
@@ -170,13 +196,13 @@ class sFSA:
                 stim_perc = self.__args.gs_percent, 
                 subset = self.__sfsa_state['S'][start_state])
 
-        self.__RCN.run_net(duration = 0.2)
+        self.__RCN.run_net(duration = self.start_twindow[0])
 
         self.__RCN.generic_stimulus_off(act_ids)
 
         # - Running network without external input (attractor evolution after stimulation).
 
-        self.__RCN.run_net(duration = 0.1)
+        self.__RCN.run_net(duration = self.start_twindow[1])
 
         # @TODO return sequence of activations from network activity.
 
@@ -198,28 +224,66 @@ class sFSA:
                 stim_perc = self.__args.gs_percent, 
                 subset = self.__sfsa_state['I'][input_token])
         
-        self.__RCN.run_net(duration = 0.6)
+        self.__RCN.run_net(duration = self.input_twindow[0])
 
         self.__RCN.generic_stimulus_off(act_ids)
 
         # - Running network without external input (attractor evolution after stimulation).
 
-        self.__RCN.run_net(duration = 3.4)
+        self.__RCN.run_net(duration = self.input_twindow[1])
 
         # @TODO return sequence of activations from network activity.
 
+    def __getMostActiveAttractor(self, spikes_per_state, t_window, attractor_size):
+        '''
+            Computes the mean rate of each attractor representing a state in S within a simulation time window. The highest 
+        mean rate is taken to be currently active attractor (the state in which the FSA is at) and the state S it represents 
+        is returned. If the highest mean rate if bellow 5Hz then all attractors are taken to be at spontaneous activity level, 
+        in which case 'null' is returned.
+        '''
+        import numpy as np
+
+        states_mean_rate = {}
+
+        for state, spikes in spikes_per_state.items():
+
+            spks_in_window = [i for i in spikes if i >= t_window[0] and i <= t_window[1]]
+
+            [t_hist_count,
+            t_hist_edgs,
+            t_hist_bin_widths,
+            t_hist_fr] = firing_rate_histograms(
+                tpoints = np.array(spks_in_window)*second,
+                inds = np.arange(0, attractor_size),            # not important the correct IDs.
+                bin_width = 25*ms,
+                N_pop = attractor_size,
+                flag_hist = 'time_resolved' )
+        
+            states_mean_rate[state] = np.round(np.mean(t_hist_fr), 1)
+
+        if max(zip(states_mean_rate.values(), states_mean_rate.keys()))[0] > 5:             # check if winning state is not at spontaneous activity level.
+            return max(zip(states_mean_rate.values(), states_mean_rate.keys()))[1]
+        else:
+            return 'null'
+
     # - Public Functions -
 
-    def feedInputWord(self, input_word):
+    def feedInputWord(self, input_word: list):
+        '''
+        For each input token in input_word the respective attractor in I is cued.
+        '''
 
         for token in input_word:
 
             self.__feedInputToken(token)
 
-        self.__RCN.run_net(duration = 0.7)
+        self.__RCN.run_net(duration = self.free_activity)
 
     def exportSfsaData(self):
-        import numpy as np
+        '''
+            Exports a dictionary containing data from the simulated network to a directory. The network's state history is 
+        extracted from the spike trains during simulation and the networks's activity (E spikes raster plot) is also plotted to a file.
+        '''
 
         # - Creating data folder.
 
@@ -227,6 +291,8 @@ class sFSA:
 
         if not (os.path.isdir(data_folder)):
             os.mkdir(data_folder)
+
+        self.data_folder = data_folder
 
         # - Export metadata.
 
@@ -236,15 +302,11 @@ class sFSA:
                 if arg_value is not None:
                     file.write(f"\n{arg}: {arg_value}\n")
 
-        # - Export data.
+        # - Saving spike trains and traces.
 
         _E_spk_trains = {key: value for key, value in self.__RCN.E_mon.spike_trains().items()}          # excitatory spike trains.
 
         sim_t = self.__RCN.E_rec.t/second
-
-        fn = os.path.join(
-            data_folder,
-            'sSFA_simulation_data.pickle')
         
         states_Vth_traces = {}
         
@@ -255,28 +317,104 @@ class sFSA:
 
                 states_Vth_traces[state] = self.__RCN.E_rec.Vth_e[neur_ids, :]/mV
 
-        with open(fn, 'wb') as f:
-            pickle.dump({
-                'E_spk_trains': _E_spk_trains,
-                'Vth_traces': states_Vth_traces,
-                'sim_t': sim_t,
-                'sFSA': self.__sfsa_state,
-                'input_sequence': self.inputed_sequence,
-                'thr_GO_state': self.__args.thr_GO_state
-            }, f)
+        self.sFSA_sim_data = {
+            'E_spk_trains': _E_spk_trains,
+            'Vth_traces': states_Vth_traces,
+            'sim_t': sim_t,
+            'sFSA': self.__sfsa_state,
+            'input_sequence': self.inputed_sequence,
+            'thr_GO_state': self.__args.thr_GO_state,
+            'start_twindow': self.start_twindow,
+            'input_twindow': self.input_twindow,
+            'free_activity': self.free_activity
+        }
 
-        return data_folder
+        # - Compute state history.
+
+        state_history = self.computeStateHistory()
+        self.sFSA_sim_data['state_history'] = state_history
+
+        # - Plot network activity.
+
+        self.plotSfsaNetwork()
+
+        # - Export data.
+
+        fn = os.path.join(
+            data_folder,
+            'sSFA_simulation_data.pickle')
+
+        with open(fn, 'wb') as f:
+            pickle.dump(self.sFSA_sim_data, f)
     
-    def plotSfsaNetwork(self, data_path):
+    def computeStateHistory(self, data_path = ''):
+        '''
+            Parses the networks E spikes so as to divide them into the respective attractors representing the FSA states. The S attractors mean
+        rates are computed winthin a time window before each input is fed in order to compute in what state the sFSA was before the input was fed (
+        the last active attractor is also computed to get the full history of state transitions).
+        '''
+
+        if data_path != '':
+
+            data_file = open(os.path.join(data_path, 'sSFA_simulation_data.pickle'), 'rb')
+            simulation_data = pickle.load(data_file)
+
+        else:
+
+            simulation_data = self.sFSA_sim_data
+
+        # - Getting spike trains of neurons per state attractor.
+
+        spikes_per_state = {}
+
+        for S, S_neur_ids in simulation_data['sFSA']['S'].items():                      # for each neuron in an attractor representing a state.
+
+            attractor_size = len(S_neur_ids)                                            # assumes all attractors have the same size.
+
+            spikes_per_state[S] = []                                                    # all state's S spikes.
+
+            for neur_id in simulation_data['E_spk_trains'].keys():                      # for each neuron spike train.
+
+                if neur_id in S_neur_ids:                                               # save spikes if neuron belongs to attractor S.
+
+                    spikes_per_state[S] += list(simulation_data['E_spk_trains'][neur_id]/second)
+
+        # - Getting state transisitons based on mean rate and input tokens.
+
+        state_sequence = []
+
+        S_winning = self.__getMostActiveAttractor(spikes_per_state, (0, simulation_data['start_twindow'][0] + simulation_data['start_twindow'][1]), attractor_size) # starting state.
+        state_sequence.append(S_winning)
+
+        _input_twindow = simulation_data['input_twindow'][0] + simulation_data['input_twindow'][1]
+
+        for i in range(len(simulation_data['input_sequence'])):
+
+            if i == len(simulation_data['input_sequence'])-1:
+
+                t_start = simulation_data['sim_t'][-1]-0.7      # look back .7s before an input token time window.
+                t_end = simulation_data['sim_t'][-1]
+
+            else:
+
+                t_end = _input_twindow*(i+1)+(simulation_data['start_twindow'][0] + simulation_data['start_twindow'][1])
+                t_start = t_end-0.7
+
+            S_winning = self.__getMostActiveAttractor(spikes_per_state, (t_start, t_end), attractor_size)
+
+            state_sequence.append(S_winning)
+
+        print(f'> state history: {state_sequence}')
+
+        return state_sequence
+    
+    def plotSfsaNetwork(self):
+        '''
+            Plots (raster plot) the spikes from the E neurons representing input tokens (in black) and states (colored) as well as the voltage
+        traces of each attractor in S.
+        '''
         import matplotlib.pyplot as plt
         import numpy as np
-
-        # - Load data.
-
-        with open(os.path.join(data_path, 'sSFA_simulation_data.pickle'), 'rb') as file:
-            data = pickle.load(file)
-
-        E_spk_trains = data['E_spk_trains']
 
         # - Create a figure.
 
@@ -286,9 +424,11 @@ class sFSA:
 
         # - Axis for the spike raster plot.
 
+        E_spk_trains = self.sFSA_sim_data['E_spk_trains']
+
         _aux_c = 0
 
-        for _s, neur_IDs in data['sFSA']['S'].items():
+        for _s, neur_IDs in self.sFSA_sim_data['sFSA']['S'].items():
 
             for neuron_id in neur_IDs:
                 if neuron_id in E_spk_trains.keys():
@@ -298,7 +438,7 @@ class sFSA:
 
             _aux_c += 1
 
-        for _s, neur_IDs in data['sFSA']['I'].items():
+        for _s, neur_IDs in self.sFSA_sim_data['sFSA']['I'].items():
 
             for neuron_id in neur_IDs:
                 if neuron_id in E_spk_trains.keys():
@@ -309,35 +449,35 @@ class sFSA:
         # - Axis for the voltage threshold traces.
 
         _aux_c = 0
-        for state, Vth in data['Vth_traces'].items():
+        for state, Vth in self.sFSA_sim_data['Vth_traces'].items():
 
             Vth_mu = np.mean(Vth, axis = 0)
             Vth_sg = np.std(Vth, axis = 0)
 
-            ax2.plot(data['sim_t'], Vth_mu, color = states_colors[_aux_c])
-            ax2.plot(data['sim_t'], np.max(Vth, axis = 0), color = states_colors[_aux_c], ls = '--', lw = 0.8)
-            ax2.plot(data['sim_t'], np.min(Vth, axis = 0), color = states_colors[_aux_c], ls = '--', lw = 0.8)
-            ax2.fill_between(data['sim_t'], Vth_mu-Vth_sg, Vth_mu+Vth_sg, alpha = 0.2, color = states_colors[_aux_c])
+            ax2.plot(self.sFSA_sim_data['sim_t'], Vth_mu, color = states_colors[_aux_c])
+            ax2.plot(self.sFSA_sim_data['sim_t'], np.max(Vth, axis = 0), color = states_colors[_aux_c], ls = '--', lw = 0.8)
+            ax2.plot(self.sFSA_sim_data['sim_t'], np.min(Vth, axis = 0), color = states_colors[_aux_c], ls = '--', lw = 0.8)
+            ax2.fill_between(self.sFSA_sim_data['sim_t'], Vth_mu-Vth_sg, Vth_mu+Vth_sg, alpha = 0.2, color = states_colors[_aux_c])
 
             _aux_c += 1
 
-        ax2.hlines(y=data['thr_GO_state'], xmin = 0, xmax = int(round(data['sim_t'][-1]))+1, colors = 'k', linestyles = 'dashed', lw = 0.5)
+        ax2.hlines(y=self.sFSA_sim_data['thr_GO_state'], xmin = 0, xmax = int(round(self.sFSA_sim_data['sim_t'][-1]))+1, colors = 'k', linestyles = 'dashed', lw = 0.5)
 
         # - Set the axis labels and title.
 
         ax1.set_ylabel('Neuron ID')
-        ax1.set_yticks(np.arange(0, data['sFSA']['N_e'], 64))
-        ax1.set_ylim(0, data['sFSA']['N_e'])
-        ax1.set_xticks(np.arange(0, int(round(data['sim_t'][-1]))+0.5, 0.5))
-        ax1.set_xlim(0, int(round(data['sim_t'][-1])))
+        ax1.set_yticks(np.arange(0, self.sFSA_sim_data['sFSA']['N_e'], 64))
+        ax1.set_ylim(0, self.sFSA_sim_data['sFSA']['N_e'])
+        ax1.set_xticks(np.arange(0, int(round(self.sFSA_sim_data['sim_t'][-1]))+0.5, 0.5))
+        ax1.set_xlim(0, int(round(self.sFSA_sim_data['sim_t'][-1])))
 
         ax2.set_ylabel(r'$V_{th}$')
         ax2.set_xlabel('time [s]')
-        ax2.set_xticks(np.arange(0, int(round(data['sim_t'][-1]))+0.5, 0.5))
+        ax2.set_xticks(np.arange(0, int(round(self.sFSA_sim_data['sim_t'][-1]))+0.5, 0.5))
 
         plt.tight_layout()
 
-        plt.show()
-        plt.close()
+        plt.savefig(os.path.join(self.data_folder, 'network_activity.pdf'))
 
+        plt.close()
 

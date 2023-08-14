@@ -36,8 +36,6 @@ fsa = {
 
 sFSA_model = sFSA(fsa, args)                # create sFSA.
 
-sFSA_model.feedInputWord(['0', '1'])        # feed input tokes (sequential).
+sFSA_model.feedInputWord(['0', '1', '0'])        # feed input tokes (sequential).
 
-data_path = sFSA_model.exportSfsaData()     # create simulaiton folder and export data.
-
-sFSA_model.plotSfsaNetwork(data_path)       # plot RCN activity during token processing.
+sFSA_model.exportSfsaData()                 # create simulaiton folder and export data.
