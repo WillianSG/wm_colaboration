@@ -35,14 +35,12 @@ class RecurrentCompetitiveNet:
 
         # ------ connections between attractors
         self.p_A2GO = 0.15
-        self.delay_A2GO_1 = 1.5*second
-        self.delay_A2GO_2 = 1.4*second
+        self.delay_A2GO = 2*second
 
         self.thr_GO_state = -48.5
 
         self.p_A2B = 0.15
-        self.delay_A2B = 0.6*second
-        # self.delay_A2B_trans = 0.59*second
+        self.delay_A2B = 0.525*second
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -201,21 +199,6 @@ class RecurrentCompetitiveNet:
                                tau_ipsp=self.tau_ipsp_e,
                                Vth_e_init=self.Vth_e_init,
                                tau_Vth_e=self.tau_Vth_e)
-
-        # self.eqs_e = Equations('''
-        #     plastic_u : boolean (shared)
-        #     dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
-        #     dVepsp/dt = -Vepsp / tau_epsp : volt
-        #     dVipsp/dt = -Vipsp / tau_ipsp : volt
-        #     du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-        #     dVth_e/dt = (Vth_e_init - (0.02*(1/(1+exp(u*6))) * volt) - Vth_e) / tau_Vth_e  : volt
-        #     ''',
-        #                        Vr_e=self.Vr_e,
-        #                        taum_e=self.taum_e,
-        #                        tau_epsp=self.tau_epsp_e,
-        #                        tau_ipsp=self.tau_ipsp_e,
-        #                        Vth_e_init=self.Vth_e_init,
-        #                        tau_Vth_e=self.tau_Vth_e)
 
         self.eqs_i = Equations('''
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)
@@ -395,35 +378,15 @@ class RecurrentCompetitiveNet:
             delay=self.delay_A2B,
             name='A_2_B_synapses')
         
-        # self.A_2_B_trans_synapses = Synapses(     # synapses between different attractors
-        #     source=self.E,
-        #     target=self.E,
-        #     model='''w_ef : volt
-        #     w : volt''',
-        #     on_pre=f'''w_ef = w*int(Vth_e_pre < {self.thr_GO_state}*mV)
-        #     Vepsp += w_ef''',
-        #     delay=self.delay_A2B_trans,
-        #     name='A_2_B_trans_synapses')
-        
-        self.A_2_GO_synapses_1 = Synapses(
+        self.A_2_GO_synapses = Synapses(
             source=self.E,
             target=self.E,
             model='''w_ef : volt
             w : volt''',
             on_pre=f'''w_ef = w
             Vepsp += w_ef''',
-            delay=self.delay_A2GO_1,
-            name='A_2_GO_synapses_1')
-        
-        self.A_2_GO_synapses_2 = Synapses(
-            source=self.E,
-            target=self.E,
-            model='''w_ef : volt
-            w : volt''',
-            on_pre=f'''w_ef = w
-            Vepsp += w_ef''',
-            delay=self.delay_A2GO_2,
-            name='A_2_GO_synapses_2')
+            delay=self.delay_A2GO,
+            name='A_2_GO_synapses')
 
         # connecting synapses
         self.Input_E.connect(j='i')
@@ -434,9 +397,7 @@ class RecurrentCompetitiveNet:
         self.I_E.connect(True, p=self.p_i_e)
         self.E_E.connect('i!=j', p=self.p_e_e)
         self.A_2_B_synapses.connect('i!=j', p=self.p_A2B)
-        # self.A_2_B_trans_synapses.connect('i!=j', p=self.p_A2B)
-        self.A_2_GO_synapses_1.connect('i!=j', p=self.p_A2GO)
-        self.A_2_GO_synapses_2.connect('i!=j', p=self.p_A2GO)
+        self.A_2_GO_synapses.connect('i!=j', p=self.p_A2GO)
 
         # init synaptic variables
         self.Input_E.w = self.w_input_e
@@ -446,8 +407,7 @@ class RecurrentCompetitiveNet:
         self.I_E.w = self.w_i_e
 
         self.A_2_B_synapses.w = 0*mV
-        self.A_2_GO_synapses_1.w = 0*mV
-        self.A_2_GO_synapses_2.w = 0*mV
+        self.A_2_GO_synapses.w = 0*mV
 
         if self.plasticity_rule == 'LR4':
             self.E_E.x_ = 1.0
@@ -511,20 +471,10 @@ class RecurrentCompetitiveNet:
             if self.A_2_B_synapses.i[x] in A_ids and self.A_2_B_synapses.j[x] in B_ids:
                 self.A_2_B_synapses.w[self.A_2_B_synapses.i[x], self.A_2_B_synapses.j[x]] = weight
 
-    # def set_synapses_A_2_B_trans(self, A_ids, B_ids, weight):
-    #     for x in range(0, len(self.A_2_B_trans_synapses)):
-    #         if self.A_2_B_trans_synapses.i[x] in A_ids and self.A_2_B_trans_synapses.j[x] in B_ids:
-    #             self.A_2_B_trans_synapses.w[self.A_2_B_trans_synapses.i[x], self.A_2_B_trans_synapses.j[x]] = weight
-
-    def set_synapses_A_2_GO_1(self, A_ids, GO_ids, weight):
-        for x in range(0, len(self.A_2_GO_synapses_1)):
-            if self.A_2_GO_synapses_1.i[x] in A_ids and self.A_2_GO_synapses_1.j[x] in GO_ids:
-                self.A_2_GO_synapses_1.w[self.A_2_GO_synapses_1.i[x], self.A_2_GO_synapses_1.j[x]] = weight
-
-    def set_synapses_A_2_GO_2(self, A_ids, GO_ids, weight):
-        for x in range(0, len(self.A_2_GO_synapses_2)):
-            if self.A_2_GO_synapses_2.i[x] in A_ids and self.A_2_GO_synapses_2.j[x] in GO_ids:
-                self.A_2_GO_synapses_2.w[self.A_2_GO_synapses_2.i[x], self.A_2_GO_synapses_2.j[x]] = weight
+    def set_synapses_A_2_GO(self, A_ids, GO_ids, weight):
+        for x in range(0, len(self.A_2_GO_synapses)):
+            if self.A_2_GO_synapses.i[x] in A_ids and self.A_2_GO_synapses.j[x] in GO_ids:
+                self.A_2_GO_synapses.w[self.A_2_GO_synapses.i[x], self.A_2_GO_synapses.j[x]] = weight
 
     # 1.4 ------ network operation
 
@@ -658,7 +608,7 @@ class RecurrentCompetitiveNet:
 
     def net_init(self):
         # self.set_results_folder()  # sim. results
-        self.set_learning_rule()  # rule eqs./params.
+        # self.set_learning_rule()  # rule eqs./params.
         self.set_neuron_pop()  # neuron populations
         self.set_synapses()  # syn. connections
         self.set_spk_monitors()
@@ -834,8 +784,7 @@ class RecurrentCompetitiveNet:
             self.I_E,
             self.E_E,
             self.A_2_B_synapses,
-            self.A_2_GO_synapses_1,
-            self.A_2_GO_synapses_2,
+            self.A_2_GO_synapses,
             self.Input_to_E_mon,
             self.Input_to_I_mon,
             self.E_mon,
@@ -848,7 +797,6 @@ class RecurrentCompetitiveNet:
             self.A_2_B_synapses_rec,
             self.E_I_rec,
             self.I_E_rec,
-            # stimulus_pulse,
             store_E_E_syn_matrix_snapshot,
             name='rcn_net')
 

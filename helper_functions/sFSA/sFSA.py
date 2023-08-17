@@ -2,7 +2,7 @@
 """
 @author: w.soares.girao@rug.nl
 @university: University of Groningen
-@group: Bio-Inspired Circuits and System / Artificial Intelligence
+@group: Bio-Inspired Circuits and System
 """
 import sys, os, pickle
 from brian2 import Hz, mV, second, ms, prefs
@@ -35,7 +35,7 @@ class sFSA:
         self.record_traces = True
 
         self.start_twindow = (0.2, 0.1)     # 1st: cuing period; 2nd: free net. evolution period.
-        self.input_twindow = (0.6, 3.4)
+        self.input_twindow = (0.8, 4.2)
         self.free_activity = 0.7            # free net. evolution after last input toke.     
 
         self.__loadSfsaArgs()
@@ -43,6 +43,7 @@ class sFSA:
         self.__enterStartState()
 
         self.inputed_sequence = []
+        self.data_folder = ''
 
     # - Private Functions -
 
@@ -51,16 +52,28 @@ class sFSA:
             Initializes some network hyperparameters relating to attractor and state transition dynamics.
             '''
 
-            self.__RCN.thr_GO_state = self.__args.thr_GO_state
+            self.__RCN.set_learning_rule()  # call it here before net.init() to prevent overriding parameters bellow.
+
+            # - Simulation config. parameters.
+
             self.__RCN.E_E_syn_matrix_snapshot = False
-            self.__RCN.w_e_i = 3 * mV                      
-            self.__RCN.w_max = 10 * mV                     
-            self.__RCN.spont_rate = self.__args.ba_rate * Hz
-            self.__RCN.w_e_i = 3 * mV                      
-            self.__RCN.w_i_e = self.__args.W_ie * mV              
-            self.__RCN.tau_Vth_e = 0.1 * second            
-            self.__RCN.k = 4    
-            self.__RCN.U = 0.2
+
+            # - Attractor dynamics parameters.
+
+            self.__RCN.spont_rate              = self.__args.ba_rate * Hz
+            self.__RCN.w_max                   = self.__args.e_e_max_weight * mV
+            self.__RCN.w_e_i                   = self.__args.W_ei * mV
+            self.__RCN.w_i_e                   = self.__args.W_ie * mV
+            self.__RCN.stim_freq_i             = self.__args.inh_rate * Hz
+            self.__RCN.tau_Vth_e               = 0.1 * second
+            self.__RCN.k                       = 4    
+            self.__RCN.U                       = 0.2
+
+            # - State transition dynamics parameters.
+
+            self.__RCN.thr_GO_state            = self.__args.thr_GO_state
+            self.__RCN.delay_A2GO              = self.__args.delay_A2GO * second
+            self.__RCN.delay_A2B               = self.__args.delay_A2B * second
 
     def __loadSfsaModel(self):
         '''
@@ -168,19 +181,15 @@ class sFSA:
             
             self.__RCN.set_synapses_A_2_B(A_ids = self.__sfsa_state['I'][_i], B_ids = self.__sfsa_state['S'][_s0], weight = self.__args.w_trans*mV)
 
-            print(f'> blue conns.: {_i}->{_s0}')
-
             # - Setting connections for state-input matching leading to next state.
 
             if self.__sfsa_state['S'][_s0] != self.__sfsa_state['S'][_s1]:
 
                 # if _i != '0' and _s1 != 'B':
-                self.__RCN.set_synapses_A_2_GO_1(A_ids = self.__sfsa_state['I'][_i], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args.w_acpt*mV)
-                print(f'> red (1) conns.: {_i}->{_s1}')
-
+                self.__RCN.set_synapses_A_2_GO(A_ids = self.__sfsa_state['I'][_i], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args.w_acpt*mV)
+                
                 # if _s0 != 'A' and _s1 != 'B':
-                self.__RCN.set_synapses_A_2_GO_2(A_ids = self.__sfsa_state['S'][_s0], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args.w_acpt*mV)
-                print(f'> red (2) conns.: {_s0}->{_s1}')
+                self.__RCN.set_synapses_A_2_GO(A_ids = self.__sfsa_state['S'][_s0], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args.w_acpt*mV)
 
     def __enterStartState(self):
         '''
@@ -192,7 +201,7 @@ class sFSA:
         start_state = self.__FSA_model['S'][0]
 
         act_ids = self.__RCN.generic_stimulus(
-                frequency = 10000*Hz, 
+                frequency = self.__RCN.stim_freq_e, 
                 stim_perc = self.__args.gs_percent, 
                 subset = self.__sfsa_state['S'][start_state])
 
@@ -220,7 +229,7 @@ class sFSA:
         # - Setting/sending input to attractor.
 
         act_ids = self.__RCN.generic_stimulus(
-                frequency = 30000*Hz, 
+                frequency = self.__RCN.stim_freq_e, 
                 stim_perc = self.__args.gs_percent, 
                 subset = self.__sfsa_state['I'][input_token])
         
@@ -243,28 +252,42 @@ class sFSA:
         '''
         import numpy as np
 
+        # @TODO: compute threshold to prevent false positives.
+        rate_thr = 7                                                                        # threshold for spontaneous activity.
+
         states_mean_rate = {}
+
+        activations = []
 
         for state, spikes in spikes_per_state.items():
 
             spks_in_window = [i for i in spikes if i >= t_window[0] and i <= t_window[1]]
 
-            [t_hist_count,
-            t_hist_edgs,
-            t_hist_bin_widths,
+            [_,
+            __,
+            ___,
             t_hist_fr] = firing_rate_histograms(
                 tpoints = np.array(spks_in_window)*second,
-                inds = np.arange(0, attractor_size),            # not important the correct IDs.
+                inds = np.arange(0, attractor_size),                                        # not important the correct IDs.
                 bin_width = 25*ms,
                 N_pop = attractor_size,
                 flag_hist = 'time_resolved' )
         
             states_mean_rate[state] = np.round(np.mean(t_hist_fr), 1)
 
-        if max(zip(states_mean_rate.values(), states_mean_rate.keys()))[0] > 5:             # check if winning state is not at spontaneous activity level.
-            return max(zip(states_mean_rate.values(), states_mean_rate.keys()))[1]
+            if states_mean_rate[state] > rate_thr:
+
+                activations.append(states_mean_rate[state])
+
+        # @TODO: check if transition is caused by input alone.
+
+        if len(activations) > 1:                                                            # check if more than one state is active.
+            return 'two'
         else:
-            return 'null'
+            if max(zip(states_mean_rate.values(), states_mean_rate.keys()))[0] > rate_thr:  # check if winning state is not at spontaneous activity level.
+                return max(zip(states_mean_rate.values(), states_mean_rate.keys()))[1]
+            else:
+                return 'null'
 
     # - Public Functions -
 
@@ -279,7 +302,7 @@ class sFSA:
 
         self.__RCN.run_net(duration = self.free_activity)
 
-    def exportSfsaData(self):
+    def exportSfsaData(self, network_plot = True, sub_dir = '', name_ext = ''):
         '''
             Exports a dictionary containing data from the simulated network to a directory. The network's state history is 
         extracted from the spike trains during simulation and the networks's activity (E spikes raster plot) is also plotted to a file.
@@ -287,7 +310,15 @@ class sFSA:
 
         # - Creating data folder.
 
-        data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', f'sFSA_{self.sFSA_id}'))
+        if sub_dir != '':
+            data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir))
+
+            if not (os.path.isdir(data_folder)):
+                os.mkdir(data_folder)
+
+            data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
+        else:
+            data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', f'sFSA_{self.sFSA_id}'))
 
         if not (os.path.isdir(data_folder)):
             os.mkdir(data_folder)
@@ -297,10 +328,43 @@ class sFSA:
         # - Export metadata.
 
         with open(os.path.join(data_folder, 'parameters.txt'), "w") as file:
+            file.write("\nRCN\n")
             for arg in vars(self.__args):
                 arg_value = getattr(self.__args, arg)
                 if arg_value is not None:
-                    file.write(f"\n{arg}: {arg_value}\n")
+                    file.write(f"\n{arg}: {arg_value}")
+
+            file.write(f"\np_A2GO: {self.__RCN.p_A2GO}")
+            file.write(f"\ndelay_A2GO: {self.__RCN.delay_A2GO}")
+            file.write(f"\np_A2B: {self.__RCN.p_A2B}")
+            file.write(f"\ndelay_A2B: {self.__RCN.delay_A2B}")
+            file.write(f"\nstart_twindow: {self.start_twindow}s")
+            file.write(f"\ninput_twindow: {self.input_twindow}s")
+            file.write(f"\nfree_activity: {self.free_activity}s")
+            file.write("\n\nExc. neurons\n")
+            file.write(f"\nVr_e: {self.__RCN.Vr_e}")
+            file.write(f"\nVrst_e: {self.__RCN.Vrst_e}")
+            file.write(f"\nVth_e_init: {self.__RCN.Vth_e_init}")
+            file.write(f"\nVth_e_decr: {self.__RCN.Vth_e_decr}")
+            file.write(f"\ntau_Vth_e: {self.__RCN.tau_Vth_e}")
+            file.write(f"\ntaum_e: {self.__RCN.taum_e}")
+            file.write(f"\ntref_e: {self.__RCN.tref_e}")
+            file.write(f"\ntau_epsp_e: {self.__RCN.tau_epsp_e}")
+            file.write(f"\ntau_ipsp_e: {self.__RCN.tau_ipsp_e}")
+            file.write("\n\nInh. neurons\n")
+            file.write(f"\nVr_i: {self.__RCN.Vr_i}")
+            file.write(f"\nVrst_i: {self.__RCN.Vrst_i}")
+            file.write(f"\nVth_i: {self.__RCN.Vth_i}")
+            file.write(f"\ntaum_i: {self.__RCN.taum_i}")
+            file.write(f"\ntref_i: {self.__RCN.tref_i}")
+            file.write(f"\ntau_epsp_i: {self.__RCN.tau_epsp_i}")
+            file.write(f"\ntau_ipsp_i: {self.__RCN.tau_ipsp_i}")
+
+        '''
+        @TODO: added other network hyperparameters not included in the arguments.
+        - neuron equations
+        - neurons parameters
+        '''
 
         # - Saving spike trains and traces.
 
@@ -336,13 +400,15 @@ class sFSA:
 
         # - Plot network activity.
 
-        self.plotSfsaNetwork()
+        if network_plot:
+
+            self.plotSfsaNetwork(name_ext)
 
         # - Export data.
 
         fn = os.path.join(
             data_folder,
-            'sSFA_simulation_data.pickle')
+            f'sSFA_simulation_data{name_ext}.pickle')
 
         with open(fn, 'wb') as f:
             pickle.dump(self.sFSA_sim_data, f)
@@ -383,7 +449,7 @@ class sFSA:
 
         state_sequence = []
 
-        S_winning = self.__getMostActiveAttractor(spikes_per_state, (0, simulation_data['start_twindow'][0] + simulation_data['start_twindow'][1]), attractor_size) # starting state.
+        S_winning = self.__getMostActiveAttractor(spikes_per_state, (0, 0.1), attractor_size) # starting state.
         state_sequence.append(S_winning)
 
         _input_twindow = simulation_data['input_twindow'][0] + simulation_data['input_twindow'][1]
@@ -392,7 +458,7 @@ class sFSA:
 
             if i == len(simulation_data['input_sequence'])-1:
 
-                t_start = simulation_data['sim_t'][-1]-0.7      # look back .7s before an input token time window.
+                t_start = simulation_data['sim_t'][-1]-0.7                              # look back .7s before an input token time window.
                 t_end = simulation_data['sim_t'][-1]
 
             else:
@@ -404,11 +470,11 @@ class sFSA:
 
             state_sequence.append(S_winning)
 
-        print(f'> state history: {state_sequence}')
+        # print(f'> state history: {state_sequence}')
 
         return state_sequence
     
-    def plotSfsaNetwork(self):
+    def plotSfsaNetwork(self, name_ext = ''):
         '''
             Plots (raster plot) the spikes from the E neurons representing input tokens (in black) and states (colored) as well as the voltage
         traces of each attractor in S.
@@ -461,7 +527,7 @@ class sFSA:
 
             _aux_c += 1
 
-        ax2.hlines(y=self.sFSA_sim_data['thr_GO_state'], xmin = 0, xmax = int(round(self.sFSA_sim_data['sim_t'][-1]))+1, colors = 'k', linestyles = 'dashed', lw = 0.5)
+        ax2.hlines(y=self.sFSA_sim_data['thr_GO_state'], xmin = 0, xmax = int(round(self.sFSA_sim_data['sim_t'][-1]))+1, colors = 'b', linestyles = 'dashed', lw = 0.75, ls = '-.')
 
         # - Set the axis labels and title.
 
@@ -477,7 +543,35 @@ class sFSA:
 
         plt.tight_layout()
 
-        plt.savefig(os.path.join(self.data_folder, 'network_activity.pdf'))
+        plt.savefig(os.path.join(self.data_folder, f'network_activity{name_ext}.pdf'))
 
         plt.close()
+
+    def storeSfsa(self):
+        '''
+        Stores the state of the RCN (brian2's Network.store) implementing the FSA.
+        '''
+
+        # - Creating data folder.
+
+        if self.data_folder == '':
+
+            data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', f'sFSA_{self.sFSA_id}'))
+
+            if not (os.path.isdir(data_folder)):
+                os.mkdir(data_folder)
+
+            self.data_folder = data_folder
+
+        # - Storing RCN initial state.
+        self.__RCN.net.store(name = f'{self.sFSA_id}_initial_state', filename = os.path.join(self.data_folder, f'{self.sFSA_id}_initial_state'))
+
+    def restoreSfsa(self):
+        '''
+        Restores the state of the RCN (brian2's Network.store) implementing the FSA.
+        '''
+
+        self.__RCN.net.restore(name = f'{self.sFSA_id}_initial_state', filename = os.path.join(self.data_folder, f'{self.sFSA_id}_initial_state'))
+
+
 
