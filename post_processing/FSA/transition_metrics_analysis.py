@@ -37,6 +37,8 @@ parser.add_argument('--gs_percent', type = float,       default = 100,    help =
 parser.add_argument('--w_acpt', type = float,           default = 2.0,   help = 'Weight in synapses to GO state (mV).')
 parser.add_argument('--w_trans', type = float,          default = 7.8,   help = 'Cue transfer weight (mV).')
 parser.add_argument('--thr_GO_state', type = float,     default = -47.00,  help = 'Threshold for Vth gated synapses (mV).')
+parser.add_argument('--delay_A2GO', type = float,     default = 2,  help = 'Connection delay of red synapses (s).')
+parser.add_argument('--delay_A2B', type = float,     default = 0.525,  help = 'Connection delay of blue synapses (s).')
 
 # - Initializing sFSA.
 
@@ -52,7 +54,7 @@ sFSA_model = sFSA(fsa, args)
 
 # - Reading data from listed folders.
 
-target_dirs = ['1', '2', '4', '5', '7', '8', 'A', 'B', 'C', 'I', 'II', 'III']
+target_dirs = ['5', '6', '9', 'I', 'III']
 
 '''
 Assuming here that 'start_twindow', 'input_twindow', 'free_activity' are the same for all sims.
@@ -270,6 +272,8 @@ for cols in cols_2_compare:
     ax.set_xlabel('parameter set folder')
     ax.set_ylabel('simulations (%)')
     ax.set_yticks(np.arange(0, 110, 10))
+
+    plt.xticks(fontsize=7.5)
     
     plt.legend(framealpha = 0.0)
 
