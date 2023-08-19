@@ -296,6 +296,8 @@ class sFSA:
         For each input token in input_word the respective attractor in I is cued.
         '''
 
+        self.inputed_sequence = []
+
         for token in input_word:
 
             self.__feedInputToken(token)
@@ -310,24 +312,26 @@ class sFSA:
 
         # - Creating data folder.
 
-        if sub_dir != '':
-            data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir))
+        if self.data_folder == '':
+
+            if sub_dir != '':
+                data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir))
+
+                if not (os.path.isdir(data_folder)):
+                    os.mkdir(data_folder)
+
+                data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
+            else:
+                data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', f'sFSA_{self.sFSA_id}'))
 
             if not (os.path.isdir(data_folder)):
                 os.mkdir(data_folder)
 
-            data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
-        else:
-            data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', f'sFSA_{self.sFSA_id}'))
-
-        if not (os.path.isdir(data_folder)):
-            os.mkdir(data_folder)
-
-        self.data_folder = data_folder
+            self.data_folder = data_folder
 
         # - Export metadata.
 
-        with open(os.path.join(data_folder, 'parameters.txt'), "w") as file:
+        with open(os.path.join(self.data_folder, 'parameters.txt'), "w") as file:
             file.write("\nRCN\n")
             for arg in vars(self.__args):
                 arg_value = getattr(self.__args, arg)
@@ -407,7 +411,7 @@ class sFSA:
         # - Export data.
 
         fn = os.path.join(
-            data_folder,
+            self.data_folder,
             f'sSFA_simulation_data{name_ext}.pickle')
 
         with open(fn, 'wb') as f:
@@ -469,8 +473,6 @@ class sFSA:
             S_winning = self.__getMostActiveAttractor(spikes_per_state, (t_start, t_end), attractor_size)
 
             state_sequence.append(S_winning)
-
-        # print(f'> state history: {state_sequence}')
 
         return state_sequence
     
@@ -546,6 +548,27 @@ class sFSA:
         plt.savefig(os.path.join(self.data_folder, f'network_activity{name_ext}.pdf'))
 
         plt.close()
+
+    def makeSimulationFolder(self, sub_dir = ''):
+
+        # - Creating data folder.
+
+        if self.data_folder == '':
+
+            if sub_dir != '':
+                data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir))
+
+                if not (os.path.isdir(data_folder)):
+                    os.mkdir(data_folder)
+
+                data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
+            else:
+                data_folder = os.path.abspath(os.path.join(__file__ , '../../../', 'results', f'sFSA_{self.sFSA_id}'))
+
+            if not (os.path.isdir(data_folder)):
+                os.mkdir(data_folder)
+
+            self.data_folder = data_folder
 
     def storeSfsa(self):
         '''
