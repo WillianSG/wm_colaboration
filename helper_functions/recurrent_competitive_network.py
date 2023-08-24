@@ -14,19 +14,34 @@ import os
 import warnings
 import copy
 
-from brian2 import prefs, Hz, second, seed, Equations, NeuronGroup, Synapses, Quantity, SpikeMonitor, StateMonitor, \
-    PopulationRateMonitor, Clock, defaultclock, Network, network_operation
+from brian2 import (
+    prefs,
+    Hz,
+    second,
+    seed,
+    Equations,
+    NeuronGroup,
+    Synapses,
+    Quantity,
+    SpikeMonitor,
+    StateMonitor,
+    PopulationRateMonitor,
+    Clock,
+    defaultclock,
+    Network,
+    network_operation,
+)
 from tqdm import TqdmWarning, tqdm
 
 from helper_functions.other import make_timestamped_folder, compute_ps_score
 from helper_functions.population_spikes import count_ps
 from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
 
-prefs.codegen.target = 'numpy'
+prefs.codegen.target = "numpy"
 
-if sys.platform == 'linux':
-    root = os.path.dirname(os.path.abspath(os.path.join(__file__, '../')))
-    sys.path.append(os.path.join(root, 'helper_functions'))
+if sys.platform == "linux":
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, "../")))
+    sys.path.append(os.path.join(root, "helper_functions"))
     from load_rule_parameters import *
     from load_synapse_model import *
     from load_stimulus import *
@@ -36,55 +51,68 @@ else:
     from helper_functions.load_stimulus import *
 
 
-def run_rcn(params, tmp_folder='.', plot=True, progressbar=True, seed_init=None, low_memory=True):
+def run_rcn(
+    params, tmp_folder=".", plot=True, progressbar=True, seed_init=None, low_memory=True
+):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
-    if (plot == True and low_memory == True):
-        raise ValueError('plotting is only possible with low_memory=False')
+    if plot == True and low_memory == True:
+        raise ValueError("plotting is only possible with low_memory=False")
 
     pid = os.getpid()
     # print(f'RUNNING worker {pid} with params: {params}')
 
-    ba = params['background_activity']
-    i_e_w = params['i_e_weight']
-    e_i_w = params['e_i_weight']
-    e_e_maxw = params['e_e_max_weight']
-    i_freq = params['i_frequency']
-    cue_percentage = params['cue_percentage']
-    cue_time = params['cue_length']
-    num_attractors = int(params['num_attractors'])
-    num_cues = int(params['num_cues'])
-    attractor_size = int(params['attractor_size'])
-    network_size = int(params['network_size'])
-    worker_id = params['worker_id'] if 'worker_id' in params else None
+    ba = params["background_activity"]
+    i_e_w = params["i_e_weight"]
+    e_i_w = params["e_i_weight"]
+    e_e_maxw = params["e_e_max_weight"]
+    i_freq = params["i_frequency"]
+    cue_percentage = params["cue_percentage"]
+    cue_time = params["cue_length"]
+    num_attractors = int(params["num_attractors"])
+    num_cues = int(params["num_cues"])
+    attractor_size = int(params["attractor_size"])
+    network_size = int(params["network_size"])
+    worker_id = params["worker_id"] if "worker_id" in params else None
 
     import sympy
-    a, s, n = sympy.symbols('a s n')
+
+    a, s, n = sympy.symbols("a s n")
     expr = a * (s + 16) <= n
     if not expr.subs([(a, num_attractors), (s, attractor_size), (n, network_size)]):
         print(
-            f'{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons.')
-        choice = input('1- Smaller attractors\n2- Fewer attractors\n3- Larger network\n')
-        if choice == '1':
-            asol = sympy.solveset(expr.subs([(a, num_attractors), (n, network_size)]), s, sympy.Integers)
+            f"{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons."
+        )
+        choice = input(
+            "1- Smaller attractors\n2- Fewer attractors\n3- Larger network\n"
+        )
+        if choice == "1":
+            asol = sympy.solveset(
+                expr.subs([(a, num_attractors), (n, network_size)]), s, sympy.Integers
+            )
             attractor_size = asol.sup
             # attractor_size = floor((network_size - num_attractors * 16) / num_attractors)
-            print(f'Optimal attractor size: {attractor_size}')
-        if choice == '2':
-            asol = sympy.solveset(expr.subs([(s, attractor_size), (n, network_size)]), a, sympy.Integers)
+            print(f"Optimal attractor size: {attractor_size}")
+        if choice == "2":
+            asol = sympy.solveset(
+                expr.subs([(s, attractor_size), (n, network_size)]), a, sympy.Integers
+            )
             num_attractors = asol.sup
-            print(f'Optimal number of attractors: {num_attractors}')
-        if choice == '3':
-            asol = sympy.solveset(expr.subs([(a, num_attractors), (s, attractor_size)]), n, sympy.Integers)
+            print(f"Optimal number of attractors: {num_attractors}")
+        if choice == "3":
+            asol = sympy.solveset(
+                expr.subs([(a, num_attractors), (s, attractor_size)]), n, sympy.Integers
+            )
             network_size = asol.inf
-            print(f'Optimal network size: {network_size}')
+            print(f"Optimal network size: {network_size}")
 
     rcn = RecurrentCompetitiveNet(
         stim_size=attractor_size,
-        plasticity_rule='LR4',
-        parameter_set='2.2',
+        plasticity_rule="LR4",
+        parameter_set="2.2",
         seed_init=seed_init,
-        low_memory=low_memory)
+        low_memory=low_memory,
+    )
 
     plastic_syn = False
     plastic_ux = True
@@ -104,39 +132,40 @@ def run_rcn(params, tmp_folder='.', plot=True, progressbar=True, seed_init=None,
     # -- synaptic augmentation setup
     rcn.U = 0.2  # 0.2 default
 
-    rcn.set_stimulus_i(
-        stimulus='flat_to_I',
-        frequency=i_freq * Hz)  # default: 15 Hz
+    rcn.set_stimulus_i(stimulus="flat_to_I", frequency=i_freq * Hz)  # default: 15 Hz
 
     # --folder for simulation results
-    rcn.net_sim_data_path = make_timestamped_folder(os.path.join(tmp_folder, f'{pid}'))
+    rcn.net_sim_data_path = make_timestamped_folder(os.path.join(tmp_folder, f"{pid}"))
 
     # output .txt with simulation summary.
-    _f = os.path.join(rcn.net_sim_data_path, 'simulation_summary.txt')
+    _f = os.path.join(rcn.net_sim_data_path, "simulation_summary.txt")
 
     attractors_list = []
     for i in range(num_attractors):
         if i * (rcn.stim_size_e + 16) + rcn.stim_size_e > len(rcn.E):
             print(
-                f'{num_attractors} attractors of size {rcn.stim_size_e} cannot fit into a network of {len(rcn.E)} neurons.  Instantiating {i} attractors instead.')
+                f"{num_attractors} attractors of size {rcn.stim_size_e} cannot fit into a network of {len(rcn.E)} neurons.  Instantiating {i} attractors instead."
+            )
             num_attractors = i
             break
-        stim_id = rcn.set_active_E_ids(stimulus='flat_to_E_fixed_size', offset=i * (64 + 16))
+        stim_id = rcn.set_active_E_ids(
+            stimulus="flat_to_E_fixed_size", offset=i * (64 + 16)
+        )
         rcn.set_potentiated_synapses(stim_id)
-        attractors_list.append([f'A{i}', stim_id])
+        attractors_list.append([f"A{i}", stim_id])
 
     rcn.set_E_E_plastic(plastic=plastic_syn)
     rcn.set_E_E_ux_vars_plastic(plastic=plastic_ux)
 
     # generate shuffled attractors
-    '''Attractor cueing order:
+    """Attractor cueing order:
         - Attractor name
         - Neuron IDs belonging to attractor
         - Length of triggered window
         - Generic stimulus
             - % of neurons targeted within attractor
             - IDs of targeted neurons
-            - (start time of GS, end time of GS)'''
+            - (start time of GS, end time of GS)"""
     attractors_cueing_order = [copy.deepcopy(random.choice(attractors_list))]
     for i in range(num_cues - 1):
         atr_sel = copy.deepcopy(random.choice(attractors_list))
@@ -148,19 +177,26 @@ def run_rcn(params, tmp_folder='.', plot=True, progressbar=True, seed_init=None,
     for a in attractors_cueing_order:
         a.append(random.uniform(1, 5))
 
-    overall_sim_time = len(attractors_cueing_order) * cue_time + sum([a[2] for a in attractors_cueing_order])
-    pbar = tqdm(total=overall_sim_time, disable=not progressbar, unit='sim s', leave=True, position=worker_id,
-                desc=f'WORKER {worker_id}',
-                bar_format="{l_bar}{bar}|{n:.2f}/{total:.2f} [{elapsed}<{remaining},{rate_fmt}{postfix}]")
-    pbar.set_description(f'WORKER {worker_id} with params {params}')
+    overall_sim_time = len(attractors_cueing_order) * cue_time + sum(
+        [a[2] for a in attractors_cueing_order]
+    )
+    pbar = tqdm(
+        total=overall_sim_time,
+        disable=not progressbar,
+        unit="sim s",
+        leave=True,
+        position=worker_id,
+        desc=f"WORKER {worker_id}",
+        bar_format="{l_bar}{bar}|{n:.2f}/{total:.2f} [{elapsed}<{remaining},{rate_fmt}{postfix}]",
+    )
+    pbar.set_description(f"WORKER {worker_id} with params {params}")
     time.sleep(0.1)
     pbar.update(0)
     for a in attractors_cueing_order:
         gs = (cue_percentage, a[1], (rcn.net.t / second, rcn.net.t / second + cue_time))
         act_ids = rcn.generic_stimulus(
-            frequency=rcn.stim_freq_e,
-            stim_perc=gs[0],
-            subset=gs[1])
+            frequency=rcn.stim_freq_e, stim_perc=gs[0], subset=gs[1]
+        )
         rcn.run_net(duration=cue_time)
         rcn.generic_stimulus_off(act_ids)
         # # wait for 2 seconds before cueing next attractor
@@ -177,21 +213,26 @@ def run_rcn(params, tmp_folder='.', plot=True, progressbar=True, seed_init=None,
     # -- calculate score
     atr_ps_counts = count_ps(rcn=rcn, attractor_cueing_order=attractors_cueing_order)
 
-    trig, spont, accuracy, recall, f1_score = compute_ps_score(atr_ps_counts, attractors_cueing_order)
+    trig, spont, accuracy, recall, f1_score = compute_ps_score(
+        atr_ps_counts, attractors_cueing_order
+    )
 
     if plot:
-        title_addition = f'BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz'
-        filename_addition = f'_BA_{ba}_GS_{cue_percentage}_W_{i_e_w}_Hz_{i_freq}'
+        title_addition = (
+            f"BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz"
+        )
+        filename_addition = f"_BA_{ba}_GS_{cue_percentage}_W_{i_e_w}_Hz_{i_freq}"
 
         plot_x_u_spks_from_basin(
             path=rcn.net_sim_data_path,
-            filename='x_u_spks_from_basin' + filename_addition,
+            filename="x_u_spks_from_basin" + filename_addition,
             title_addition=title_addition,
             rcn=rcn,
             attractor_cues=attractors_cueing_order,
             pss_categorised=atr_ps_counts,
             num_neurons=len(rcn.E),
-            show=plot)
+            show=plot,
+        )
 
         # plot_thresholds(
         #     path=rcn.net_sim_data_path,
@@ -208,15 +249,27 @@ def run_rcn(params, tmp_folder='.', plot=True, progressbar=True, seed_init=None,
     del rcn
     pbar.close()
 
-    params.pop('worker_id', None)
+    params.pop("worker_id", None)
 
-    return params | {'f1_score': f1_score, 'recall': recall, 'accuracy': accuracy, 'triggered': trig,
-                     'spontaneous': spont}
+    return params | {
+        "f1_score": f1_score,
+        "recall": recall,
+        "accuracy": accuracy,
+        "triggered": trig,
+        "spontaneous": spont,
+    }
 
 
 class RecurrentCompetitiveNet:
-    def __init__(self, stim_size=64, plasticity_rule='LR2', parameter_set='2.4', t_run=2 * second, seed_init=None,
-                 low_memory=False):
+    def __init__(
+        self,
+        stim_size=64,
+        plasticity_rule="LR2",
+        parameter_set="2.4",
+        t_run=2 * second,
+        seed_init=None,
+        low_memory=False,
+    ):
 
         seed(seed_init)
 
@@ -227,17 +280,19 @@ class RecurrentCompetitiveNet:
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
 
-        self.net_sim_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '../')))
+        self.net_sim_path = os.path.dirname(
+            os.path.abspath(os.path.join(__file__, "../"))
+        )
 
-        self.net_sim_data_path = ''
+        self.net_sim_data_path = ""
 
         self.t_run = t_run
         self.dt = 0.1 * ms
 
         self.tqdm_bar = None
 
-        self.int_meth_neur = 'euler'
-        self.int_meth_syn = 'euler'
+        self.int_meth_neur = "euler"
+        self.int_meth_syn = "euler"
 
         # ------ network parameters
         self.stimulus_pulse = False
@@ -248,7 +303,7 @@ class RecurrentCompetitiveNet:
         self.stim_size_i = 64
 
         # ------ neurons parameters
-        self.neuron_type = 'LIF'
+        self.neuron_type = "LIF"
 
         self.N_input_e = 256  # num. of input neurons for E
         self.N_input_i = 64  # num. of input neurons for I
@@ -319,7 +374,7 @@ class RecurrentCompetitiveNet:
 
         self.E_E_syn_matrix_snapshot = False
         self.E_E_syn_matrix_snapshot_dt = 100 * ms
-        self.E_E_syn_matrix_path = ''
+        self.E_E_syn_matrix_path = ""
 
         # ------ data (monitors) parameters
         self.rec_dt = 1 * ms
@@ -336,17 +391,17 @@ class RecurrentCompetitiveNet:
         self.E_I_rec_record = True
         self.I_E_rec_record = True
 
-        self.Input_E_rec_attributes = ('w')
-        self.Input_I_rec_attributes = ('w')
-        self.E_rec_attributes = ['Vm', 'Vepsp', 'Vipsp', 'Vth_e']
-        self.I_rec_attributes = ('Vm', 'Vepsp', 'Vipsp')
-        self.E_E_rec_attributes = ['w']
-        self.E_I_rec_attributes = ('w')
-        self.I_E_rec_attributes = ('w')
+        self.Input_E_rec_attributes = "w"
+        self.Input_I_rec_attributes = "w"
+        self.E_rec_attributes = ["Vm", "Vepsp", "Vipsp", "Vth_e"]
+        self.I_rec_attributes = ("Vm", "Vepsp", "Vipsp")
+        self.E_E_rec_attributes = ["w"]
+        self.E_I_rec_attributes = "w"
+        self.I_E_rec_attributes = "w"
 
-        if self.plasticity_rule == 'LR4':
-            self.E_E_rec_attributes.append('x_')
-            self.E_rec_attributes.append('u')
+        if self.plasticity_rule == "LR4":
+            self.E_E_rec_attributes.append("x_")
+            self.E_rec_attributes.append("u")
 
         # ------ misc operation variables
         self.stimulus_neurons_e_ids = []
@@ -377,20 +432,22 @@ class RecurrentCompetitiveNet:
         # a = 1
         # b = 2.7083893552094156
         # c = 5.509734056519429
-        self.eqs_e = Equations('''
+        self.eqs_e = Equations(
+            """
             plastic_u : boolean (shared)
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
             dVepsp/dt = -Vepsp / tau_epsp : volt
             dVipsp/dt = -Vipsp / tau_ipsp : volt
             du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = (Vth_e_init - (0.002 * (3 * exp(-exp(3.4 - 12.48 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
-            ''',
-                               Vr_e=self.Vr_e,
-                               taum_e=self.taum_e,
-                               tau_epsp=self.tau_epsp_e,
-                               tau_ipsp=self.tau_ipsp_e,
-                               Vth_e_init=self.Vth_e_init,
-                               tau_Vth_e=self.tau_Vth_e)
+            dVth_e/dt = (Vth_e_init - (0.004 * (3 * exp(-exp(3.4 - 9.5 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
+            """,
+            Vr_e=self.Vr_e,
+            taum_e=self.taum_e,
+            tau_epsp=self.tau_epsp_e,
+            tau_ipsp=self.tau_ipsp_e,
+            Vth_e_init=self.Vth_e_init,
+            tau_Vth_e=self.tau_Vth_e,
+        )
 
         # self.eqs_e = Equations('''
         #     plastic_u : boolean (shared)
@@ -407,47 +464,61 @@ class RecurrentCompetitiveNet:
         #                        Vth_e_init=self.Vth_e_init,
         #                        tau_Vth_e=self.tau_Vth_e)
 
-        self.eqs_i = Equations('''
+        self.eqs_i = Equations(
+            """
             dVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)
             dVepsp/dt = -Vepsp / tau_epsp : volt
-            dVipsp/dt = -Vipsp / tau_ipsp : volt''',
-                               Vr_i=self.Vr_i,
-                               taum_i=self.taum_i,
-                               tau_epsp=self.tau_epsp_i,
-                               tau_ipsp=self.tau_ipsp_i)
+            dVipsp/dt = -Vipsp / tau_ipsp : volt""",
+            Vr_i=self.Vr_i,
+            taum_i=self.taum_i,
+            tau_epsp=self.tau_epsp_i,
+            tau_ipsp=self.tau_ipsp_i,
+        )
 
         # populations
-        self.E = NeuronGroup(N=self.N_e, model=self.eqs_e,
-                             reset='''
+        self.E = NeuronGroup(
+            N=self.N_e,
+            model=self.eqs_e,
+            reset="""
                                     Vm = Vrst_e
                                     u = u + U * (1 - u) * int(plastic_u)
-                                    ''',
-                             threshold='Vm > Vth_e',
-                             refractory=self.tref_e,
-                             method=self.int_meth_neur,
-                             name='E')
+                                    """,
+            threshold="Vm > Vth_e",
+            refractory=self.tref_e,
+            method=self.int_meth_neur,
+            name="E",
+        )
 
-        self.I = NeuronGroup(N=self.N_i, model=self.eqs_i,
-                             reset='Vm = Vrst_i',
-                             threshold='Vm > Vth_i',
-                             refractory=self.tref_i,
-                             method=self.int_meth_neur,
-                             name='I')
+        self.I = NeuronGroup(
+            N=self.N_i,
+            model=self.eqs_i,
+            reset="Vm = Vrst_i",
+            threshold="Vm > Vth_i",
+            refractory=self.tref_i,
+            method=self.int_meth_neur,
+            name="I",
+        )
 
-        self.Input_to_E = NeuronGroup(N=self.N_input_e,
-                                      model='rates : Hz',
-                                      threshold='rand()<rates*dt',
-                                      name='Input_to_E')
+        self.Input_to_E = NeuronGroup(
+            N=self.N_input_e,
+            model="rates : Hz",
+            threshold="rand()<rates*dt",
+            name="Input_to_E",
+        )
 
-        self.Input_to_I = NeuronGroup(N=self.N_input_i,
-                                      model='rates : Hz',
-                                      threshold='rand()<rates*dt',
-                                      name='Input_to_I')
+        self.Input_to_I = NeuronGroup(
+            N=self.N_input_i,
+            model="rates : Hz",
+            threshold="rand()<rates*dt",
+            name="Input_to_I",
+        )
 
-        self.Input_to_E_spont = NeuronGroup(N=self.N_input_e,
-                                            model='rates : Hz',
-                                            threshold='rand()<rates*dt',
-                                            name='Input_to_E_spont')
+        self.Input_to_E_spont = NeuronGroup(
+            N=self.N_input_e,
+            model="rates : Hz",
+            threshold="rand()<rates*dt",
+            name="Input_to_E_spont",
+        )
 
         # populations's attributes
         self.E.Vth_e = self.Vth_e_init
@@ -465,10 +536,11 @@ class RecurrentCompetitiveNet:
 
     def set_active_E_ids(self, stimulus, offset=0):
         stim_ids = load_stimulus(
-            stimulus_type=stimulus,
-            stimulus_size=self.stim_size_e,
-            offset=offset)
-        self.stimulus_neurons_e_ids = np.append(self.stimulus_neurons_e_ids, stim_ids).astype(np.int)
+            stimulus_type=stimulus, stimulus_size=self.stim_size_e, offset=offset
+        )
+        self.stimulus_neurons_e_ids = np.append(
+            self.stimulus_neurons_e_ids, stim_ids
+        ).astype(np.int)
 
         return stim_ids
 
@@ -480,48 +552,47 @@ class RecurrentCompetitiveNet:
 
     def set_learning_rule(self):
         # rule's equations
-        [self.model_E_E,
-         self.pre_E_E,
-         self.post_E_E] = load_synapse_model(
+        [self.model_E_E, self.pre_E_E, self.post_E_E] = load_synapse_model(
             plasticity_rule=self.plasticity_rule,
             neuron_type=self.neuron_type,
             bistability=self.bistability,
             stoplearning=self.stop_learning,
-            resources=self.resources)
+            resources=self.resources,
+        )
 
         # rule's parameters
-        [self.tau_xpre,
-         self.tau_xpost,
-         self.xpre_jump,
-         self.xpost_jump,
-         self.rho_neg,
-         self.rho_neg2,
-         self.rho_init,
-         self.tau_rho,
-         self.thr_post,
-         self.thr_pre,
-         self.thr_b_rho,
-         self.rho_min,
-         self.rho_max,
-         self.alpha,
-         self.beta,
-         self.xpre_factor,
-         self.w_max,
-         self.xpre_min,
-         self.xpost_min,
-         self.xpost_max,
-         self.xpre_max,
-         self.tau_xstop,
-         self.xstop_jump,
-         self.xstop_max,
-         self.xstop_min,
-         self.thr_stop_h,
-         self.thr_stop_l,
-         self.U,
-         self.tau_d,
-         self.tau_f] = load_rule_parameters(
-            self.plasticity_rule,
-            self.rule_parameters)
+        [
+            self.tau_xpre,
+            self.tau_xpost,
+            self.xpre_jump,
+            self.xpost_jump,
+            self.rho_neg,
+            self.rho_neg2,
+            self.rho_init,
+            self.tau_rho,
+            self.thr_post,
+            self.thr_pre,
+            self.thr_b_rho,
+            self.rho_min,
+            self.rho_max,
+            self.alpha,
+            self.beta,
+            self.xpre_factor,
+            self.w_max,
+            self.xpre_min,
+            self.xpost_min,
+            self.xpost_max,
+            self.xpre_max,
+            self.tau_xstop,
+            self.xstop_jump,
+            self.xstop_max,
+            self.xstop_min,
+            self.thr_stop_h,
+            self.thr_stop_l,
+            self.U,
+            self.tau_d,
+            self.tau_f,
+        ] = load_rule_parameters(self.plasticity_rule, self.rule_parameters)
 
     """
     Sets synapses objects and connections.
@@ -532,38 +603,43 @@ class RecurrentCompetitiveNet:
         self.Input_E = Synapses(
             source=self.Input_to_E,
             target=self.E,
-            model='w : volt',
-            on_pre='Vepsp += w',
-            name='Input_E')
+            model="w : volt",
+            on_pre="Vepsp += w",
+            name="Input_E",
+        )
 
         self.Input_E_spont = Synapses(
             source=self.Input_to_E_spont,
             target=self.E,
-            model='w : volt',
-            on_pre='Vepsp += w',
-            name='Input_E_spont')
+            model="w : volt",
+            on_pre="Vepsp += w",
+            name="Input_E_spont",
+        )
 
         self.Input_I = Synapses(
             source=self.Input_to_I,
             target=self.I,
-            model='w : volt',
-            on_pre='Vepsp += w',
-            name='Input_I')
+            model="w : volt",
+            on_pre="Vepsp += w",
+            name="Input_I",
+        )
 
         self.E_I = Synapses(
             source=self.E,
             target=self.I,
-            model='w : volt',
-            on_pre='Vepsp += w',
+            model="w : volt",
+            on_pre="Vepsp += w",
             delay=self.E_I_delay,
-            name='E_I')
+            name="E_I",
+        )
 
         self.I_E = Synapses(
             source=self.I,
             target=self.E,
-            model='w : volt',
-            on_pre='Vipsp += w',
-            name='I_E')
+            model="w : volt",
+            on_pre="Vipsp += w",
+            name="I_E",
+        )
 
         self.E_E = Synapses(  # E-E plastic synapses
             source=self.E,
@@ -572,7 +648,8 @@ class RecurrentCompetitiveNet:
             on_pre=self.pre_E_E,
             on_post=self.post_E_E,
             method=self.int_meth_syn,
-            name='E_E')
+            name="E_E",
+        )
 
         # self.I_I = Synapses(  # I-I plastic synapses
         #     source=self.I,
@@ -584,13 +661,13 @@ class RecurrentCompetitiveNet:
         #     name='I_I')
 
         # connecting synapses
-        self.Input_E.connect(j='i')
-        self.Input_E_spont.connect(j='i')
-        self.Input_I.connect(j='i')
+        self.Input_E.connect(j="i")
+        self.Input_E_spont.connect(j="i")
+        self.Input_I.connect(j="i")
 
         self.E_I.connect(True, p=self.p_e_i)
         self.I_E.connect(True, p=self.p_i_e)
-        self.E_E.connect('i!=j', p=self.p_e_e)
+        self.E_E.connect("i!=j", p=self.p_e_e)
         # self.I_I.connect('i!=j', p=self.p_i_i)
 
         # init synaptic variables
@@ -602,7 +679,7 @@ class RecurrentCompetitiveNet:
         # self.E_E.w = self.w_e_e
         # self.I_I.w = self.w_i_i
 
-        if self.plasticity_rule == 'LR4':
+        if self.plasticity_rule == "LR4":
             self.E_E.x_ = 1.0
             self.E_E.u = self.U
 
@@ -664,9 +741,15 @@ class RecurrentCompetitiveNet:
     """
     """
 
-    def run_net(self, duration=3 * second, gather_every=0 * second, pulse_ending=False, callback=None):
+    def run_net(
+        self,
+        duration=3 * second,
+        gather_every=0 * second,
+        pulse_ending=False,
+        callback=None,
+    ):
 
-        if sys.platform == 'linux':
+        if sys.platform == "linux":
 
             pass
 
@@ -681,7 +764,8 @@ class RecurrentCompetitiveNet:
         if not isinstance(pulse_ending, Quantity):
             pulse_ending *= second
 
-        if not callback: callback = []
+        if not callback:
+            callback = []
 
         self.t_run = duration
 
@@ -705,9 +789,8 @@ class RecurrentCompetitiveNet:
             #     # f'input ending at {self.stimulus_pulse_duration:.1f} s'
             # )
             self.net.run(
-                duration=duration,
-                report=None,
-                namespace=self.set_net_namespace())
+                duration=duration, report=None, namespace=self.set_net_namespace()
+            )
 
             # if gather_every > 0 * second:
             #     for f in callback:
@@ -725,11 +808,10 @@ class RecurrentCompetitiveNet:
         if stimulus_size == 0:
             stimulus_size = self.stim_size_e
 
-        if stimulus != '':
+        if stimulus != "":
             self.stimulus_neurons_e_ids = load_stimulus(
-                stimulus_type=stimulus,
-                stimulus_size=stimulus_size,
-                offset=offset)
+                stimulus_type=stimulus, stimulus_size=stimulus_size, offset=offset
+            )
 
             self.Input_to_E.rates[self.stimulus_neurons_e_ids] = frequency
         else:
@@ -739,11 +821,10 @@ class RecurrentCompetitiveNet:
     """
 
     def set_stimulus_i(self, stimulus, frequency, offset=0):
-        if stimulus != '':
+        if stimulus != "":
             self.stimulus_neurons_i_ids = load_stimulus(
-                stimulus_type=stimulus,
-                stimulus_size=self.stim_size_i,
-                offset=offset)
+                stimulus_type=stimulus, stimulus_size=self.stim_size_i, offset=offset
+            )
 
             self.Input_to_I.rates[self.stimulus_neurons_i_ids] = frequency
         else:
@@ -754,7 +835,9 @@ class RecurrentCompetitiveNet:
     """
 
     def generic_stimulus(self, frequency, stim_perc, subset):
-        subset = np.random.choice(subset, int((len(subset) * stim_perc) / 100), replace=False)
+        subset = np.random.choice(
+            subset, int((len(subset) * stim_perc) / 100), replace=False
+        )
 
         self.Input_to_E.rates[subset] = frequency
 
@@ -767,18 +850,21 @@ class RecurrentCompetitiveNet:
     Stimulates 'stim_perc'% of neurons of pattern 'pattern'.
     """
 
-    def stimulate_attractors(self, stimulus, frequency, stim_perc=10, offset=0, stimulus_size=0):
+    def stimulate_attractors(
+        self, stimulus, frequency, stim_perc=10, offset=0, stimulus_size=0
+    ):
         if stimulus_size == 0:
             stimulus_size = self.stim_size_e
 
         n_act_ids = int((stimulus_size * stim_perc) / 100)
 
-        act_ids = np.random.choice(load_stimulus(
-            stimulus_type=stimulus,
-            stimulus_size=self.stim_size_e,
-            offset=offset),
+        act_ids = np.random.choice(
+            load_stimulus(
+                stimulus_type=stimulus, stimulus_size=self.stim_size_e, offset=offset
+            ),
             size=n_act_ids,
-            replace=False)
+            replace=False,
+        )
 
         self.Input_to_E.rates[act_ids] = frequency
 
@@ -805,16 +891,15 @@ class RecurrentCompetitiveNet:
     """
 
     def set_results_folder(self):
-        network_sim_dir = os.path.join(
-            self.net_sim_path,
-            'network_results')
+        network_sim_dir = os.path.join(self.net_sim_path, "network_results")
 
         if not (os.path.isdir(network_sim_dir)):
             os.mkdir(network_sim_dir)
 
         network_sim_dir = os.path.join(
             network_sim_dir,
-            self.net_id + f'_RCN_{self.plasticity_rule}-{self.rule_parameters}')
+            self.net_id + f"_RCN_{self.plasticity_rule}-{self.rule_parameters}",
+        )
 
         if not (os.path.isdir(network_sim_dir)):
             os.mkdir(network_sim_dir)
@@ -822,9 +907,7 @@ class RecurrentCompetitiveNet:
         self.net_sim_data_path = network_sim_dir
 
         if self.E_E_syn_matrix_snapshot:
-            E_E_syn_matrix_path = os.path.join(
-                self.net_sim_data_path,
-                'E_E_syn_matrix')
+            E_E_syn_matrix_path = os.path.join(self.net_sim_data_path, "E_E_syn_matrix")
 
             if not (os.path.isdir(E_E_syn_matrix_path)):
                 os.mkdir(E_E_syn_matrix_path)
@@ -840,20 +923,20 @@ class RecurrentCompetitiveNet:
             new_data = mon.get_states()
             old_data = None
 
-            filename = f'{self.net_sim_data_path}/{mon.name}.data'
+            filename = f"{self.net_sim_data_path}/{mon.name}.data"
             if os.path.exists(filename):
-                with open(filename, 'rb') as f:
+                with open(filename, "rb") as f:
                     old_data = pickle.load(f)
 
             if old_data is not None:
                 if isinstance(mon, SpikeMonitor):
-                    data_points = len(old_data['i']) + len(new_data['i'])
+                    data_points = len(old_data["i"]) + len(new_data["i"])
                     for k, v in old_data.items():
-                        if k == 'i' or k == 't':
+                        if k == "i" or k == "t":
                             new_data[k] = np.hstack((old_data[k], new_data[k]))
-                        elif k == 'count':
+                        elif k == "count":
                             new_data[k] = old_data[k] + new_data[k]
-                        elif k == 'N':
+                        elif k == "N":
                             new_data[k] = data_points
                 # elif isinstance(mon, PopulationRateMonitor):
                 #     data_points = len(old_data['t']) + len(new_data['t'])
@@ -863,45 +946,49 @@ class RecurrentCompetitiveNet:
                 #         elif k == 'N':
                 #             new_data[k] = data_points
                 elif isinstance(mon, StateMonitor):
-                    data_points = len(old_data['t']) + len(new_data['t'])
+                    data_points = len(old_data["t"]) + len(new_data["t"])
                     for k, v in old_data.items():
-                        if k == 't':
+                        if k == "t":
                             new_data[k] = np.hstack((old_data[k], new_data[k]))
-                        elif k == 'N':
+                        elif k == "N":
                             new_data[k] = data_points
                         else:
                             new_data[k] = np.vstack((old_data[k], new_data[k]))
 
-            with open(filename, 'wb+') as f:
+            with open(filename, "wb+") as f:
                 pickle.dump(new_data, f)
 
         # -- also store traces now, as it's really hard to extract them later
         x_traces_old = None
-        if os.path.exists(f'{self.net_sim_data_path}/x_traces.data'):
-            with open(f'{self.net_sim_data_path}/x_traces.data', 'rb') as f:
+        if os.path.exists(f"{self.net_sim_data_path}/x_traces.data"):
+            with open(f"{self.net_sim_data_path}/x_traces.data", "rb") as f:
                 x_traces_old = pickle.load(f)
         x_traces_new = self.get_x_traces_from_pattern_neurons()
         # append new traces to old ones
         if x_traces_old is not None:
             for el_old in x_traces_old[0].keys():
                 if el_old in x_traces_new[0]:
-                    x_traces_new[0][el_old] = np.hstack((x_traces_old[0][el_old], x_traces_new[0][el_old]))
+                    x_traces_new[0][el_old] = np.hstack(
+                        (x_traces_old[0][el_old], x_traces_new[0][el_old])
+                    )
             x_traces_new[1] = np.hstack((x_traces_old[1], x_traces_new[1]))
-        with open(f'{self.net_sim_data_path}/x_traces.data', 'wb+') as f:
+        with open(f"{self.net_sim_data_path}/x_traces.data", "wb+") as f:
             pickle.dump(x_traces_new, f)
 
         u_traces_old = None
-        if os.path.exists(f'{self.net_sim_data_path}/u_traces.data'):
-            with open(f'{self.net_sim_data_path}/u_traces.data', 'rb') as f:
+        if os.path.exists(f"{self.net_sim_data_path}/u_traces.data"):
+            with open(f"{self.net_sim_data_path}/u_traces.data", "rb") as f:
                 u_traces_old = pickle.load(f)
         u_traces_new = self.get_u_traces_from_pattern_neurons()
         # append new traces to old ones
         if u_traces_old is not None:
             for el_old in u_traces_old[0].keys():
                 if el_old in u_traces_new[0]:
-                    u_traces_new[0][el_old] = np.hstack((u_traces_old[0][el_old], u_traces_new[0][el_old]))
+                    u_traces_new[0][el_old] = np.hstack(
+                        (u_traces_old[0][el_old], u_traces_new[0][el_old])
+                    )
             u_traces_new[1] = np.hstack((u_traces_old[1], u_traces_new[1]))
-        with open(f'{self.net_sim_data_path}/u_traces.data', 'wb+') as f:
+        with open(f"{self.net_sim_data_path}/u_traces.data", "wb+") as f:
             pickle.dump(u_traces_new, f)
 
         self.net.remove(self.spk_monitors)
@@ -910,9 +997,11 @@ class RecurrentCompetitiveNet:
         self.net.add(self.set_state_monitors())
 
     def load_monitors_from_file(self):
-        for f in glob.glob(os.path.join(self.net_sim_data_path, '*.data')):
-            with open(f, 'rb') as fp:
-                self.dumped_mons_dict[os.path.splitext(os.path.split(f)[1])[0]] = pickle.load(fp)
+        for f in glob.glob(os.path.join(self.net_sim_data_path, "*.data")):
+            with open(f, "rb") as fp:
+                self.dumped_mons_dict[
+                    os.path.splitext(os.path.split(f)[1])[0]
+                ] = pickle.load(fp)
 
         return self.dumped_mons_dict
 
@@ -920,29 +1009,30 @@ class RecurrentCompetitiveNet:
         self.Input_to_E_mon = SpikeMonitor(
             source=self.Input_to_E,
             record=self.Input_to_E_mon_record,
-            name='Input_to_E_mon')
+            name="Input_to_E_mon",
+        )
 
         self.Input_to_I_mon = SpikeMonitor(
             source=self.Input_to_I,
             record=self.Input_to_I_mon_record,
-            name='Input_to_I_mon')
+            name="Input_to_I_mon",
+        )
 
-        self.E_mon = SpikeMonitor(
-            source=self.E,
-            record=self.E_mon_record,
-            name='E_mon')
+        self.E_mon = SpikeMonitor(source=self.E, record=self.E_mon_record, name="E_mon")
 
-        self.I_mon = SpikeMonitor(
-            source=self.I,
-            record=self.I_mon_record,
-            name='I_mon')
+        self.I_mon = SpikeMonitor(source=self.I, record=self.I_mon_record, name="I_mon")
 
-        self.E_rate_mon = PopulationRateMonitor(source=self.E, name='E_rate_mon')
+        self.E_rate_mon = PopulationRateMonitor(source=self.E, name="E_rate_mon")
 
         if self.low_memory:
             self.spk_monitors = [self.E_mon]
         else:
-            self.spk_monitors = [self.Input_to_E_mon, self.Input_to_I_mon, self.E_mon, self.I_mon]
+            self.spk_monitors = [
+                self.Input_to_E_mon,
+                self.Input_to_I_mon,
+                self.E_mon,
+                self.I_mon,
+            ]
 
         return self.spk_monitors
 
@@ -950,54 +1040,74 @@ class RecurrentCompetitiveNet:
     """
 
     def set_state_monitors(self):
-        self.Input_E_rec = StateMonitor(source=self.Input_E,
-                                        variables=self.Input_E_rec_attributes,
-                                        record=self.Input_E_rec_record,
-                                        dt=self.rec_dt,
-                                        name='Input_E_rec')
+        self.Input_E_rec = StateMonitor(
+            source=self.Input_E,
+            variables=self.Input_E_rec_attributes,
+            record=self.Input_E_rec_record,
+            dt=self.rec_dt,
+            name="Input_E_rec",
+        )
 
-        self.Input_I_rec = StateMonitor(source=self.Input_I,
-                                        variables=self.Input_I_rec_attributes,
-                                        record=self.Input_I_rec_record,
-                                        dt=self.rec_dt,
-                                        name='Input_I_rec')
+        self.Input_I_rec = StateMonitor(
+            source=self.Input_I,
+            variables=self.Input_I_rec_attributes,
+            record=self.Input_I_rec_record,
+            dt=self.rec_dt,
+            name="Input_I_rec",
+        )
 
-        self.E_rec = StateMonitor(source=self.E,
-                                  variables=self.E_rec_attributes,
-                                  record=self.E_rec_record,
-                                  dt=self.rec_dt,
-                                  name='E_rec')
+        self.E_rec = StateMonitor(
+            source=self.E,
+            variables=self.E_rec_attributes,
+            record=self.E_rec_record,
+            dt=self.rec_dt,
+            name="E_rec",
+        )
 
-        self.I_rec = StateMonitor(source=self.I,
-                                  variables=self.I_rec_attributes,
-                                  record=self.I_rec_record,
-                                  dt=self.rec_dt,
-                                  name='I_rec')
+        self.I_rec = StateMonitor(
+            source=self.I,
+            variables=self.I_rec_attributes,
+            record=self.I_rec_record,
+            dt=self.rec_dt,
+            name="I_rec",
+        )
 
-        self.E_E_rec = StateMonitor(source=self.E_E,
-                                    variables=self.E_E_rec_attributes,
-                                    record=self.E_E_rec_record,
-                                    dt=self.rec_dt,
-                                    name='E_E_rec')
+        self.E_E_rec = StateMonitor(
+            source=self.E_E,
+            variables=self.E_E_rec_attributes,
+            record=self.E_E_rec_record,
+            dt=self.rec_dt,
+            name="E_E_rec",
+        )
 
-        self.E_I_rec = StateMonitor(source=self.E_I,
-                                    variables=self.E_I_rec_attributes,
-                                    record=self.E_I_rec_record,
-                                    dt=self.rec_dt,
-                                    name='E_I_rec')
+        self.E_I_rec = StateMonitor(
+            source=self.E_I,
+            variables=self.E_I_rec_attributes,
+            record=self.E_I_rec_record,
+            dt=self.rec_dt,
+            name="E_I_rec",
+        )
 
-        self.I_E_rec = StateMonitor(source=self.I_E,
-                                    variables=self.I_E_rec_attributes,
-                                    record=self.I_E_rec_record,
-                                    dt=self.rec_dt,
-                                    name='I_E_rec')
+        self.I_E_rec = StateMonitor(
+            source=self.I_E,
+            variables=self.I_E_rec_attributes,
+            record=self.I_E_rec_record,
+            dt=self.rec_dt,
+            name="I_E_rec",
+        )
 
         if self.low_memory:
             self.state_monitors = []
         else:
-            self.state_monitors = [self.Input_E_rec, self.Input_I_rec, self.E_rec, self.I_rec, self.E_E_rec,
-                                   self.E_I_rec,
-                                   self.I_E_rec]
+            self.state_monitors = [
+                self.Input_E_rec,
+                self.Input_I_rec,
+                self.E_rec,
+                self.I_rec,
+                self.E_E_rec,
+                self.E_I_rec,
+                self.I_E_rec,
+            ]
 
         return self.state_monitors
 
@@ -1007,12 +1117,12 @@ class RecurrentCompetitiveNet:
 
     def set_net_obj(self):
         self.stimulus_pulse_clock = Clock(
-            self.stimulus_pulse_clock_dt,
-            name='stim_pulse_clk')
+            self.stimulus_pulse_clock_dt, name="stim_pulse_clk"
+        )
 
         self.E_E_syn_matrix_clock = Clock(
-            self.E_E_syn_matrix_snapshot_dt,
-            name='E_E_syn_matrix_clk')
+            self.E_E_syn_matrix_snapshot_dt, name="E_E_syn_matrix_clk"
+        )
 
         # deactivate stimulus
         # if self.stimulus_pulse:
@@ -1026,6 +1136,7 @@ class RecurrentCompetitiveNet:
         #         pass
         #
         if self.E_E_syn_matrix_snapshot:
+
             @network_operation(clock=self.E_E_syn_matrix_clock)
             def store_E_E_syn_matrix_snapshot():
                 synaptic_matrix = np.full((len(self.E), len(self.E)), -1.0)
@@ -1033,12 +1144,15 @@ class RecurrentCompetitiveNet:
 
                 fn = os.path.join(
                     self.E_E_syn_matrix_path,
-                    str(int(round(defaultclock.x / ms, 0))) + '_ms_E_E_syn_matrix.pickle')
+                    str(int(round(defaultclock.x / ms, 0)))
+                    + "_ms_E_E_syn_matrix.pickle",
+                )
 
-                with open(fn, 'wb') as f:
-                    pickle.dump((
-                        synaptic_matrix), f)
+                with open(fn, "wb") as f:
+                    pickle.dump((synaptic_matrix), f)
+
         else:
+
             @network_operation(clock=self.E_E_syn_matrix_clock)
             def store_E_E_syn_matrix_snapshot():
                 pass
@@ -1062,49 +1176,51 @@ class RecurrentCompetitiveNet:
             self.state_monitors,
             # stimulus_pulse,
             store_E_E_syn_matrix_snapshot,
-            name='rcn_net')
+            name="rcn_net",
+        )
 
     """
     """
 
     def set_net_namespace(self):
         self.namespace = {
-            'Vrst_e': self.Vrst_e,
-            'Vth_e_init': self.Vth_e_init,
-            'Vrst_i': self.Vrst_i,
-            'Vth_i': self.Vth_i,
-            'Vth_e_decr': self.Vth_e_decr,
-            'tau_xpre': self.tau_xpre,
-            'tau_xpost': self.tau_xpost,
-            'xpre_jump': self.xpre_jump,
-            'xpost_jump': self.xpost_jump,
-            'rho_neg': self.rho_neg,
-            'rho_neg2': self.rho_neg2,
-            'rho_init': self.rho_init,
-            'tau_rho': self.tau_rho,
-            'thr_post': self.thr_post,
-            'thr_pre': self.thr_pre,
-            'thr_b_rho': self.thr_b_rho,
-            'rho_min': self.rho_min,
-            'rho_max': self.rho_max,
-            'alpha': self.alpha,
-            'beta': self.beta,
-            'xpre_factor': self.xpre_factor,
-            'w_max': self.w_max,
-            'xpre_min': self.xpre_min,
-            'xpost_min': self.xpost_min,
-            'xpost_max': self.xpost_max,
-            'xpre_max': self.xpre_max,
-            'tau_xstop': self.tau_xstop,
-            'xstop_jump': self.xstop_jump,
-            'xstop_max': self.xstop_max,
-            'xstop_min': self.xstop_min,
-            'thr_stop_h': self.thr_stop_h,
-            'thr_stop_l': self.thr_stop_l,
-            'U': self.U,
-            'tau_d': self.tau_d,
-            'tau_f': self.tau_f,
-            'k': self.k}
+            "Vrst_e": self.Vrst_e,
+            "Vth_e_init": self.Vth_e_init,
+            "Vrst_i": self.Vrst_i,
+            "Vth_i": self.Vth_i,
+            "Vth_e_decr": self.Vth_e_decr,
+            "tau_xpre": self.tau_xpre,
+            "tau_xpost": self.tau_xpost,
+            "xpre_jump": self.xpre_jump,
+            "xpost_jump": self.xpost_jump,
+            "rho_neg": self.rho_neg,
+            "rho_neg2": self.rho_neg2,
+            "rho_init": self.rho_init,
+            "tau_rho": self.tau_rho,
+            "thr_post": self.thr_post,
+            "thr_pre": self.thr_pre,
+            "thr_b_rho": self.thr_b_rho,
+            "rho_min": self.rho_min,
+            "rho_max": self.rho_max,
+            "alpha": self.alpha,
+            "beta": self.beta,
+            "xpre_factor": self.xpre_factor,
+            "w_max": self.w_max,
+            "xpre_min": self.xpre_min,
+            "xpost_min": self.xpost_min,
+            "xpost_max": self.xpost_max,
+            "xpre_max": self.xpre_max,
+            "tau_xstop": self.tau_xstop,
+            "xstop_jump": self.xstop_jump,
+            "xstop_max": self.xstop_max,
+            "xstop_min": self.xstop_min,
+            "thr_stop_h": self.thr_stop_h,
+            "thr_stop_l": self.thr_stop_l,
+            "U": self.U,
+            "tau_d": self.tau_d,
+            "tau_f": self.tau_f,
+            "k": self.k,
+        }
 
         return self.namespace
 
@@ -1134,7 +1250,10 @@ class RecurrentCompetitiveNet:
                 from collections import OrderedDict
 
                 spike_trains = {}
-                for i, t in zip(self.dumped_mons_dict['E_mon']['i'], self.dumped_mons_dict['E_mon']['t']):
+                for i, t in zip(
+                    self.dumped_mons_dict["E_mon"]["i"],
+                    self.dumped_mons_dict["E_mon"]["t"],
+                ):
                     if i not in spike_trains:
                         spike_trains[i] = [t]
                     else:
@@ -1182,59 +1301,51 @@ class RecurrentCompetitiveNet:
         if all == False:
             targeted_E_list = []
             for n_id in targets_E:
-                targeted_E_list.append({'id': n_id, 'spk_t': []})
+                targeted_E_list.append({"id": n_id, "spk_t": []})
 
             for n_id in range(0, len(self.E_mon.i)):
-                if (self.E_mon.i[n_id] in targets_E):
+                if self.E_mon.i[n_id] in targets_E:
                     for y in targeted_E_list:
-                        if y['id'] == self.E_mon.i[n_id]:
-                            y['spk_t'].append(self.E_mon.t[n_id])
+                        if y["id"] == self.E_mon.i[n_id]:
+                            y["spk_t"].append(self.E_mon.t[n_id])
 
             targeted_I_list = []
             for n_id in targets_I:
-                targeted_I_list.append({'id': n_id, 'spk_t': []})
+                targeted_I_list.append({"id": n_id, "spk_t": []})
 
             for n_id in range(0, len(self.I_mon.i)):
-                if (self.I_mon.i[n_id] in targets_I):
+                if self.I_mon.i[n_id] in targets_I:
                     for y in targeted_I_list:
-                        if y['id'] == self.I_mon.i[n_id]:
-                            y['spk_t'].append(self.I_mon.t[n_id])
+                        if y["id"] == self.I_mon.i[n_id]:
+                            y["spk_t"].append(self.I_mon.t[n_id])
 
-            fn = os.path.join(
-                self.net_sim_data_path,
-                'targeted_E_n_I_spks.pickle')
+            fn = os.path.join(self.net_sim_data_path, "targeted_E_n_I_spks.pickle")
 
-            with open(fn, 'wb') as f:
-                pickle.dump((
-                    targeted_E_list,
-                    targeted_I_list), f)
+            with open(fn, "wb") as f:
+                pickle.dump((targeted_E_list, targeted_I_list), f)
         else:
             targeted_E_list = []
             for n_id in range(0, self.N_e):
-                targeted_E_list.append({'id': n_id, 'spk_t': []})
+                targeted_E_list.append({"id": n_id, "spk_t": []})
 
             for n_id in range(0, len(self.E_mon.i)):
                 for y in targeted_E_list:
-                    if y['id'] == self.E_mon.i[n_id]:
-                        y['spk_t'].append(self.E_mon.t[n_id])
+                    if y["id"] == self.E_mon.i[n_id]:
+                        y["spk_t"].append(self.E_mon.t[n_id])
 
             targeted_I_list = []
             for n_id in range(0, self.N_i):
-                targeted_I_list.append({'id': n_id, 'spk_t': []})
+                targeted_I_list.append({"id": n_id, "spk_t": []})
 
             for n_id in range(0, len(self.I_mon.i)):
                 for y in targeted_I_list:
-                    if y['id'] == self.I_mon.i[n_id]:
-                        y['spk_t'].append(self.I_mon.t[n_id])
+                    if y["id"] == self.I_mon.i[n_id]:
+                        y["spk_t"].append(self.I_mon.t[n_id])
 
-            fn = os.path.join(
-                self.net_sim_data_path,
-                'targeted_all_E_n_I_spks.pickle')
+            fn = os.path.join(self.net_sim_data_path, "targeted_all_E_n_I_spks.pickle")
 
-            with open(fn, 'wb') as f:
-                pickle.dump((
-                    targeted_E_list,
-                    targeted_I_list), f)
+            with open(fn, "wb") as f:
+                pickle.dump((targeted_E_list, targeted_I_list), f)
 
     """
     Retrieves the spikes recorded during simulation only from neurons receiving input simuli.
@@ -1247,8 +1358,8 @@ class RecurrentCompetitiveNet:
         spk_mon_ts = []
 
         if self.dumped_mons_dict:
-            data = self.dumped_mons_dict['E_mon']['i']
-            time = self.dumped_mons_dict['E_mon']['t']
+            data = self.dumped_mons_dict["E_mon"]["i"]
+            time = self.dumped_mons_dict["E_mon"]["t"]
         else:
             data = self.E_mon.i[:]
             time = self.E_mon.t[:]
@@ -1259,15 +1370,10 @@ class RecurrentCompetitiveNet:
                 spk_mon_ts.append(time[x] / second)
 
         if export:
-            fn = os.path.join(
-                self.net_sim_data_path,
-                'spks_neurs_with_input.pickle')
+            fn = os.path.join(self.net_sim_data_path, "spks_neurs_with_input.pickle")
 
-            with open(fn, 'wb') as f:
-                pickle.dump((
-                    spk_mon_ids,
-                    spk_mon_ts,
-                    self.t_run), f)
+            with open(fn, "wb") as f:
+                pickle.dump((spk_mon_ids, spk_mon_ts, self.t_run), f)
 
         return spk_mon_ids, spk_mon_ts
 
@@ -1320,12 +1426,10 @@ class RecurrentCompetitiveNet:
             # if count > 5:
             #     break
 
-        fn = os.path.join(self.net_sim_data_path, 'stimulus_neur_u.pickle')
+        fn = os.path.join(self.net_sim_data_path, "stimulus_neur_u.pickle")
 
-        with open(fn, 'wb') as f:
-            pickle.dump((
-                us,
-                self.E_E_rec.t / ms), f)
+        with open(fn, "wb") as f:
+            pickle.dump((us, self.E_E_rec.t / ms), f)
 
     """
     """
@@ -1344,26 +1448,25 @@ class RecurrentCompetitiveNet:
             # if count > 5:
             #     break
 
-        fn = os.path.join(self.net_sim_data_path, 'stimulus_neur_x.pickle')
+        fn = os.path.join(self.net_sim_data_path, "stimulus_neur_x.pickle")
 
-        with open(fn, 'wb') as f:
-            pickle.dump((
-                x_,
-                self.E_E_rec.t / ms), f)
+        with open(fn, "wb") as f:
+            pickle.dump((x_, self.E_E_rec.t / ms), f)
 
     def get_spikes_pyspike(self, export=False):
         from pyspike import SpikeTrain
+
         """
         Retrieves the spikes recorded during simulation and saves them in the format expected by PySpike.
         """
         if export:
-            fn = os.path.join(self.net_sim_data_path, 'spikes_pyspike.txt')
+            fn = os.path.join(self.net_sim_data_path, "spikes_pyspike.txt")
 
-            with open(fn, 'w') as file:
-                file.write('# Spikes from excitatory population\n\n')
+            with open(fn, "w") as file:
+                file.write("# Spikes from excitatory population\n\n")
                 for v in self.get_E_spks(spike_trains=True).values():
-                    np.savetxt(file, np.array(v), newline=' ')
-                    file.write('\n')
+                    np.savetxt(file, np.array(v), newline=" ")
+                    file.write("\n")
         else:
             self.pyspike_spks = []
 
@@ -1379,8 +1482,12 @@ class RecurrentCompetitiveNet:
         from helper_functions.other import contiguous_regions
 
         if attractor[0] in self.pss:
-            return self.x_pss[attractor[0]], self.y_pss[attractor[0]], self.y_smooth_pss[attractor[0]], self.pss[
-                attractor[0]]
+            return (
+                self.x_pss[attractor[0]],
+                self.y_pss[attractor[0]],
+                self.y_smooth_pss[attractor[0]],
+                self.pss[attractor[0]],
+            )
 
         if not self.pyspike_spks:
             self.get_spikes_pyspike()
@@ -1408,23 +1515,28 @@ class RecurrentCompetitiveNet:
         except:
             pass
 
-        self.x_pss[attractor[0]], self.y_pss[attractor[0]], self.y_smooth_pss[attractor[0]], self.pss[
-            attractor[0]] = x, y, y_smooth, pss
+        (
+            self.x_pss[attractor[0]],
+            self.y_pss[attractor[0]],
+            self.y_smooth_pss[attractor[0]],
+            self.pss[attractor[0]],
+        ) = (x, y, y_smooth, pss)
 
         if verbose:
             for ps in pss:
-                print(f'Found PS in {attractor[0]} '
-                      f'between {x[ps[0]]} s and {x[ps[1]]} s '
-                      f'centered at {x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]} s '
-                      f'with max value {np.max(y_smooth[ps[0]:ps[1]])} '
-                      f'(mean={np.mean(y_smooth[ps[0]:ps[1]])}, '
-                      f'std={np.std(y_smooth[ps[0]:ps[1]])}'
-                      )
+                print(
+                    f"Found PS in {attractor[0]} "
+                    f"between {x[ps[0]]} s and {x[ps[1]]} s "
+                    f"centered at {x[ps[0] + np.argmax(y_smooth[ps[0]:ps[1]])]} s "
+                    f"with max value {np.max(y_smooth[ps[0]:ps[1]])} "
+                    f"(mean={np.mean(y_smooth[ps[0]:ps[1]])}, "
+                    f"std={np.std(y_smooth[ps[0]:ps[1]])}"
+                )
 
         return x, y, y_smooth, pss
 
-    def get_conn_matrix(self, pop='E_E'):
-        if pop == 'E_E':
+    def get_conn_matrix(self, pop="E_E"):
+        if pop == "E_E":
             ee_conn_matrix = np.full((len(self.E), len(self.E)), -1.0)
             ee_conn_matrix[self.E_E.i, self.E_E.j] = 1.0
         else:
@@ -1441,22 +1553,17 @@ class RecurrentCompetitiveNet:
         synaptic_matrix = np.full((len(self.E), len(self.E)), -1.0)
         synaptic_matrix[self.E_E.i, self.E_E.j] = self.E_E.rho
 
-        E_E_syn_matrix_path = os.path.join(
-            self.net_sim_data_path,
-            'E_E_syn_matrix')
+        E_E_syn_matrix_path = os.path.join(self.net_sim_data_path, "E_E_syn_matrix")
 
         if not (os.path.isdir(E_E_syn_matrix_path)):
             os.mkdir(E_E_syn_matrix_path)
 
         self.E_E_syn_matrix_path = E_E_syn_matrix_path
 
-        fn = os.path.join(
-            self.E_E_syn_matrix_path,
-            '0_E_E_syn_matrix.pickle')
+        fn = os.path.join(self.E_E_syn_matrix_path, "0_E_E_syn_matrix.pickle")
 
-        with open(fn, 'wb') as f:
-            pickle.dump((
-                synaptic_matrix), f)
+        with open(fn, "wb") as f:
+            pickle.dump((synaptic_matrix), f)
 
     """
     Retrieves the synaptic traces recorded during simulation only from synapses connecting (both) neurons part
@@ -1470,24 +1577,24 @@ class RecurrentCompetitiveNet:
         syns_neurs_with_input = []
 
         for x in range(0, len(self.E_E)):
-            if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
+            if (
+                self.E_E.i[x] in self.stimulus_neurons_e_ids
+                and self.E_E.j[x] in self.stimulus_neurons_e_ids
+            ):
                 temp_dict = {
-                    'pre': self.E_E.i[x],
-                    'post': self.E_E.j[x],
-                    'syn_trace': self.E_E_rec[self.E_E[x]].rho
+                    "pre": self.E_E.i[x],
+                    "post": self.E_E.j[x],
+                    "syn_trace": self.E_E_rec[self.E_E[x]].rho,
                 }
 
                 syns_neurs_with_input.append(temp_dict)
 
-        fn = os.path.join(
-            self.net_sim_data_path,
-            'syns_neurs_with_input.pickle')
+        fn = os.path.join(self.net_sim_data_path, "syns_neurs_with_input.pickle")
 
-        with open(fn, 'wb') as f:
-            pickle.dump((
-                syns_neurs_with_input,
-                self.E_E_rec.t / second,
-                self.thr_b_rho), f)
+        with open(fn, "wb") as f:
+            pickle.dump(
+                (syns_neurs_with_input, self.E_E_rec.t / second, self.thr_b_rho), f
+            )
 
     """
     Retrieves the neurotransmitter traces (x_) recorded during simulation only from synapses connecting (both)
@@ -1501,21 +1608,25 @@ class RecurrentCompetitiveNet:
         x_traces = {}
 
         for x in range(0, len(self.E_E)):
-            if self.E_E.i[x] in self.stimulus_neurons_e_ids and self.E_E.j[x] in self.stimulus_neurons_e_ids:
+            if (
+                self.E_E.i[x] in self.stimulus_neurons_e_ids
+                and self.E_E.j[x] in self.stimulus_neurons_e_ids
+            ):
                 x_traces[self.E_E.i[x], self.E_E.j[x]] = self.E_E_rec[self.E_E[x]].x_
 
         if export:
-            fn = os.path.join(
-                self.net_sim_data_path,
-                'xs_neurs_with_input.pickle')
+            fn = os.path.join(self.net_sim_data_path, "xs_neurs_with_input.pickle")
 
-            with open(fn, 'wb') as f:
-                pickle.dump((
-                    x_traces,
-                    self.E_E_rec.t / second,
-                    self.tau_d,
-                    # self.stimulus_pulse_duration
-                ), f)
+            with open(fn, "wb") as f:
+                pickle.dump(
+                    (
+                        x_traces,
+                        self.E_E_rec.t / second,
+                        self.tau_d,
+                        # self.stimulus_pulse_duration
+                    ),
+                    f,
+                )
 
         return [x_traces, self.E_E_rec.t / second, self.tau_d]
 
@@ -1535,18 +1646,19 @@ class RecurrentCompetitiveNet:
                 u_traces[x] = self.E_rec[x].u
 
         if export:
-            fn = os.path.join(
-                self.net_sim_data_path,
-                'us_neurs_with_input.pickle')
+            fn = os.path.join(self.net_sim_data_path, "us_neurs_with_input.pickle")
 
-            with open(fn, 'wb') as f:
-                pickle.dump((
-                    u_traces,
-                    self.E_E_rec.t / second,
-                    self.U,
-                    self.tau_f,
-                    # self.stimulus_pulse_duration
-                ), f)
+            with open(fn, "wb") as f:
+                pickle.dump(
+                    (
+                        u_traces,
+                        self.E_E_rec.t / second,
+                        self.U,
+                        self.tau_f,
+                        # self.stimulus_pulse_duration
+                    ),
+                    f,
+                )
 
         return [u_traces, self.E_E_rec.t / second, self.U, self.tau_d]
 
@@ -1558,14 +1670,15 @@ class RecurrentCompetitiveNet:
 
                 for i in range(len(self.E_rec[x].u)):
 
-                    if self.E_rec.t[i] / second >= t_window[0] and self.E_rec.t[i] / second <= t_window[1]:
+                    if (
+                        self.E_rec.t[i] / second >= t_window[0]
+                        and self.E_rec.t[i] / second <= t_window[1]
+                    ):
                         uTracesValues.append(self.E_rec[x].u[i])
 
-        fn = os.path.join(
-            self.net_sim_data_path,
-            'attractor_uTraceValues.pickle')
+        fn = os.path.join(self.net_sim_data_path, "attractor_uTraceValues.pickle")
 
-        with open(fn, 'wb') as f:
+        with open(fn, "wb") as f:
             pickle.dump((uTracesValues), f)
 
     def get_x_traces_from_pattern_neurons_in_range(self, t_window):
@@ -1576,12 +1689,13 @@ class RecurrentCompetitiveNet:
 
                 for i in range(len(self.E_rec[x].x_)):
 
-                    if self.E_rec.t[i] / second >= t_window[0] and self.E_rec.t[i] / second <= t_window[1]:
+                    if (
+                        self.E_rec.t[i] / second >= t_window[0]
+                        and self.E_rec.t[i] / second <= t_window[1]
+                    ):
                         uTracesValues.append(self.E_rec[x].x_[i])
 
-        fn = os.path.join(
-            self.net_sim_data_path,
-            'attractor_xTraceValues.pickle')
+        fn = os.path.join(self.net_sim_data_path, "attractor_xTraceValues.pickle")
 
-        with open(fn, 'wb') as f:
+        with open(fn, "wb") as f:
             pickle.dump((uTracesValues), f)
