@@ -94,7 +94,7 @@ except:
 # TODO the RCN is creating multiple subdirs in the tmp folder
 # TODO mongodb is creating lots of files in the root folder
 def objective(x):
-    r = run_rcn(x, tmp_folder=tmp_folder, plot=False, progressbar=False)
+    r = run_rcn(x, tmp_folder=tmp_folder, background_mode=True)
 
     return {
         "loss": -r["f1_score"],
@@ -132,9 +132,9 @@ from hyperopt import mongoexp
 # Create the algorithm
 tpe_algo = tpe.suggest
 
-# Create trials objects ( MongoTrials is for parallel execution )
-# trials = Trials()
-trials = MongoTrials(f"mongo://localhost:{db_port}/db/jobs")
+# Create Trials objects or MongoTrials for parallel execution
+trials = Trials()
+# trials = MongoTrials(f"mongo://localhost:{db_port}/db/jobs")
 
 workers = []
 for i in range(os.cpu_count() if args.n_workers == -1 else args.n_workers):
@@ -173,7 +173,8 @@ tpe_best = fmin(
     max_queue_len=os.cpu_count(),
 )
 results = trials.results
-results = [r.to_dict() for r in results]
+if isinstance(trials, MongoTrials):
+    results = [r.to_dict() for r in results]
 
 # -- Copy results into a dataframe
 results_df = pd.DataFrame(

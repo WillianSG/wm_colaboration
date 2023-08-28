@@ -52,8 +52,11 @@ else:
 
 
 def run_rcn(
-    params, tmp_folder=".", plot=True, progressbar=True, seed_init=None, low_memory=True
-):
+        params, tmp_folder=".", plot=True, progressbar=True, seed_init=None, low_memory=True, background_mode=False):
+    if background_mode:
+        plot = False
+        progressbar = False
+
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
     if plot == True and low_memory == True:
@@ -80,31 +83,34 @@ def run_rcn(
     a, s, n = sympy.symbols("a s n")
     expr = a * (s + 16) <= n
     if not expr.subs([(a, num_attractors), (s, attractor_size), (n, network_size)]):
-        print(
-            f"{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons."
-        )
-        choice = input(
-            "1- Smaller attractors\n2- Fewer attractors\n3- Larger network\n"
-        )
+        if not background_mode:
+            print(
+                f"{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons."
+            )
+            choice = input(
+                "1- Smaller attractors\n2- Fewer attractors\n3- Larger network\n"
+            )
+        else:
+            choice = "3"
         if choice == "1":
             asol = sympy.solveset(
                 expr.subs([(a, num_attractors), (n, network_size)]), s, sympy.Integers
             )
             attractor_size = asol.sup
             # attractor_size = floor((network_size - num_attractors * 16) / num_attractors)
-            print(f"Optimal attractor size: {attractor_size}")
+            print(f"Setting optimal attractor size: {attractor_size}")
         if choice == "2":
             asol = sympy.solveset(
                 expr.subs([(s, attractor_size), (n, network_size)]), a, sympy.Integers
             )
             num_attractors = asol.sup
-            print(f"Optimal number of attractors: {num_attractors}")
+            print(f"Settin optimal number of attractors: {num_attractors}")
         if choice == "3":
             asol = sympy.solveset(
                 expr.subs([(a, num_attractors), (s, attractor_size)]), n, sympy.Integers
             )
             network_size = asol.inf
-            print(f"Optimal network size: {network_size}")
+            print(f"Setting optimal network size: {network_size}")
 
     rcn = RecurrentCompetitiveNet(
         stim_size=attractor_size,
@@ -143,9 +149,6 @@ def run_rcn(
     attractors_list = []
     for i in range(num_attractors):
         if i * (rcn.stim_size_e + 16) + rcn.stim_size_e > len(rcn.E):
-            print(
-                f"{num_attractors} attractors of size {rcn.stim_size_e} cannot fit into a network of {len(rcn.E)} neurons.  Instantiating {i} attractors instead."
-            )
             num_attractors = i
             break
         stim_id = rcn.set_active_E_ids(
@@ -262,13 +265,13 @@ def run_rcn(
 
 class RecurrentCompetitiveNet:
     def __init__(
-        self,
-        stim_size=64,
-        plasticity_rule="LR2",
-        parameter_set="2.4",
-        t_run=2 * second,
-        seed_init=None,
-        low_memory=False,
+            self,
+            stim_size=64,
+            plasticity_rule="LR2",
+            parameter_set="2.4",
+            t_run=2 * second,
+            seed_init=None,
+            low_memory=False,
     ):
 
         seed(seed_init)
@@ -742,11 +745,11 @@ class RecurrentCompetitiveNet:
     """
 
     def run_net(
-        self,
-        duration=3 * second,
-        gather_every=0 * second,
-        pulse_ending=False,
-        callback=None,
+            self,
+            duration=3 * second,
+            gather_every=0 * second,
+            pulse_ending=False,
+            callback=None,
     ):
 
         if sys.platform == "linux":
@@ -851,7 +854,7 @@ class RecurrentCompetitiveNet:
     """
 
     def stimulate_attractors(
-        self, stimulus, frequency, stim_perc=10, offset=0, stimulus_size=0
+            self, stimulus, frequency, stim_perc=10, offset=0, stimulus_size=0
     ):
         if stimulus_size == 0:
             stimulus_size = self.stim_size_e
@@ -1251,8 +1254,8 @@ class RecurrentCompetitiveNet:
 
                 spike_trains = {}
                 for i, t in zip(
-                    self.dumped_mons_dict["E_mon"]["i"],
-                    self.dumped_mons_dict["E_mon"]["t"],
+                        self.dumped_mons_dict["E_mon"]["i"],
+                        self.dumped_mons_dict["E_mon"]["t"],
                 ):
                     if i not in spike_trains:
                         spike_trains[i] = [t]
@@ -1578,8 +1581,8 @@ class RecurrentCompetitiveNet:
 
         for x in range(0, len(self.E_E)):
             if (
-                self.E_E.i[x] in self.stimulus_neurons_e_ids
-                and self.E_E.j[x] in self.stimulus_neurons_e_ids
+                    self.E_E.i[x] in self.stimulus_neurons_e_ids
+                    and self.E_E.j[x] in self.stimulus_neurons_e_ids
             ):
                 temp_dict = {
                     "pre": self.E_E.i[x],
@@ -1609,8 +1612,8 @@ class RecurrentCompetitiveNet:
 
         for x in range(0, len(self.E_E)):
             if (
-                self.E_E.i[x] in self.stimulus_neurons_e_ids
-                and self.E_E.j[x] in self.stimulus_neurons_e_ids
+                    self.E_E.i[x] in self.stimulus_neurons_e_ids
+                    and self.E_E.j[x] in self.stimulus_neurons_e_ids
             ):
                 x_traces[self.E_E.i[x], self.E_E.j[x]] = self.E_E_rec[self.E_E[x]].x_
 
@@ -1671,8 +1674,8 @@ class RecurrentCompetitiveNet:
                 for i in range(len(self.E_rec[x].u)):
 
                     if (
-                        self.E_rec.t[i] / second >= t_window[0]
-                        and self.E_rec.t[i] / second <= t_window[1]
+                            self.E_rec.t[i] / second >= t_window[0]
+                            and self.E_rec.t[i] / second <= t_window[1]
                     ):
                         uTracesValues.append(self.E_rec[x].u[i])
 
@@ -1690,8 +1693,8 @@ class RecurrentCompetitiveNet:
                 for i in range(len(self.E_rec[x].x_)):
 
                     if (
-                        self.E_rec.t[i] / second >= t_window[0]
-                        and self.E_rec.t[i] / second <= t_window[1]
+                            self.E_rec.t[i] / second >= t_window[0]
+                            and self.E_rec.t[i] / second <= t_window[1]
                     ):
                         uTracesValues.append(self.E_rec[x].x_[i])
 
