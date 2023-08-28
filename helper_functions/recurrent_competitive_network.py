@@ -53,7 +53,7 @@ else:
 
 def run_rcn(
         params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
-        attractor_conflict_resolution=0):
+        attractor_conflict_resolution='0'):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
     if show_plot == True and low_memory == True:
@@ -75,12 +75,12 @@ def run_rcn(
     network_size = int(params["network_size"])
     worker_id = params["worker_id"] if "worker_id" in params else None
 
+    # Attractor size conflict resolution
     import sympy
-
     a, s, n = sympy.symbols("a s n")
     expr = a * (s + 16) <= n
     if not expr.subs([(a, num_attractors), (s, attractor_size), (n, network_size)]):
-        if attractor_conflict_resolution == 0:
+        if attractor_conflict_resolution == '0':
             print(
                 f"{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons."
             )

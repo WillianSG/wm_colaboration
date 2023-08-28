@@ -50,10 +50,11 @@ def cleanup(exit_code=None, frame=None):
     except OSError:
         print("Cannot remove tmp folder")
 
-    # -- Kill all subprocesses
-    mongod.terminate()
-    for w in workers:
-        w.terminate()
+    if args.parallel:
+        # -- Kill all subprocesses
+        mongod.terminate()
+        for w in workers:
+            w.terminate()
 
 
 # -- folder and environment setup
@@ -82,7 +83,7 @@ print("VENV:", venv_path)
 # TODO the RCN is creating multiple subdirs in the tmp folder
 # TODO mongodb is creating lots of files in the root folder
 def objective(x):
-    r = run_rcn(x, tmp_folder=tmp_folder, attractor_conflict_resolution=3)
+    r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution='3')
 
     return {
         "loss": -r["f1_score"],
@@ -175,7 +176,7 @@ tpe_best = fmin(
     max_queue_len=os.cpu_count(),
 )
 results = trials.results
-if isinstance(trials, MongoTrials):
+if args.parallel:
     results = [r.to_dict() for r in results]
 
 # -- Copy results into a dataframe
@@ -196,20 +197,21 @@ results_df["score"] *= -1
 results_df = results_df.sort_values("score", ascending=False)
 results_df.to_csv(f"{tmp_folder}/results.csv")
 
-# -- Kill all subprocesses
-try:
-    mongod.terminate()
-    print("Terminated mongod")
-except:
-    print("Could not terminate mongod gracefully")
-    subprocess.run(["killall", "mongod"])
-for i, w in enumerate(workers):
+if args.parallel:
+    # -- Kill all subprocesses
     try:
-        w.terminate()
-        print(f"Terminated hyperopt-mongo-worker {i}")
+        mongod.terminate()
+        print("Terminated mongod")
     except:
-        print(f"Could not terminate hyperopt-mongo-worker {i} gracefully")
-        subprocess.run(["killall", "hyperopt-mongo-worker"])
+        print("Could not terminate mongod gracefully")
+        subprocess.run(["killall", "mongod"])
+    for i, w in enumerate(workers):
+        try:
+            w.terminate()
+            print(f"Terminated hyperopt-mongo-worker {i}")
+        except:
+            print(f"Could not terminate hyperopt-mongo-worker {i} gracefully")
+            subprocess.run(["killall", "hyperopt-mongo-worker"])
 
 best_params = results_df.iloc[0]["params"]
 best_score = results_df.iloc[0]["score"]
@@ -229,7 +231,7 @@ with open(f"{tmp_folder}/string.txt", "w") as f:
 # Run model with the best parameters and plot output
 save_folder = f'RESULTS/SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
 os.makedirs(save_folder)
-run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution=3)
+run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution='3')
 # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 os.rename(f"{tmp_folder}/string.txt", f"{save_folder}/string.txt")
