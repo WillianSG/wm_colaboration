@@ -127,6 +127,8 @@ def run_rcn(
     rcn.w_e_i = e_i_w * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 10 mV default
     rcn.spont_rate = ba * Hz
+    rcn.N_input_e = network_size
+    rcn.N_e = network_size
 
     # -- intrinsic plasticity setup (Vth_e_decr for naive / tau_Vth_e for calcium-based)
     rcn.tau_Vth_e = 0.1 * second  # 0.1 s default
@@ -148,9 +150,6 @@ def run_rcn(
 
     attractors_list = []
     for i in range(num_attractors):
-        if i * (rcn.stim_size_e + 16) + rcn.stim_size_e > len(rcn.E):
-            num_attractors = i
-            break
         stim_id = rcn.set_active_E_ids(
             stimulus="flat_to_E_fixed_size", offset=i * (64 + 16)
         )

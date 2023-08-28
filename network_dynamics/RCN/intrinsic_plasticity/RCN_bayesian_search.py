@@ -225,7 +225,7 @@ with open(f"{tmp_folder}/string.txt", "w") as f:
     f.write(best_string)
 
 # Run model with the best parameters and plot output
-# run_rcn(best_params, plot=True, low_memory=False)
+run_rcn(best_params, plot=True, low_memory=False)
 
 # TODO also save plot of best model
 save_folder = f'RESULTS/SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
