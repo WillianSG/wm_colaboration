@@ -52,14 +52,11 @@ else:
 
 
 def run_rcn(
-        params, tmp_folder=".", plot=True, progressbar=True, seed_init=None, low_memory=True, background_mode=False):
-    if background_mode:
-        plot = False
-        progressbar = False
-
+        params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
+        attractor_conflict_resolution=0):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
-    if plot == True and low_memory == True:
+    if show_plot == True and low_memory == True:
         raise ValueError("plotting is only possible with low_memory=False")
 
     pid = os.getpid()
@@ -83,7 +80,7 @@ def run_rcn(
     a, s, n = sympy.symbols("a s n")
     expr = a * (s + 16) <= n
     if not expr.subs([(a, num_attractors), (s, attractor_size), (n, network_size)]):
-        if not background_mode:
+        if attractor_conflict_resolution == 0:
             print(
                 f"{num_attractors} attractors of size {attractor_size} cannot fit into a network of {network_size} neurons."
             )
@@ -91,7 +88,7 @@ def run_rcn(
                 "1- Smaller attractors\n2- Fewer attractors\n3- Larger network\n"
             )
         else:
-            choice = "3"
+            choice = attractor_conflict_resolution
         if choice == "1":
             asol = sympy.solveset(
                 expr.subs([(a, num_attractors), (n, network_size)]), s, sympy.Integers
@@ -151,7 +148,7 @@ def run_rcn(
     attractors_list = []
     for i in range(num_attractors):
         stim_id = rcn.set_active_E_ids(
-            stimulus="flat_to_E_fixed_size", offset=i * (64 + 16)
+            stimulus="flat_to_E_fixed_size", offset=i * (attractor_size + 16)
         )
         rcn.set_potentiated_synapses(stim_id)
         attractors_list.append([f"A{i}", stim_id])
@@ -219,13 +216,13 @@ def run_rcn(
         atr_ps_counts, attractors_cueing_order
     )
 
-    if plot:
+    if show_plot or save_plot is not None:
         title_addition = (
             f"BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz"
         )
         filename_addition = f"_BA_{ba}_GS_{cue_percentage}_W_{i_e_w}_Hz_{i_freq}"
 
-        plot_x_u_spks_from_basin(
+        fig = plot_x_u_spks_from_basin(
             path=rcn.net_sim_data_path,
             filename="x_u_spks_from_basin" + filename_addition,
             title_addition=title_addition,
@@ -233,8 +230,11 @@ def run_rcn(
             attractor_cues=attractors_cueing_order,
             pss_categorised=atr_ps_counts,
             num_neurons=len(rcn.E),
-            show=plot,
+            show=show_plot,
         )
+
+        if save_plot is not None:
+            fig.savefig(os.path.join(save_plot, f"x_u_spks_from_basin{filename_addition}.png"))
 
         # plot_thresholds(
         #     path=rcn.net_sim_data_path,

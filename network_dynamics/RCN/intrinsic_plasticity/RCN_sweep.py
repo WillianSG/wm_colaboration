@@ -274,7 +274,7 @@ if __name__ == '__main__':
     best_score = best_params['f1_score']
     best_params = best_params.drop(score_param_names + ['sweeped']).to_dict()
     print(f'Best parameters: {best_params}')
-    run_rcn(best_params, plot=True, low_memory=False)
+    run_rcn(best_params, show_plot=True, low_memory=False)
 
     # TODO also save plot of best model
     while True:

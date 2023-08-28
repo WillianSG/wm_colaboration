@@ -319,7 +319,6 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
                                color='grey')
 
     # finishing
-
     plt.xlabel('time (s)', size=axis_label_size)
 
     trig, spont, accuracy, stability, f1_score = compute_ps_score(pss_categorised, attractor_cues)
@@ -339,11 +338,7 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
     else:
         filename = filename + '.png'
 
-    fig.savefig(
-        os.path.join(path, filename),
-        bbox_inches='tight')
-
     if show:
-        plt.show()
+        fig.show()
 
     return fig

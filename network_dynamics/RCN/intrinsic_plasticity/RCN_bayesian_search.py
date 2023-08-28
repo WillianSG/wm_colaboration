@@ -26,13 +26,16 @@ parser.add_argument("--n_evals", type=int, default=2000)
 parser.add_argument("--n_workers", type=int, default=-1)
 parser.add_argument("--n_cues", type=int, default=10)
 parser.add_argument("--n_attractors", type=int, default=3)
+parser.add_argument('--parallel', action='store_true')
 args = parser.parse_args()
 
 tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
 
 from hyperopt import fmin, tpe, hp
-from hyperopt.mongoexp import MongoTrials
+
+if args.parallel:
+    from hyperopt.mongoexp import MongoTrials
 
 import os
 
@@ -75,26 +78,11 @@ except KeyError:
         sys.exit("No virtual environment found")
 print("VENV:", venv_path)
 
-sock = socket.socket()
-sock.bind(("localhost", 0))
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-db_port = sock.getsockname()[1]
-db_folder = f"{tmp_folder}/db"
-os.mkdir(db_folder)
-try:
-    mongod = subprocess.Popen(
-        ["mongod", "--dbpath", db_folder, "--port", f"{db_port}"],
-        stdout=subprocess.DEVNULL,
-    )
-    print(f"Started mongod --dbpath {db_folder} --port {db_port}")
-except:
-    sys.exit("Could not start mongod")
-
 
 # TODO the RCN is creating multiple subdirs in the tmp folder
 # TODO mongodb is creating lots of files in the root folder
 def objective(x):
-    r = run_rcn(x, tmp_folder=tmp_folder, background_mode=True)
+    r = run_rcn(x, tmp_folder=tmp_folder, attractor_conflict_resolution=3)
 
     return {
         "loss": -r["f1_score"],
@@ -127,40 +115,54 @@ space = {
     "num_cues": args.n_cues,
 }
 
-from hyperopt import mongoexp
-
 # Create the algorithm
 tpe_algo = tpe.suggest
 
 # Create Trials objects or MongoTrials for parallel execution
-trials = Trials()
-# trials = MongoTrials(f"mongo://localhost:{db_port}/db/jobs")
-
-workers = []
-for i in range(os.cpu_count() if args.n_workers == -1 else args.n_workers):
+if args.parallel:
+    sock = socket.socket()
+    sock.bind(("localhost", 0))
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    db_port = sock.getsockname()[1]
+    db_folder = f"{tmp_folder}/db"
+    os.mkdir(db_folder)
     try:
-        # -- The workers need to be started with the correct PYTHONPATH
-        my_env = os.environ.copy()
-        my_env["PYTHONPATH"] = "{}:{}".format(os.environ["PATH"], python_path)
-        workers.append(
-            subprocess.Popen(
-                [
-                    f"{venv_path}/bin/hyperopt-mongo-worker",
-                    "--mongo",
-                    f"localhost:{db_port}/db",
-                    "--workdir",
-                    tmp_folder,
-                ],
-                env=my_env,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+        mongod = subprocess.Popen(
+            ["mongod", "--dbpath", db_folder, "--port", f"{db_port}"],
+            stdout=subprocess.DEVNULL,
         )
-        print(
-            f"{i} Started hyperopt-mongo-worker {venv_path}/bin/hyperopt-mongo-worker --mongo localhost:{db_port}/db --workdir {tmp_folder}"
-        )
+        print(f"Started mongod --dbpath {db_folder} --port {db_port}")
     except:
-        sys.exit(f"Could not start hyperopt-mongo-worker {i}")
+        sys.exit("Could not start mongod")
+
+    trials = MongoTrials(f"mongo://localhost:{db_port}/db/jobs")
+    workers = []
+    for i in range(os.cpu_count() if args.n_workers == -1 else args.n_workers):
+        try:
+            # -- The workers need to be started with the correct PYTHONPATH
+            my_env = os.environ.copy()
+            my_env["PYTHONPATH"] = "{}:{}".format(os.environ["PATH"], python_path)
+            workers.append(
+                subprocess.Popen(
+                    [
+                        f"{venv_path}/bin/hyperopt-mongo-worker",
+                        "--mongo",
+                        f"localhost:{db_port}/db",
+                        "--workdir",
+                        tmp_folder,
+                    ],
+                    env=my_env,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            )
+            print(
+                f"{i} Started hyperopt-mongo-worker {venv_path}/bin/hyperopt-mongo-worker --mongo localhost:{db_port}/db --workdir {tmp_folder}"
+            )
+        except:
+            sys.exit(f"Could not start hyperopt-mongo-worker {i}")
+else:
+    trials = Trials()
 
 # Run the tpe algorithm
 tpe_best = fmin(
@@ -225,11 +227,9 @@ with open(f"{tmp_folder}/string.txt", "w") as f:
     f.write(best_string)
 
 # Run model with the best parameters and plot output
-run_rcn(best_params, plot=True, low_memory=False)
-
-# TODO also save plot of best model
 save_folder = f'RESULTS/SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
 os.makedirs(save_folder)
+run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution=3)
 # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 os.rename(f"{tmp_folder}/string.txt", f"{save_folder}/string.txt")
