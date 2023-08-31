@@ -1,0 +1,1 @@
+-sweep background_activity e_e_max_weight e_i_weight i_e_weight i_frequency -background_activity 15.095621488966966 -e_e_max_weight 14.531800821256894 -e_i_weight 4.9317965951712415 -i_e_weight 5.011403421477593 -i_frequency 10.003928854474928 -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3

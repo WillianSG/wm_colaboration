@@ -26,11 +26,12 @@ parser.add_argument("--n_evals", type=int, default=2000)
 parser.add_argument("--n_workers", type=int, default=-1)
 parser.add_argument("--n_cues", type=int, default=10)
 parser.add_argument("--n_attractors", type=int, default=3)
-parser.add_argument('--parallel', action='store_true')
+parser.add_argument("--parallel", action="store_true")
 args = parser.parse_args()
 
 tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
+print("TMP:", tmp_folder)
 
 from hyperopt import fmin, tpe, hp
 
