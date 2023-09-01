@@ -124,8 +124,10 @@ def run_rcn(
     rcn.w_e_i = e_i_w * mV  # 3 mV default
     rcn.w_i_e = i_e_w * mV  # 10 mV default
     rcn.spont_rate = ba * Hz
-    rcn.N_input_e = network_size
     rcn.N_e = network_size
+    rcn.N_input_e = network_size
+    rcn.N_i = network_size // 4
+    rcn.N_input_i = network_size // 4
 
     # -- intrinsic plasticity setup (Vth_e_decr for naive / tau_Vth_e for calcium-based)
     rcn.tau_Vth_e = 0.1 * second  # 0.1 s default
