@@ -133,7 +133,8 @@ if __name__ == '__main__':
             for k in p.keys():
                 if k not in args.sweep:
                     p[k] = vars(args)[k][0]
-        param_list_dict.append({k: get_default(k) for k, v in param_grid.items()})
+        # param_list_dict.append({k: get_default(k) for k, v in param_grid.items()})
+        param_list_dict.append({k: args.__dict__[k][0] for k, v in param_grid.items()})
 
         print_dict = {k: [] for k in param_list_dict[0].keys()}
         for p in param_list_dict:
@@ -204,8 +205,10 @@ if __name__ == '__main__':
 
     # chunked_param_grid = list(chunks(param_grid_pool, num_cpus))
 
-    results = tqdm_pathos.map(partial(run_rcn, plot=False, progressbar=os.isatty(sys.stdout.fileno())), param_grid_pool,
-                              n_cpus=num_cpus)
+    results = tqdm_pathos.map(
+        partial(run_rcn, show_plot=False, save_plot=False, tmp_folder=tmp_folder, attractor_conflict_resolution='3',
+                progressbar=os.isatty(sys.stdout.fileno())), param_grid_pool,
+        n_cpus=num_cpus)
 
     score_param_names = ['f1_score', 'recall', 'accuracy', 'triggered', 'spontaneous']
 
@@ -230,6 +233,10 @@ if __name__ == '__main__':
 
     df_results_aggregated['sweeped'] = df_results_aggregated[args.sweep].apply(
         lambda x: ', '.join(x.apply('{:,.2f}'.format)), axis=1)
+
+    # save results folder
+    save_folder = f'RESULTS/SWEEP_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+    os.makedirs(save_folder)
 
     # plot results for cue time
     fig, axes = plt.subplots(2, 2, figsize=(15, 15))
@@ -266,37 +273,20 @@ if __name__ == '__main__':
 
     fig.suptitle(f'Results', fontsize=16)
     fig.tight_layout()
-    fig.savefig(f'{tmp_folder}/score.png')
+    fig.savefig(f'{save_folder}/sweep_results.png')
     fig.show()
 
-    # Run model with the best parameters and plot output
+    # Find best parameters
     best_params = df_results_aggregated.loc[df_results_aggregated.f1_score.idxmax()]
     best_score = best_params['f1_score']
     best_params = best_params.drop(score_param_names + ['sweeped']).to_dict()
     print(f'Best parameters: {best_params}')
-    run_rcn(best_params, show_plot=True, low_memory=False)
 
-    # TODO also save plot of best model
-    while True:
-        save = input('Save results? (y/n)')
-        if save == 'y':
-            save_folder = f'SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
-            os.makedirs(save_folder)
-            os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
-            os.rename(f'{tmp_folder}/results.csv', f'{save_folder}/results.csv')
+    # Run model with the best parameters and plot output
+    run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False,
+            attractor_conflict_resolution='3')
+    # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
+    os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
+    cleanup()
 
-            save2 = input('Saved overall results.  Also save individual plots?: (y/n)')
-            if save2 == 'y':
-                for f in glob.glob(f'{tmp_folder}/**/*.png', recursive=True):
-                    pid = os.path.normpath(f).split(os.path.sep)[1]
-                    os.makedirs(f'{save_folder}/{pid}', exist_ok=True)
-                    os.rename(f, f'{save_folder}/{pid}/{os.path.split(f)[1]}')
-
-            cleanup()
-            break
-        elif save == 'n':
-            cleanup()
-            break
-        else:
-            print("Please enter 'y' or 'n'")
-# TODO ordering of parameters in sweeped plot is missing so it makes sense to calculate performance metric and visualise that or calculate robusnes to one parameter at a time
+# TODO ordering of parameters in sweeped plot is missing so it makes sense to calculate performance metric and visualise that or calculate robustness to one parameter at a time

@@ -51,13 +51,14 @@ else:
     from helper_functions.load_stimulus import *
 
 
-def run_rcn(
-        params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
-        attractor_conflict_resolution='0'):
+def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
+            attractor_conflict_resolution='0'):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
     if show_plot == True and low_memory == True:
         raise ValueError("plotting is only possible with low_memory=False")
+    if save_plot is False:
+        save_plot = None
 
     pid = os.getpid()
     # print(f'RUNNING worker {pid} with params: {params}')
