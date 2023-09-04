@@ -36,7 +36,7 @@ class sFSA:
             plasticity_rule = self.plasticity_rule, 
             parameter_set = self.parameter_set, 
             seed_init = self.__args.seed_init, 
-            low_memory = self.record_traces, 
+            low_memory = not self.record_traces, 
             sFSA = True)
 
         self.start_twindow = (0.2, 0.1)     # 1st: cuing period; 2nd: free net. evolution period.
