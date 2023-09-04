@@ -18,8 +18,12 @@ import socket
 from hyperopt import hp, tpe, fmin, Trials, STATUS_OK
 from hyperopt.pyll.base import Apply
 from hyperopt.pyll.stochastic import sample
+from tqdm import tqdm
+
+from hyperopt import fmin, tpe, hp
 
 from helper_functions.recurrent_competitive_network import run_rcn
+from helper_functions.telegram_notify import TelegramNotify
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_evals", type=int, default=2000)
@@ -29,11 +33,18 @@ parser.add_argument("--n_attractors", type=int, default=3)
 parser.add_argument("--parallel", action="store_true")
 args = parser.parse_args()
 
+msg_args = ''
+for k, v in vars(args).items():
+    msg_args += f'{k}: {v}, '
+telegram_bot = TelegramNotify()
+main_msg_id = telegram_bot.send_timestamped_message(
+    f'Starting Bayesian search with the following parameters: {msg_args}')
+
+pbar = tqdm(total=args.n_evals, desc="Hyperopt")
+
 tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
 print("TMP:", tmp_folder)
-
-from hyperopt import fmin, tpe, hp
 
 if args.parallel:
     from hyperopt.mongoexp import MongoTrials
@@ -85,6 +96,11 @@ print("VENV:", venv_path)
 # TODO mongodb is creating lots of files in the root folder
 def objective(x):
     r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution='3')
+
+    pbar.update()
+
+    telegram_bot.edit_timestamped_message(f'*{pbar.last_print_n}/{pbar.total}* Finished run.  Score: {r["f1_score"]}',
+                                          telegram_msg_id)
 
     return {
         "loss": -r["f1_score"],
@@ -166,6 +182,9 @@ if args.parallel:
 else:
     trials = Trials()
 
+telegram_msg_id = telegram_bot.reply_to_timestamped_message(f'*0/0* Waiting for first evaluation to finish.',
+                                                            main_msg_id)
+
 # Run the tpe algorithm
 tpe_best = fmin(
     fn=objective,
@@ -175,7 +194,9 @@ tpe_best = fmin(
     max_evals=args.n_evals,
     rstate=np.random.default_rng(50),
     max_queue_len=os.cpu_count(),
+    show_progressbar=False,
 )
+pbar.close()
 results = trials.results
 if args.parallel:
     results = [r.to_dict() for r in results]
@@ -216,24 +237,44 @@ if args.parallel:
 
 best_params = results_df.iloc[0]["params"]
 best_score = results_df.iloc[0]["score"]
-print(f"Best parameters: {best_params}")
-best_string = "-sweep"
-for k, v in best_params.items():
-    if isinstance(space[k], Apply):
-        best_string += f" {k}"
-for k, v in best_params.items():
-    if isinstance(space[k], Apply):
-        best_string += f" -{k} {v}"
-best_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
-print("Use this string as command-line parameters for RCN_sweep.py:", best_string)
-with open(f"{tmp_folder}/string.txt", "w") as f:
-    f.write(best_string)
+
+telegram_bot.reply_to_timestamped_message(
+    f'Finished Bayesian search with the following results:\n{best_params}\nScore: {best_score}', main_msg_id)
+
+# Save folder
+save_folder = f'RESULTS/BAYESIAN_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+os.makedirs(save_folder)
 
 # Run model with the best parameters and plot output
-save_folder = f'RESULTS/SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
-os.makedirs(save_folder)
-run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution='3')
+# run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution='3')
 # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
-os.rename(f"{tmp_folder}/string.txt", f"{save_folder}/string.txt")
+
+print(f"Best parameters: {best_params}")
+joint_parameter_string = "-sweep"
+for k, v in best_params.items():
+    if isinstance(space[k], Apply):
+        joint_parameter_string += f" {k}"
+for k, v in best_params.items():
+    if isinstance(space[k], Apply):
+        joint_parameter_string += f" -{k} {v}"
+joint_parameter_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+joint_parameter_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size 256 -attractor_size 64 -cue_length 1 -num_cues 1"
+print("Use this string as command-line parameters for RCN_sweep.py:", joint_parameter_string)
+with open(f"{save_folder}/string.txt", "w") as f:
+    f.write(joint_parameter_string)
+
+for par in best_params.items():
+    if isinstance(space[par[0]], Apply):
+        parameter_sweep_string = f"-sweep {par[0]}"
+        for k, v in best_params.items():
+            if isinstance(space[k], Apply):
+                parameter_sweep_string += f" -{k} {v}"
+        parameter_sweep_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+        parameter_sweep_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size {args.n_attractors * (64 + 16)} -attractor_size {64} -cue_length 1"
+        with open(f"{save_folder}/string.txt", "a") as f:
+            f.write('\n' + parameter_sweep_string)
+
+telegram_bot.reply_to_timestamped_message(f'Saved results to {save_folder}', main_msg_id)
+
 cleanup()
