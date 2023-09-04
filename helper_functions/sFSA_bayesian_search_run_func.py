@@ -11,8 +11,10 @@ import numpy as np
 from helper_functions.other import make_timestamped_folder
 from helper_functions.sFSA import sFSA
 
-# - Function parsing bin. number to extract correct state transitions.
 def compute_transition(current_state, input_symbol, fsa):
+    '''
+    Function parsing bin. number to extract correct state transitions.
+    '''
 
     match = f'({current_state}, {input_symbol})'
 
@@ -22,6 +24,9 @@ def compute_transition(current_state, input_symbol, fsa):
             return transition.split('->')[-1]
 
 def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_init = None):
+    '''
+    Configures a RCN to implement a FSA to recognize a random binary word.
+    '''
 
     pid = os.getpid()
 
@@ -30,7 +35,7 @@ def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_
     parser = argparse.ArgumentParser(description = 'sFSA')
 
     parser.add_argument('--ba_rate', type = float,          default = 15.00,  help = 'Background mean rate (Hz).')
-    parser.add_argument('--e_e_max_weight', type = float,   default = 10.0,   help = 'Within attractor weight (mV).')
+    parser.add_argument('--e_e_max_weight', type = float,   default = 9.0,   help = 'Within attractor weight (mV).')
     parser.add_argument('--W_ei', type = float,             default = 2.1,   help = 'E-to-I weight (mV).')
     parser.add_argument('--W_ie', type = float,             default = 11.5,   help = 'I-to-E weight (mV).')
     parser.add_argument('--inh_rate', type = float,         default = 20.00,  help = 'Inhibition mean rate (Hz).')
@@ -39,7 +44,7 @@ def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_
     parser.add_argument('--w_trans', type = float,          default = 7.8,   help = 'Cue transfer weight (mV).')
     parser.add_argument('--thr_GO_state', type = float,     default = -48.0,  help = 'Threshold for Vth gated synapses (mV).')
     parser.add_argument('--delay_A2GO', type = float,     default = 2.5,  help = 'Connection delay of red synapses (s).')
-    parser.add_argument('--delay_A2B', type = float,     default = 0.63,  help = 'Connection delay of blue synapses (s).')
+    parser.add_argument('--delay_A2B', type = float,     default = 0.625,  help = 'Connection delay of blue synapses (s).')
 
     args = parser.parse_args()
 
@@ -56,6 +61,7 @@ def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_
     args.delay_A2B = params['delay_A2B']
 
     args.seed_init = seed_init
+    args.record_traces = save_plot
 
     # - Define FSA (1st state in S taken as 'start' state).
 
@@ -87,7 +93,7 @@ def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_
 
     sFSA_model.feedInputWord(binary_word)
 
-    sFSA_model.exportSfsaData(network_plot = save_plot, pickle_dump = save_plot)                     # computes state transisitons
+    sFSA_model.exportSfsaData(network_plot = save_plot, pickle_dump = False)                     # computes state transisitons
 
     pred_state_transitions = sFSA_model.sFSA_sim_data['state_history']
 

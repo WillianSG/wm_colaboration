@@ -30,9 +30,14 @@ class sFSA:
         self.__FSA_model = FSA_model
         self.__args = args
 
-        self.__RCN = RecurrentCompetitiveNet(plasticity_rule = self.plasticity_rule, parameter_set = self.parameter_set, seed_init = self.__args.seed_init, sFSA = True)
+        self.record_traces = args.record_traces
 
-        self.record_traces = True
+        self.__RCN = RecurrentCompetitiveNet(
+            plasticity_rule = self.plasticity_rule, 
+            parameter_set = self.parameter_set, 
+            seed_init = self.__args.seed_init, 
+            low_memory = self.record_traces, 
+            sFSA = True)
 
         self.start_twindow = (0.2, 0.1)     # 1st: cuing period; 2nd: free net. evolution period.
         self.input_twindow = (0.8, 4.2)
@@ -614,9 +619,13 @@ class sFSA:
         fp = 0
         fn = 0
 
-        if pred_state_transitions[0] != self.__FSA_model['S'][0]:           # it always starts at the initial state
+        # - It always starts at the 1st state in the state set.
+
+        if pred_state_transitions[0] != self.__FSA_model['S'][0]:
 
             pred_state_transitions[0] = self.__FSA_model['S'][0]
+
+        # - loop over state transitions.
 
         for i in range(0, len(true_state_transitions)-1):
 
@@ -635,10 +644,21 @@ class sFSA:
 
                 fp += 1
 
-        recall = tp / (tp + fn)
-        
-        precision = tp / (tp + fp)
+        # - Compute F1 score.
 
-        f1_score = (2 * (precision * recall)) / (precision + recall)
+        try:
+            recall = tp / (tp + fn)
+        except:
+            recall = 0
+
+        try:
+            precision = tp / (tp + fp)
+        except:
+            precision = 0
+
+        try:
+            f1_score = (2 * (precision * recall)) / (precision + recall)
+        except:
+            f1_score = 0
 
         return f1_score, recall, precision

@@ -19,7 +19,7 @@ else:
 parser = argparse.ArgumentParser(description = 'sFSA')
 
 parser.add_argument('--ba_rate', type = float,          default = 15.00,  help = 'Background mean rate (Hz).')
-parser.add_argument('--e_e_max_weight', type = float,   default = 10.0,   help = 'Within attractor weight (mV).')
+parser.add_argument('--e_e_max_weight', type = float,   default = 9.0,   help = 'Within attractor weight (mV).')
 parser.add_argument('--W_ei', type = float,             default = 2.1,   help = 'E-to-I weight (mV).')
 parser.add_argument('--W_ie', type = float,             default = 11.5,   help = 'I-to-E weight (mV).')
 parser.add_argument('--inh_rate', type = float,         default = 20.00,  help = 'Inhibition mean rate (Hz).')
@@ -28,11 +28,12 @@ parser.add_argument('--w_acpt', type = float,           default = 2.55,   help =
 parser.add_argument('--w_trans', type = float,          default = 7.8,   help = 'Cue transfer weight (mV).')
 parser.add_argument('--thr_GO_state', type = float,     default = -48.0,  help = 'Threshold for Vth gated synapses (mV).')
 parser.add_argument('--delay_A2GO', type = float,     default = 2.5,  help = 'Connection delay of red synapses (s).')
-parser.add_argument('--delay_A2B', type = float,     default = 0.63,  help = 'Connection delay of blue synapses (s).')
+parser.add_argument('--delay_A2B', type = float,     default = 0.625,  help = 'Connection delay of blue synapses (s).')
 
 args = parser.parse_args()
 
 args.seed_init = 0
+args.record_traces = True
 
 # 1st state in S taken as 'start' state.
 fsa = {
@@ -43,18 +44,16 @@ fsa = {
 
 # create sFSA.
 
-print('BA rate: ', args.ba_rate)
-
 sFSA_model = sFSA(fsa, args)
 
 sFSA_model.makeSimulationFolder()
 
 sFSA_model.storeSfsa()
 
-digits = [['0', '1']]
-true_state_hist = [['A', 'B', 'B']]
-
 # classifying digits.
+
+digits = [['0', '1'], ['0', '1', '0'], ['1', '1']]
+true_state_hist = [['A', 'B', 'B'], ['A', 'B', 'B', 'A'], ['A', 'A', 'A']]
 
 correct = 0
 null = 0
@@ -86,7 +85,14 @@ for i in range(len(digits)):
 
         double_activation += 1
 
+    f1_score, recall, precision = sFSA_model.computeF1Score(true_state_hist[i], state_hist)
+
+    print(f'true_state_hist: {true_state_hist[i]}, pred. state_hist: {state_hist}')
+    print(f'f1_score: {f1_score}, recall: {recall}, precision: {precision}')
+
 CR = correct/len(digits)
+
+print(f'CR: {CR}')
 
 # exporting data.
 
