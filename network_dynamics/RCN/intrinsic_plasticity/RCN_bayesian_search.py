@@ -92,13 +92,10 @@ except KeyError:
 print("VENV:", venv_path)
 
 
-# TODO the RCN is creating multiple subdirs in the tmp folder
-# TODO mongodb is creating lots of files in the root folder
 def objective(x):
     r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution='3')
 
     pbar.update()
-
     telegram_bot.edit_timestamped_message(f'*{pbar.last_print_n}/{pbar.total}* Finished run.  Score: {r["f1_score"]}',
                                           telegram_msg_id)
 
@@ -142,6 +139,7 @@ if args.parallel:
     sock.bind(("localhost", 0))
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     db_port = sock.getsockname()[1]
+    sock.close()
     db_folder = f"{tmp_folder}/db"
     os.mkdir(db_folder)
     try:
