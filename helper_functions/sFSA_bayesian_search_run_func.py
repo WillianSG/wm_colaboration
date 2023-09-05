@@ -54,7 +54,7 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
 
     _rcn_path = make_timestamped_folder(os.path.join(tmp_folder, f"{pid}"))
 
-    sFSA_model = sFSA(fsa, params, _rcn_path)
+    sFSA_model = sFSA(FSA_model = fsa, params = params, RCN_path = _rcn_path, seed_init = seed_init, record_traces = record_traces)
 
     # - Folder for simulation results.
 

@@ -239,7 +239,7 @@ for par in best_params.items():
 # Run model with the best parameters and plot output
 save_folder = f'RESULTS/SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
 os.makedirs(save_folder)
-# run_sfsa(best_params, tmp_folder=tmp_folder, word_length=1, save_plot=True, seed_init=None, record_traces=True)
+run_sfsa(best_params, tmp_folder=tmp_folder, word_length=1, save_plot=True, seed_init=None, record_traces=True)
 # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 os.rename(f"{tmp_folder}/string.txt", f"{save_folder}/string.txt")
