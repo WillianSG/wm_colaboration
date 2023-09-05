@@ -69,7 +69,7 @@ for i in range(len(digits)):
 
     sFSA_model.restoreSfsa()
 
-    # sFSA_model.feedInputWord(digits[i])     # feed input tokes.
+    sFSA_model.feedInputWord(digits[i])     # feed input tokes.
 
     sFSA_model.exportSfsaData(network_plot = True, pickle_dump = False, name_ext = f'_{i}')             # create simulaiton folder and export data.
 
