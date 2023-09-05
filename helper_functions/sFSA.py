@@ -221,8 +221,8 @@ class sFSA:
 
     def __feedInputToken(self, input_token):
         '''
-            Cues an attractor for 0.6s and run the RCN foward in time for 3.4s. A transition will
-        (or not) happen after processing the input token, so we simulate a total of 4s from cueing
+            Cues an attractor and run the RCN foward in time for Xs. A transition will
+        (or not) happen after processing the input token, so we simulate the network forward in time from cueing
         to let the activity in the network evolve.
         '''
 
@@ -282,8 +282,6 @@ class sFSA:
             if states_mean_rate[state] > rate_thr:
                 activations.append(states_mean_rate[state])
 
-        # @TODO: check if transition is caused by input alone.
-
         if len(activations) > 1:  # check if more than one state is active.
             return 'two'
         else:
@@ -318,15 +316,15 @@ class sFSA:
         if self.data_folder == '':
 
             if sub_dir != '':
-                data_folder = os.path.abspath(os.path.join(__file__, '../../../', 'results', sub_dir))
+                data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', sub_dir))
 
                 if not (os.path.isdir(data_folder)):
                     os.mkdir(data_folder)
 
                 data_folder = os.path.abspath(
-                    os.path.join(__file__, '../../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
+                    os.path.join(__file__, '../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
             else:
-                data_folder = os.path.abspath(os.path.join(__file__, '../../../', 'results', f'sFSA_{self.sFSA_id}'))
+                data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', f'sFSA_{self.sFSA_id}'))
 
             if not (os.path.isdir(data_folder)):
                 os.mkdir(data_folder)
@@ -334,39 +332,37 @@ class sFSA:
             self.data_folder = data_folder
 
         # - Export metadata.
-        #
-        # with open(os.path.join(self.data_folder, 'parameters.txt'), "w") as file:
-        #     file.write("\nRCN\n")
-        #     for arg in vars(self.__params):
-        #         arg_value = getattr(self.__params, arg)
-        #         if arg_value is not None:
-        #             file.write(f"\n{arg}: {arg_value}")
-        #
-        #     file.write(f"\np_A2GO: {self.__RCN.p_A2GO}")
-        #     file.write(f"\ndelay_A2GO: {self.__RCN.delay_A2GO}")
-        #     file.write(f"\np_A2B: {self.__RCN.p_A2B}")
-        #     file.write(f"\ndelay_A2B: {self.__RCN.delay_A2B}")
-        #     file.write(f"\nstart_twindow: {self.start_twindow}s")
-        #     file.write(f"\ninput_twindow: {self.input_twindow}s")
-        #     file.write(f"\nfree_activity: {self.free_activity}s")
-        #     file.write("\n\nExc. neurons\n")
-        #     file.write(f"\nVr_e: {self.__RCN.Vr_e}")
-        #     file.write(f"\nVrst_e: {self.__RCN.Vrst_e}")
-        #     file.write(f"\nVth_e_init: {self.__RCN.Vth_e_init}")
-        #     file.write(f"\nVth_e_decr: {self.__RCN.Vth_e_decr}")
-        #     file.write(f"\ntau_Vth_e: {self.__RCN.tau_Vth_e}")
-        #     file.write(f"\ntaum_e: {self.__RCN.taum_e}")
-        #     file.write(f"\ntref_e: {self.__RCN.tref_e}")
-        #     file.write(f"\ntau_epsp_e: {self.__RCN.tau_epsp_e}")
-        #     file.write(f"\ntau_ipsp_e: {self.__RCN.tau_ipsp_e}")
-        #     file.write("\n\nInh. neurons\n")
-        #     file.write(f"\nVr_i: {self.__RCN.Vr_i}")
-        #     file.write(f"\nVrst_i: {self.__RCN.Vrst_i}")
-        #     file.write(f"\nVth_i: {self.__RCN.Vth_i}")
-        #     file.write(f"\ntaum_i: {self.__RCN.taum_i}")
-        #     file.write(f"\ntref_i: {self.__RCN.tref_i}")
-        #     file.write(f"\ntau_epsp_i: {self.__RCN.tau_epsp_i}")
-        #     file.write(f"\ntau_ipsp_i: {self.__RCN.tau_ipsp_i}")
+        
+        with open(os.path.join(self.data_folder, 'parameters.txt'), "w") as file:
+            file.write("\nRCN\n")
+            for key, val in self.__params.items():
+                file.write(f"\n{key}: {val}")
+        
+            file.write(f"\np_A2GO: {self.__RCN.p_A2GO}")
+            file.write(f"\ndelay_A2GO: {self.__RCN.delay_A2GO}")
+            file.write(f"\np_A2B: {self.__RCN.p_A2B}")
+            file.write(f"\ndelay_A2B: {self.__RCN.delay_A2B}")
+            file.write(f"\nstart_twindow: {self.start_twindow}s")
+            file.write(f"\ninput_twindow: {self.input_twindow}s")
+            file.write(f"\nfree_activity: {self.free_activity}s")
+            file.write("\n\nExc. neurons\n")
+            file.write(f"\nVr_e: {self.__RCN.Vr_e}")
+            file.write(f"\nVrst_e: {self.__RCN.Vrst_e}")
+            file.write(f"\nVth_e_init: {self.__RCN.Vth_e_init}")
+            file.write(f"\nVth_e_decr: {self.__RCN.Vth_e_decr}")
+            file.write(f"\ntau_Vth_e: {self.__RCN.tau_Vth_e}")
+            file.write(f"\ntaum_e: {self.__RCN.taum_e}")
+            file.write(f"\ntref_e: {self.__RCN.tref_e}")
+            file.write(f"\ntau_epsp_e: {self.__RCN.tau_epsp_e}")
+            file.write(f"\ntau_ipsp_e: {self.__RCN.tau_ipsp_e}")
+            file.write("\n\nInh. neurons\n")
+            file.write(f"\nVr_i: {self.__RCN.Vr_i}")
+            file.write(f"\nVrst_i: {self.__RCN.Vrst_i}")
+            file.write(f"\nVth_i: {self.__RCN.Vth_i}")
+            file.write(f"\ntaum_i: {self.__RCN.taum_i}")
+            file.write(f"\ntref_i: {self.__RCN.tref_i}")
+            file.write(f"\ntau_epsp_i: {self.__RCN.tau_epsp_i}")
+            file.write(f"\ntau_ipsp_i: {self.__RCN.tau_ipsp_i}")
 
         '''
         @TODO: added other network hyperparameters not included in the arguments.
@@ -463,22 +459,27 @@ class sFSA:
 
         _input_twindow = simulation_data['input_twindow'][0] + simulation_data['input_twindow'][1]
 
-        for i in range(len(simulation_data['input_sequence'])):
+        if len(simulation_data['sim_t']) > 0:
 
-            if i == len(simulation_data['input_sequence']) - 1:
+            for i in range(len(simulation_data['input_sequence'])):
 
-                t_start = simulation_data['sim_t'][-1] - 0.7  # look back .7s before an input token time window.
-                t_end = simulation_data['sim_t'][-1]
+                if i == len(simulation_data['input_sequence']) - 1:
 
-            else:
+                    t_start = simulation_data['sim_t'][-1] - 0.7  # look back .7s before an input token time window.
+                    t_end = simulation_data['sim_t'][-1]
 
-                t_end = _input_twindow * (i + 1) + (
-                        simulation_data['start_twindow'][0] + simulation_data['start_twindow'][1])
-                t_start = t_end - 0.7
+                else:
 
-            S_winning = self.__getMostActiveAttractor(spikes_per_state, (t_start, t_end), attractor_size)
+                    t_end = _input_twindow * (i + 1) + (
+                            simulation_data['start_twindow'][0] + simulation_data['start_twindow'][1])
+                    t_start = t_end - 0.7
 
-            state_sequence.append(S_winning)
+                S_winning = self.__getMostActiveAttractor(spikes_per_state, (t_start, t_end), attractor_size)
+
+                state_sequence.append(S_winning)
+        else:
+
+            state_sequence = ['null' for i in simulation_data['input_sequence']]
 
         return state_sequence
 
@@ -558,7 +559,7 @@ class sFSA:
 
     def makeSimulationFolder(self, sub_dir=''):
 
-        data_folder = os.path.abspath(os.path.join(__file__, '../../../', 'results'))
+        data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results'))
 
         if not (os.path.isdir(data_folder)):
             os.mkdir(data_folder)
@@ -568,15 +569,15 @@ class sFSA:
         if self.data_folder == '':
 
             if sub_dir != '':
-                data_folder = os.path.abspath(os.path.join(__file__, '../../../', 'results', sub_dir))
+                data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', sub_dir))
 
                 if not (os.path.isdir(data_folder)):
                     os.mkdir(data_folder)
 
                 data_folder = os.path.abspath(
-                    os.path.join(__file__, '../../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
+                    os.path.join(__file__, '../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
             else:
-                data_folder = os.path.abspath(os.path.join(__file__, '../../../', 'results', f'sFSA_{self.sFSA_id}'))
+                data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', f'sFSA_{self.sFSA_id}'))
 
             if not (os.path.isdir(data_folder)):
                 os.mkdir(data_folder)
@@ -595,7 +596,7 @@ class sFSA:
 
         if self.data_folder == '':
 
-            data_folder = os.path.abspath(os.path.join(__file__, '../../../', 'results', f'sFSA_{self.sFSA_id}'))
+            data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', f'sFSA_{self.sFSA_id}'))
 
             if not (os.path.isdir(data_folder)):
                 os.mkdir(data_folder)

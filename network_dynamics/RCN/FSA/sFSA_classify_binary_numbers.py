@@ -11,30 +11,35 @@ from brian2 import prefs
 
 if sys.platform in ['linux', 'win32']:
     root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../../..')))
-    sys.path.append(os.path.join(root, 'helper_functions', 'sFSA'))
+    sys.path.append(os.path.join(root, 'helper_functions'))
     from sFSA import sFSA
 else:
     from helper_functions.sFSA import sFSA
 
 parser = argparse.ArgumentParser(description = 'sFSA')
 
-parser.add_argument('--ba_rate', type = float,          default = 15.00,  help = 'Background mean rate (Hz).')
+parser.add_argument('--background_activity', type = float,          default = 15.00,  help = 'Background mean rate (Hz).')
 parser.add_argument('--e_e_max_weight', type = float,   default = 9.0,   help = 'Within attractor weight (mV).')
-parser.add_argument('--W_ei', type = float,             default = 2.1,   help = 'E-to-I weight (mV).')
-parser.add_argument('--W_ie', type = float,             default = 13.5,   help = 'I-to-E weight (mV).')
-parser.add_argument('--inh_rate', type = float,         default = 20.00,  help = 'Inhibition mean rate (Hz).')
-parser.add_argument('--gs_percent', type = float,       default = 100,    help = 'Percentage of stimulated neurons in attractor.')
+parser.add_argument('--e_i_weight', type = float,             default = 2.1,   help = 'E-to-I weight (mV).')
+parser.add_argument('--i_e_weight', type = float,             default = 3.5,   help = 'I-to-E weight (mV).')
+parser.add_argument('--i_freq', type = float,         default = 20.00,  help = 'Inhibition mean rate (Hz).')
+parser.add_argument('--cue_percentage', type = float,       default = 100,    help = 'Percentage of stimulated neurons in attractor.')
 parser.add_argument('--w_acpt', type = float,           default = 2.55,   help = 'Weight in synapses to GO state (mV).')
 parser.add_argument('--w_trans', type = float,          default = 7.8,   help = 'Cue transfer weight (mV).')
 parser.add_argument('--thr_GO_state', type = float,     default = -47.5,  help = 'Threshold for Vth gated synapses (mV).')
-parser.add_argument('--delay_A2GO', type = float,     default = 1.8,  help = 'Connection delay of red synapses (s).')
+parser.add_argument('--delay_A2GO', type = float,     default = 1.5,  help = 'Connection delay of red synapses (s).')
 parser.add_argument('--delay_gap_A2B', type = float,     default = 0.0,  help = 'Connection delay of blue synapses (s).')
-parser.add_argument('--cue_length', type = float,     default = 0.8,  help = 'Time over which an attractor is stimulated (s).')
+parser.add_argument('--cue_length', type = float,     default = 0.6,  help = 'Time over which an attractor is stimulated (s).')
 
 args = parser.parse_args()
 
 args.seed_init = 0
 args.record_traces = True
+
+params = {}
+
+for arg in vars(args):
+    params[arg] = getattr(args, arg)
 
 # 1st state in S taken as 'start' state.
 fsa = {
@@ -45,7 +50,7 @@ fsa = {
 
 # create sFSA.
 
-sFSA_model = sFSA(fsa, args)
+sFSA_model = sFSA(fsa, params)
 
 sFSA_model.makeSimulationFolder()
 
