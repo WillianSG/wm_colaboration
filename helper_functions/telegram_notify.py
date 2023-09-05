@@ -48,28 +48,42 @@ class TelegramNotify:
         async with self.bot:
             msg = await self.bot.send_message(text=self.escape_markdown(text), chat_id=self.CHATID,
                                               parse_mode=telegram.constants.ParseMode.MARKDOWN_V2)
-            return msg.message_id
+            return msg
 
     async def _edit_message(self, text, message_id):
         async with self.bot:
             msg = await self.bot.edit_message_text(text=self.escape_markdown(text), chat_id=self.CHATID,
                                                    message_id=message_id,
                                                    parse_mode=telegram.constants.ParseMode.MARKDOWN_V2)
-            return msg.message_id
+            return msg
 
     async def _reply_to_message(self, text, message_id):
         async with self.bot:
             msg = await self.bot.send_message(text=self.escape_markdown(text), chat_id=self.CHATID,
                                               reply_to_message_id=message_id,
                                               parse_mode=telegram.constants.ParseMode.MARKDOWN_V2)
-            return msg.message_id
+            return msg
 
     async def _append_to_message(self, text, message_id):
         async with self.bot:
             msg = await self.bot.edit_message_text(text=self.escape_markdown(text), chat_id=self.CHATID,
                                                    message_id=message_id,
                                                    parse_mode=telegram.constants.ParseMode.MARKDOWN_V2)
-            return msg.message_id
+            return msg
+
+    async def _pin_message(self, message_id):
+        async with self.bot:
+            msg = await self.bot.pin_chat_message(chat_id=self.CHATID, message_id=message_id)
+            return msg
+
+    async def _get_chat(self):
+        async with self.bot:
+            chat = await self.bot.get_chat(chat_id=self.CHATID)
+            return chat
+
+    async def _unpin_all(self):
+        async with self.bot:
+            await self.bot.unpin_all_chat_messages(chat_id=self.CHATID)
 
     def send_message(self, text):
         return asyncio.run(self._send_message(text))
@@ -89,3 +103,12 @@ class TelegramNotify:
     def reply_to_timestamped_message(self, text, message_id):
         return asyncio.run(
             self._reply_to_message(f'*{datetime.now().strftime("%d-%m-%Y %H:%M:%S")}* {text}', message_id))
+
+    def pin_message(self, message_id):
+        return asyncio.run(self._pin_message(message_id))
+
+    def get_chat(self):
+        return asyncio.run(self._get_chat())
+
+    def unpin_all(self):
+        return asyncio.run(self._unpin_all())
