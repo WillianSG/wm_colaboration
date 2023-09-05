@@ -25,16 +25,12 @@ def compute_transition(current_state, input_symbol, fsa):
             return transition.split('->')[-1]
 
 
-def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=False, seed_init=None):
+def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=None, record_traces=False):
     '''
     Configures a RCN to implement a FSA to recognize a random binary word.
     '''
 
     pid = os.getpid()
-
-    # - Set seed.
-    params['seed_init'] = seed_init
-    params['record_traces'] = save_plot
 
     # - Define FSA (1st state in S taken as 'start' state).
 

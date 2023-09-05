@@ -20,7 +20,7 @@ else:
 
 
 class sFSA:
-    def __init__(self, FSA_model: dict, params: dict, RCN_path):
+    def __init__(self, FSA_model: dict, params: dict, RCN_path, seed_init=None, record_traces=False):
 
         self.sFSA_id = str(datetime.utcnow()).replace(' ', '_').replace(':', '-').replace('.', '')
 
@@ -31,15 +31,15 @@ class sFSA:
         self.__FSA_model = FSA_model
         self.__params = params
 
-        self.record_traces = params['record_traces']
+        self.record_traces = record_traces
 
         self.__RCN = RecurrentCompetitiveNet(
             plasticity_rule=self.plasticity_rule,
             parameter_set=self.parameter_set,
-            seed_init=self.__params['seed_init'],
+            seed_init=seed_init,
             low_memory=not self.record_traces,
             sFSA=True)
-        
+
         self.__RCN.net_sim_data_path = RCN_path
 
         # 1st twindow arg set cueing time, 2nd arg sets free evolving time.
@@ -272,9 +272,9 @@ class sFSA:
             if len(spks_in_window) > 0:
 
                 [_,
-                __,
-                ___,
-                t_hist_fr] = firing_rate_histograms(
+                 __,
+                 ___,
+                 t_hist_fr] = firing_rate_histograms(
                     tpoints=np.array(spks_in_window) * second,
                     inds=np.arange(0, attractor_size),  # not important the correct IDs.
                     bin_width=25 * ms,
@@ -319,31 +319,33 @@ class sFSA:
 
         # - Creating data folder.
 
-        if self.data_folder == '':
-
-            if sub_dir != '':
-                data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', sub_dir))
-
-                if not (os.path.isdir(data_folder)):
-                    os.mkdir(data_folder)
-
-                data_folder = os.path.abspath(
-                    os.path.join(__file__, '../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
-            else:
-                data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', f'sFSA_{self.sFSA_id}'))
-
-            if not (os.path.isdir(data_folder)):
-                os.mkdir(data_folder)
-
-            self.data_folder = data_folder
+        # if self.data_folder == '':
+        #
+        #     if sub_dir != '':
+        #         data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', sub_dir))
+        #
+        #         if not (os.path.isdir(data_folder)):
+        #             os.mkdir(data_folder)
+        #
+        #         data_folder = os.path.abspath(
+        #             os.path.join(__file__, '../../', 'results', sub_dir, f'sFSA_{self.sFSA_id}'))
+        #     else:
+        #         data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results', f'sFSA_{self.sFSA_id}'))
+        #
+        #     if not (os.path.isdir(data_folder)):
+        #         os.mkdir(data_folder)
+        #
+        #     self.data_folder = data_folder
 
         # - Export metadata.
-        
+
+        self.data_folder = self.__RCN.net_sim_data_path
+
         with open(os.path.join(self.data_folder, 'parameters.txt'), "w") as file:
             file.write("\nRCN\n")
             for key, val in self.__params.items():
                 file.write(f"\n{key}: {val}")
-        
+
             file.write(f"\np_A2GO: {self.__RCN.p_A2GO}")
             file.write(f"\ndelay_A2GO: {self.__RCN.delay_A2GO}")
             file.write(f"\np_A2B: {self.__RCN.p_A2B}")
@@ -559,7 +561,7 @@ class sFSA:
 
         plt.tight_layout()
 
-        plt.savefig(os.path.join(self.data_folder, f'network_activity{name_ext}.svg'))
+        plt.savefig(os.path.join(self.__RCN.net_sim_data_path, f'network_activity{name_ext}.svg'))
 
         plt.close()
 

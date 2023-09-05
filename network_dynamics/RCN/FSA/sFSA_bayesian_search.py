@@ -80,8 +80,9 @@ except KeyError:
         sys.exit("No virtual environment found")
 print("VENV:", venv_path)
 
+
 def objective(x):
-    r = run_sfsa(x, tmp_folder = tmp_folder, word_length = 4, save_plot = False, seed_init = None)
+    r = run_sfsa(x, tmp_folder=tmp_folder, word_length=1, save_plot=False)
 
     return {
         "loss": -r["f1_score"],
@@ -122,6 +123,7 @@ if args.parallel:
     sock.bind(("localhost", 0))
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     db_port = sock.getsockname()[1]
+    sock.close()
     db_folder = f"{tmp_folder}/db"
     os.mkdir(db_folder)
     try:
@@ -223,11 +225,23 @@ print("Use this string as command-line parameters for RCN_sweep.py:", best_strin
 with open(f"{tmp_folder}/string.txt", "w") as f:
     f.write(best_string)
 
+for par in best_params.items():
+    if isinstance(space[par[0]], Apply):
+        parameter_sweep_string = f"-sweep {par[0]}"
+        for k, v in best_params.items():
+            if isinstance(space[k], Apply):
+                parameter_sweep_string += f" -{k} {v}"
+        parameter_sweep_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+        parameter_sweep_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size {args.n_attractors * (64 + 16)} -attractor_size {64} -cue_length 1"
+        with open(f"{tmp_folder}/string.txt", "a") as f:
+            f.write('\n' + parameter_sweep_string)
+
 # Run model with the best parameters and plot output
 save_folder = f'RESULTS/SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
 os.makedirs(save_folder)
-run_sfsa(best_params, tmp_folder = tmp_folder, word_length = 4, save_plot = True, seed_init = None)
+# run_sfsa(best_params, tmp_folder=tmp_folder, word_length=1, save_plot=True, seed_init=None, record_traces=True)
 # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 os.rename(f"{tmp_folder}/string.txt", f"{save_folder}/string.txt")
+
 cleanup()

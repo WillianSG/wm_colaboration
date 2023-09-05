@@ -23,7 +23,7 @@ from tqdm.auto import tqdm
 
 from hyperopt import fmin, tpe, hp
 
-from helper_functions.recurrent_competitive_network import run_rcn
+from helper_functions.RCN_bayesian_search_run_func import run_rcn
 from helper_functions.telegram_notify import TelegramNotify
 
 parser = argparse.ArgumentParser()
