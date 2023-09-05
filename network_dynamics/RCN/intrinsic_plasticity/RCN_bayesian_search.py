@@ -1,5 +1,6 @@
 import argparse
 import atexit
+import multiprocessing
 import os
 import shutil
 import signal
@@ -15,10 +16,10 @@ import seaborn as sns
 import subprocess
 import socket
 
-from hyperopt import hp, tpe, fmin, Trials, STATUS_OK
+from hyperopt import hp, tpe, fmin, Trials, STATUS_OK, partial
 from hyperopt.pyll.base import Apply
 from hyperopt.pyll.stochastic import sample
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from hyperopt import fmin, tpe, hp
 
@@ -39,8 +40,6 @@ for k, v in vars(args).items():
 telegram_bot = TelegramNotify()
 main_msg_id = telegram_bot.send_timestamped_message(
     f'Starting Bayesian search with the following parameters: {msg_args}')
-
-pbar = tqdm(total=args.n_evals, desc="Hyperopt")
 
 tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
@@ -93,11 +92,15 @@ print("VENV:", venv_path)
 
 
 def objective(x):
-    r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution='3')
+    # r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution='3')
 
-    pbar.update()
-    telegram_bot.edit_timestamped_message(f'*{pbar.last_print_n}/{pbar.total}* Finished run.  Score: {r["f1_score"]}',
-                                          telegram_msg_id)
+    r = {'f1_score': 0.5, 'recall': 0.5, 'accuracy': 0.5, 'triggered': 0.5, 'spontaneous': 0.5}
+
+    # create new instance because Bot is not pickleable
+    telegram_bot = TelegramNotify()
+    telegram_bot.edit_timestamped_message(
+        f'*{1}/{args.n_evals}* Finished run.  Score: {r["f1_score"]}',
+        telegram_msg_id)
 
     return {
         "loss": -r["f1_score"],
@@ -192,9 +195,8 @@ tpe_best = fmin(
     max_evals=args.n_evals,
     rstate=np.random.default_rng(50),
     max_queue_len=os.cpu_count(),
-    show_progressbar=False,
+    show_progressbar=True,
 )
-pbar.close()
 results = trials.results
 if args.parallel:
     results = [r.to_dict() for r in results]
