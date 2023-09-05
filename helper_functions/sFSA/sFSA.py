@@ -19,7 +19,7 @@ else:
     from helper_functions.firing_rate_histograms import firing_rate_histograms
 
 class sFSA:
-    def __init__(self, FSA_model: dict, args):
+    def __init__(self, FSA_model: dict, args: dict):
 
         self.sFSA_id = str(datetime.utcnow()).replace(' ', '_').replace(':', '-').replace('.', '')
 
@@ -35,13 +35,13 @@ class sFSA:
         self.__RCN = RecurrentCompetitiveNet(
             plasticity_rule = self.plasticity_rule, 
             parameter_set = self.parameter_set, 
-            seed_init = self.__args.seed_init, 
+            seed_init = self.__args['seed_init'], 
             low_memory = not self.record_traces, 
             sFSA = True)
 
         # 1st twindow arg set cueing time, 2nd arg sets free evolving time.
         self.start_twindow = (0.2, 0.1)                 # 1st: cuing period; 2nd: free (only for starting state).
-        self.input_twindow = (args.cue_length, args.cue_length + args.delay_A2GO + 1)
+        self.input_twindow = (args['cue_length'], args['cue_length'] + args['delay_A2GO'] + 1)
         self.free_activity = 0.7                        # free net. evolution after last input toke.     
 
         self.__loadSfsaArgs()
@@ -66,20 +66,20 @@ class sFSA:
 
             # - Attractor dynamics parameters.
 
-            self.__RCN.spont_rate              = self.__args.ba_rate * Hz
-            self.__RCN.w_max                   = self.__args.e_e_max_weight * mV
-            self.__RCN.w_e_i                   = self.__args.W_ei * mV
-            self.__RCN.w_i_e                   = self.__args.W_ie * mV
-            self.__RCN.stim_freq_i             = self.__args.inh_rate * Hz
+            self.__RCN.spont_rate              = self.__args['ba_rate'] * Hz
+            self.__RCN.w_max                   = self.__args['e_e_max_weight'] * mV
+            self.__RCN.w_e_i                   = self.__args['W_ei'] * mV
+            self.__RCN.w_i_e                   = self.__args['W_ie'] * mV
+            self.__RCN.stim_freq_i             = self.__args['inh_rate'] * Hz
             self.__RCN.tau_Vth_e               = 0.1 * second
             self.__RCN.k                       = 4    
             self.__RCN.U                       = 0.2
 
             # - State transition dynamics parameters.
 
-            self.__RCN.thr_GO_state            = self.__args.thr_GO_state
-            self.__RCN.delay_A2GO              = self.__args.delay_A2GO * second
-            self.__RCN.delay_A2B               = (self.__args.cue_length - self.__args.delay_gap_A2B) * second
+            self.__RCN.thr_GO_state            = self.__args['thr_GO_state']
+            self.__RCN.delay_A2GO              = self.__args['delay_A2GO'] * second
+            self.__RCN.delay_A2B               = (self.__args['cue_length'] - self.__args['delay_gap_A2B']) * second
 
     def __loadSfsaModel(self):
         '''
@@ -155,7 +155,7 @@ class sFSA:
 
         # - Setting inhibitory input and plasticity of connections.
 
-        self.__RCN.set_stimulus_i(stimulus = 'flat_to_I', frequency = self.__args.inh_rate * Hz)
+        self.__RCN.set_stimulus_i(stimulus = 'flat_to_I', frequency = self.__args['inh_rate'] * Hz)
         self.__RCN.set_E_E_plastic(plastic = False)
         self.__RCN.set_E_E_ux_vars_plastic(plastic = True)
 
@@ -185,17 +185,17 @@ class sFSA:
 
             # - Setting connections for state->input->state transitions (transfering cue).
             
-            self.__RCN.set_synapses_A_2_B(A_ids = self.__sfsa_state['I'][_i], B_ids = self.__sfsa_state['S'][_s0], weight = self.__args.w_trans*mV)
+            self.__RCN.set_synapses_A_2_B(A_ids = self.__sfsa_state['I'][_i], B_ids = self.__sfsa_state['S'][_s0], weight = self.__args['w_trans']*mV)
 
             # - Setting connections for state-input matching leading to next state.
 
             if self.__sfsa_state['S'][_s0] != self.__sfsa_state['S'][_s1]:
 
                 # if _i != '0' and _s1 != 'B':
-                self.__RCN.set_synapses_A_2_GO(A_ids = self.__sfsa_state['I'][_i], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args.w_acpt*mV)
+                self.__RCN.set_synapses_A_2_GO(A_ids = self.__sfsa_state['I'][_i], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args['w_acpt']*mV)
                 
                 # if _s0 != 'A' and _s1 != 'B':
-                self.__RCN.set_synapses_A_2_GO(A_ids = self.__sfsa_state['S'][_s0], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args.w_acpt*mV)
+                self.__RCN.set_synapses_A_2_GO(A_ids = self.__sfsa_state['S'][_s0], GO_ids = self.__sfsa_state['S'][_s1], weight = self.__args['w_acpt']*mV)
 
     def __enterStartState(self):
         '''
@@ -208,7 +208,7 @@ class sFSA:
 
         act_ids = self.__RCN.generic_stimulus(
                 frequency = self.__RCN.stim_freq_e, 
-                stim_perc = self.__args.gs_percent, 
+                stim_perc = self.__args['gs_percent'], 
                 subset = self.__sfsa_state['S'][start_state])
 
         self.__RCN.run_net(duration = self.start_twindow[0])
@@ -236,7 +236,7 @@ class sFSA:
 
         act_ids = self.__RCN.generic_stimulus(
                 frequency = self.__RCN.stim_freq_e, 
-                stim_perc = self.__args.gs_percent, 
+                stim_perc = self.__args['gs_percent'], 
                 subset = self.__sfsa_state['I'][input_token])
         
         self.__RCN.run_net(duration = self.input_twindow[0])
@@ -339,10 +339,9 @@ class sFSA:
 
         with open(os.path.join(self.data_folder, 'parameters.txt'), "w") as file:
             file.write("\nRCN\n")
-            for arg in vars(self.__args):
-                arg_value = getattr(self.__args, arg)
-                if arg_value is not None:
-                    file.write(f"\n{arg}: {arg_value}")
+
+            for key, val in self.__args.items():
+                file.write(f"\n{key}: {val}")
 
             file.write(f"\np_A2GO: {self.__RCN.p_A2GO}")
             file.write(f"\ndelay_A2GO: {self.__RCN.delay_A2GO}")
@@ -397,7 +396,7 @@ class sFSA:
             'sim_t': sim_t,
             'sFSA': self.__sfsa_state,
             'input_sequence': self.inputed_sequence,
-            'thr_GO_state': self.__args.thr_GO_state,
+            'thr_GO_state': self.__args['thr_GO_state'],
             'start_twindow': self.start_twindow,
             'input_twindow': self.input_twindow,
             'free_activity': self.free_activity
