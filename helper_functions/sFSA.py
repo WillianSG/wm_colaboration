@@ -267,22 +267,26 @@ class sFSA:
 
             spks_in_window = [i for i in spikes if i >= t_window[0] and i <= t_window[1]]
 
-            [_,
-             __,
-             ___,
-             t_hist_fr] = firing_rate_histograms(
-                tpoints=np.array(spks_in_window) * second,
-                inds=np.arange(0, attractor_size),  # not important the correct IDs.
-                bin_width=25 * ms,
-                N_pop=attractor_size,
-                flag_hist='time_resolved')
+            if len(spks_in_window) > 0:
 
-            states_mean_rate[state] = np.round(np.mean(t_hist_fr), 1)
+                [_,
+                __,
+                ___,
+                t_hist_fr] = firing_rate_histograms(
+                    tpoints=np.array(spks_in_window) * second,
+                    inds=np.arange(0, attractor_size),  # not important the correct IDs.
+                    bin_width=25 * ms,
+                    N_pop=attractor_size,
+                    flag_hist='time_resolved')
 
-            if states_mean_rate[state] > rate_thr:
-                activations.append(states_mean_rate[state])
+                states_mean_rate[state] = np.round(np.mean(t_hist_fr), 1)
 
-        if len(activations) > 1:  # check if more than one state is active.
+                if states_mean_rate[state] > rate_thr:
+                    activations.append(states_mean_rate[state])
+
+        if len(activations) == 0:
+            return 'null'
+        elif len(activations) > 1:  # check if more than one state is active.
             return 'two'
         else:
             if max(zip(states_mean_rate.values(), states_mean_rate.keys()))[
@@ -622,6 +626,9 @@ class sFSA:
         tp = 0
         fp = 0
         fn = 0
+
+        if len(pred_state_transitions) != len(true_state_transitions):
+            return 0.0, 0.0, 0.0
 
         # - It always starts at the 1st state in the state set.
 
