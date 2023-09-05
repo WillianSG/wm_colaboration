@@ -100,10 +100,10 @@ param_dist = hp.uniform
 
 space = {
     "background_activity": param_dist("background_activity", 10, 30),
-    "e_e_max_weight": param_dist("e_e_weight", 5, 20),
+    "e_e_max_weight": param_dist("e_e_max_weight", 5, 20),
     "e_i_weight": param_dist("e_i_weight", 0.5, 10),
     "i_e_weight": param_dist("i_e_weight", 5, 20),
-    "i_frequency": param_dist("i_frequency", 10, 40),
+    "i_freq": param_dist("i_freq", 10, 40),
     "cue_percentage": 100,
     "w_acpt": param_dist("w_acpt", 1.0, 4.0),
     "w_trans": param_dist("w_trans", 1.8, 13.8),
