@@ -56,11 +56,13 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=False, seed_init=N
 
     # - Create sFSA.
 
-    sFSA_model = sFSA(fsa, params)
+    _rcn_path = make_timestamped_folder(os.path.join(tmp_folder, f"{pid}"))
+
+    sFSA_model = sFSA(fsa, params, _rcn_path)
 
     # - Folder for simulation results.
 
-    sFSA_model.setSimulationFolder(make_timestamped_folder(os.path.join(tmp_folder, f"{pid}")))  # path
+    sFSA_model.setSimulationFolder(_rcn_path)  # path
     _f = os.path.join(sFSA_model.data_folder, "simulation_summary.txt")  # output .txt with simulation summary
 
     # - Feed input word.

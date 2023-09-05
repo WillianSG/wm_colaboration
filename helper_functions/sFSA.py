@@ -20,7 +20,7 @@ else:
 
 
 class sFSA:
-    def __init__(self, FSA_model: dict, params: dict):
+    def __init__(self, FSA_model: dict, params: dict, RCN_path):
 
         self.sFSA_id = str(datetime.utcnow()).replace(' ', '_').replace(':', '-').replace('.', '')
 
@@ -39,6 +39,8 @@ class sFSA:
             seed_init=self.__params['seed_init'],
             low_memory=not self.record_traces,
             sFSA=True)
+        
+        self.__RCN.net_sim_data_path = RCN_path
 
         # 1st twindow arg set cueing time, 2nd arg sets free evolving time.
         self.start_twindow = (0.2, 0.1)  # 1st: cuing period; 2nd: free (only for starting state).
