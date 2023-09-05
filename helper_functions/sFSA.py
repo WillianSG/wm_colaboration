@@ -565,6 +565,80 @@ class sFSA:
 
         plt.close()
 
+    def plotSfsaNetworkToPath(self, save_path):
+        '''
+            Plots (raster plot) the spikes from the E neurons representing input tokens (in black) and states (colored) as well as the voltage
+        traces of each attractor in S.
+        '''
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        # - Create a figure.
+
+        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(15, 5))
+
+        states_colors = ['mediumslateblue', 'magenta', 'darkorange', 'purple', 'b', 'r', 'g', 'darkred']
+
+        # - Axis for the spike raster plot.
+
+        E_spk_trains = self.sFSA_sim_data['E_spk_trains']
+
+        _aux_c = 0
+
+        for _s, neur_IDs in self.sFSA_sim_data['sFSA']['S'].items():
+
+            for neuron_id in neur_IDs:
+                if neuron_id in E_spk_trains.keys():
+                    spikes = E_spk_trains[neuron_id]
+                    y = np.ones_like(spikes) * neuron_id
+                    ax1.scatter(spikes, y, c=states_colors[_aux_c], s=1.0, marker='|')
+
+            _aux_c += 1
+
+        for _s, neur_IDs in self.sFSA_sim_data['sFSA']['I'].items():
+
+            for neuron_id in neur_IDs:
+                if neuron_id in E_spk_trains.keys():
+                    spikes = E_spk_trains[neuron_id]
+                    y = np.ones_like(spikes) * neuron_id
+                    ax1.scatter(spikes, y, c='k', s=1.0, marker='|')
+
+        # - Axis for the voltage threshold traces.
+
+        _aux_c = 0
+        for state, Vth in self.sFSA_sim_data['Vth_traces'].items():
+            Vth_mu = np.mean(Vth, axis=0)
+            Vth_sg = np.std(Vth, axis=0)
+
+            ax2.plot(self.sFSA_sim_data['sim_t'], Vth_mu, color=states_colors[_aux_c])
+            ax2.plot(self.sFSA_sim_data['sim_t'], np.max(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
+            ax2.plot(self.sFSA_sim_data['sim_t'], np.min(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
+            ax2.fill_between(self.sFSA_sim_data['sim_t'], Vth_mu - Vth_sg, Vth_mu + Vth_sg, alpha=0.2,
+                             color=states_colors[_aux_c])
+
+            _aux_c += 1
+
+        ax2.hlines(y=self.sFSA_sim_data['thr_GO_state'], xmin=0, xmax=int(round(self.sFSA_sim_data['sim_t'][-1])) + 1,
+                   colors='b', linestyles='dashed', lw=0.75, ls='-.')
+
+        # - Set the axis labels and title.
+
+        ax1.set_ylabel('Neuron ID')
+        ax1.set_yticks(np.arange(0, self.sFSA_sim_data['sFSA']['N_e'], 64))
+        ax1.set_ylim(0, self.sFSA_sim_data['sFSA']['N_e'])
+        ax1.set_xticks(np.arange(0, int(round(self.sFSA_sim_data['sim_t'][-1])) + 0.5, 0.5))
+        ax1.set_xlim(0, int(round(self.sFSA_sim_data['sim_t'][-1])))
+
+        ax2.set_ylabel(r'$V_{th}$')
+        ax2.set_xlabel('time [s]')
+        ax2.set_xticks(np.arange(0, int(round(self.sFSA_sim_data['sim_t'][-1])) + 0.5, 0.5))
+
+        plt.tight_layout()
+
+        plt.savefig(save_path)
+
+        plt.close()
+
     def makeSimulationFolder(self, sub_dir=''):
 
         data_folder = os.path.abspath(os.path.join(__file__, '../../', 'results'))

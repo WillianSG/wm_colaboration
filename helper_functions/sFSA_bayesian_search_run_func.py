@@ -25,7 +25,7 @@ def compute_transition(current_state, input_symbol, fsa):
             return transition.split('->')[-1]
 
 
-def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=None, record_traces=False):
+def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=None, record_traces=False, save_path = ''):
     '''
     Configures a RCN to implement a FSA to recognize a random binary word.
     '''
@@ -66,6 +66,10 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
     sFSA_model.feedInputWord(binary_word)
 
     sFSA_model.exportSfsaData(network_plot=save_plot, pickle_dump=False)  # computes state transisitons
+
+    if save_plot and save_path != '':
+
+        sFSA_model.plotSfsaNetworkToPath(save_path)
 
     pred_state_transitions = sFSA_model.sFSA_sim_data['state_history']
 
