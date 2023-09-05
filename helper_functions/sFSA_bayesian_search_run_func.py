@@ -43,11 +43,13 @@ def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_
     parser.add_argument('--w_acpt', type = float,           default = 2.55,   help = 'Weight in synapses to GO state (mV).')
     parser.add_argument('--w_trans', type = float,          default = 7.8,   help = 'Cue transfer weight (mV).')
     parser.add_argument('--thr_GO_state', type = float,     default = -48.0,  help = 'Threshold for Vth gated synapses (mV).')
-    parser.add_argument('--delay_A2GO', type = float,     default = 2.5,  help = 'Connection delay of red synapses (s).')
-    parser.add_argument('--delay_A2B', type = float,     default = 0.625,  help = 'Connection delay of blue synapses (s).')
+    parser.add_argument('--delay_A2GO', type = float,     default = 2.0,  help = 'Connection delay of red synapses (s).')
+    parser.add_argument('--delay_gap_A2B', type = float,     default = 0.2,  help = 'Connection delay of blue synapses (s).')
+    parser.add_argument('--cue_length', type = float,     default = 0.8,  help = 'Time over which an attractor is stimulated (s).')
 
     args = parser.parse_args()
 
+    # no unit should be assigned here.
     args.ba_rate = params['background_activity']
     args.e_e_max_weight = params['e_e_max_weight']
     args.W_ei = params['e_i_weight']
@@ -58,7 +60,8 @@ def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_
     args.w_trans = params['w_trans']
     args.thr_GO_state = params['thr_GO_state']
     args.delay_A2GO = params['delay_A2GO']
-    args.delay_A2B = params['delay_A2B']
+    args.delay_gap_A2B = params['delay_gap_A2B']    # total delay equals cue_length - delay_gap_A2B, should be betweem 0 - 0.3 (in seconds)
+    args.cue_length = params["cue_length"]          # 0.6 - 1.0 (in seconds)
 
     args.seed_init = seed_init
     args.record_traces = save_plot
@@ -75,7 +78,7 @@ def run_sfsa(params, tmp_folder = ".", word_length = 4, save_plot = False, seed_
 
     binary_word = np.random.randint(2, size = word_length)
 
-    true_state_transitions = ['A']                                      # this FSM starts at 'A'
+    true_state_transitions = [fsa['S'][0]]                              # this FSM starts at 'A'
     
     for dig in binary_word:                                             # computing true state transitions
         true_state_transitions.append(compute_transition(true_state_transitions[-1], dig, fsa))

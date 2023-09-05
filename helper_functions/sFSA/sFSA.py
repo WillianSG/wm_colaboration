@@ -39,9 +39,10 @@ class sFSA:
             low_memory = not self.record_traces, 
             sFSA = True)
 
-        self.start_twindow = (0.2, 0.1)     # 1st: cuing period; 2nd: free net. evolution period.
-        self.input_twindow = (0.8, 4.2)
-        self.free_activity = 0.7            # free net. evolution after last input toke.     
+        # 1st twindow arg set cueing time, 2nd arg sets free evolving time.
+        self.start_twindow = (0.2, 0.1)                 # 1st: cuing period; 2nd: free (only for starting state).
+        self.input_twindow = (args.cue_length, args.cue_length + args.delay_A2GO + 1)
+        self.free_activity = 0.7                        # free net. evolution after last input toke.     
 
         self.__loadSfsaArgs()
         self.__loadSfsaModel()
@@ -78,7 +79,7 @@ class sFSA:
 
             self.__RCN.thr_GO_state            = self.__args.thr_GO_state
             self.__RCN.delay_A2GO              = self.__args.delay_A2GO * second
-            self.__RCN.delay_A2B               = self.__args.delay_A2B * second
+            self.__RCN.delay_A2B               = (self.__args.cue_length - self.__args.delay_gap_A2B) * second
 
     def __loadSfsaModel(self):
         '''
@@ -552,7 +553,7 @@ class sFSA:
 
         plt.tight_layout()
 
-        plt.savefig(os.path.join(self.data_folder, f'network_activity{name_ext}.pdf'))
+        plt.savefig(os.path.join(self.data_folder, f'network_activity{name_ext}.svg'))
 
         plt.close()
 
