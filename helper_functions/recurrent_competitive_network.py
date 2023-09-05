@@ -22,7 +22,7 @@ prefs.codegen.target = "numpy"
 
 if sys.platform in ['linux', 'win32']:
 
-    root = os.path.dirname(os.path.abspath(os.path.join(__file__ , '../')))
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, '../')))
 
     sys.path.append(os.path.join(root, 'helper_functions'))
 
@@ -37,6 +37,7 @@ else:
     from helper_functions.load_synapse_model import *
     from helper_functions.load_stimulus import *
 
+
 class RecurrentCompetitiveNet:
     def __init__(
             self,
@@ -48,7 +49,7 @@ class RecurrentCompetitiveNet:
             low_memory=False,
             sFSA=False
     ):
-        
+
         self.sFSA = sFSA
 
         seed(seed_init)
@@ -59,12 +60,12 @@ class RecurrentCompetitiveNet:
 
         # ------ state transition connections
         self.p_A2GO = 0.15
-        self.delay_A2GO = 2*second
+        self.delay_A2GO = 2 * second
 
         self.thr_GO_state = -48.5
 
         self.p_A2B = 0.15
-        self.delay_A2B = 0.525*second
+        self.delay_A2B = 0.525 * second
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -434,7 +435,7 @@ class RecurrentCompetitiveNet:
             name='E_E')
 
         # f'''w_ef = w*int(Vth_e_post < {self.thr_GO_state}*mV)*int(Vth_e_pre < {self.thr_GO_state}*mV), Vepsp += w_ef'''
-        self.A_2_B_synapses = Synapses(     # synapses between different attractors
+        self.A_2_B_synapses = Synapses(  # synapses between different attractors
             source=self.E,
             target=self.E,
             model='''w_ef : volt
@@ -443,7 +444,7 @@ class RecurrentCompetitiveNet:
             Vepsp += w_ef''',
             delay=self.delay_A2B,
             name='A_2_B_synapses')
-        
+
         self.A_2_GO_synapses = Synapses(
             source=self.E,
             target=self.E,
@@ -472,8 +473,8 @@ class RecurrentCompetitiveNet:
         self.E_I.w = self.w_e_i
         self.I_E.w = self.w_i_e
 
-        self.A_2_B_synapses.w = 0*mV
-        self.A_2_GO_synapses.w = 0*mV
+        self.A_2_B_synapses.w = 0 * mV
+        self.A_2_GO_synapses.w = 0 * mV
 
         if self.plasticity_rule == 'LR4':
             self.E_E.x_ = 1.0
@@ -695,10 +696,8 @@ class RecurrentCompetitiveNet:
     def net_init(self):
         # self.set_results_folder()  # sim. results
 
-        if not self.sFSA:             # sFSA class calls it after RCN configuration.
-
+        if not self.sFSA:  # sFSA class calls it after RCN configuration.
             print('wrong enter', self.sFSA)
-
             self.set_learning_rule()  # rule eqs./params.
 
         self.set_neuron_pop()  # neuron populations
