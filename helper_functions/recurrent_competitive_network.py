@@ -545,7 +545,7 @@ class RecurrentCompetitiveNet:
         )
         self.stimulus_neurons_e_ids = np.append(
             self.stimulus_neurons_e_ids, stim_ids
-        ).astype(np.int)
+        ).astype(int)
 
         return stim_ids
 
@@ -1509,7 +1509,7 @@ class RecurrentCompetitiveNet:
             y_smooth = np.zeros(len(x))
 
         # if there are no spikes we need to force it to count zero PSs
-        if np.count_nonzero([i for i in self.pyspike_spks]) == 0:
+        if np.all([len(i) == 0 for i in self.pyspike_spks]):
             pss = np.array([[]])
         else:
             pss = contiguous_regions(y_smooth > threshold)

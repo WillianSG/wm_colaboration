@@ -35,13 +35,14 @@ parser.add_argument("--n_attractors", type=int, default=3)
 parser.add_argument("--parallel", action="store_true")
 args = parser.parse_args()
 
-msg_args = ''
+msg_args = ""
 for k, v in vars(args).items():
-    msg_args += f'{k}: {v}, '
+    msg_args += f"{k}: {v}, "
 telegram_bot = TelegramNotify()
 telegram_bot.unpin_all()
 main_msg_id = telegram_bot.send_timestamped_message(
-    f'Starting Bayesian search with the following parameters: {msg_args}').id
+    f"Starting Bayesian search with the following parameters: {msg_args}"
+).id
 
 tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
@@ -94,17 +95,22 @@ print("VENV:", venv_path)
 
 
 def objective(x):
-    r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution='3')
+    r = run_rcn(
+        x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution="3"
+    )
 
     # create new instance because Bot is not pickleable
     telegram_bot = TelegramNotify()
     # hack to keep track of last update
     telegram_bot.pin_message(telegram_msg_id)
-    last_update = int(re.findall(r'\d+', telegram_bot.get_chat().pinned_message.text_markdown_v2)[6])
+    last_update = int(
+        re.findall(r"\d+", telegram_bot.get_chat().pinned_message.text_markdown_v2)[6]
+    )
     telegram_bot.unpin_all()
     telegram_bot.edit_timestamped_message(
         f'*{last_update + 1}/{args.n_evals}* Finished run.  Score: {r["f1_score"]}',
-        telegram_msg_id)
+        telegram_msg_id,
+    )
 
     return {
         "loss": -r["f1_score"],
@@ -187,8 +193,9 @@ if args.parallel:
 else:
     trials = Trials()
 
-telegram_msg_id = telegram_bot.reply_to_timestamped_message(f'*0/0* Waiting for first evaluation to finish.',
-                                                            main_msg_id).id
+telegram_msg_id = telegram_bot.reply_to_timestamped_message(
+    f"*0/0* Waiting for first evaluation to finish.", main_msg_id
+).id
 
 # Run the tpe algorithm
 tpe_best = fmin(
@@ -243,15 +250,22 @@ best_params = results_df.iloc[0]["params"]
 best_score = results_df.iloc[0]["score"]
 
 telegram_bot.reply_to_timestamped_message(
-    f'Finished Bayesian search with the following results:\n{best_params}\nScore: {best_score}', main_msg_id)
+    f"Finished Bayesian search with the following results:\n{best_params}\nScore: {best_score}",
+    main_msg_id,
+)
 
 # Save folder
 save_folder = f'RESULTS/BAYESIAN_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
 os.makedirs(save_folder)
 
 # Run model with the best parameters and plot output
-# run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution='3')
-# os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
+run_rcn(
+    best_params,
+    tmp_folder=tmp_folder,
+    save_plot=save_folder,
+    low_memory=False,
+    attractor_conflict_resolution="3",
+)
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 
 print(f"Best parameters: {best_params}")
@@ -262,9 +276,14 @@ for k, v in best_params.items():
 for k, v in best_params.items():
     if isinstance(space[k], Apply):
         joint_parameter_string += f" -{k} {v}"
-joint_parameter_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+joint_parameter_string += (
+    " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+)
 joint_parameter_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size 256 -attractor_size 64 -cue_length 1 -num_cues 1"
-print("Use this string as command-line parameters for RCN_sweep.py:", joint_parameter_string)
+print(
+    "Use this string as command-line parameters for RCN_sweep.py:",
+    joint_parameter_string,
+)
 with open(f"{save_folder}/string.txt", "w") as f:
     f.write(joint_parameter_string)
 
@@ -274,12 +293,16 @@ for par in best_params.items():
         for k, v in best_params.items():
             if isinstance(space[k], Apply):
                 parameter_sweep_string += f" -{k} {v}"
-        parameter_sweep_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+        parameter_sweep_string += (
+            " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+        )
         parameter_sweep_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size {args.n_attractors * (64 + 16)} -attractor_size {64} -cue_length 1"
         with open(f"{save_folder}/string.txt", "a") as f:
-            f.write('\n' + parameter_sweep_string)
+            f.write("\n" + parameter_sweep_string)
 
-telegram_bot.reply_to_timestamped_message(f'Saved results to {save_folder}', main_msg_id)
+telegram_bot.reply_to_timestamped_message(
+    f"Saved results to {save_folder}", main_msg_id
+)
 telegram_bot.unpin_all()
 
 cleanup()
