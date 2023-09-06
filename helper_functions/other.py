@@ -1,13 +1,7 @@
-import brian2.monitors
-import numpy as np
-import matplotlib.pyplot as plt
-import os
-from datetime import datetime, timedelta
-
 """
 @author: t.f.tiotto@rug.nl
 @university: University of Groningen
-@group: Cognitive Modelling
+@group: CogniGron
 
 Function:
 - Has neuron spiked in the supplied time window?
@@ -20,13 +14,19 @@ Script output:
 time window
 
 Comments:
-- 
+-
 
 Inputs:
 - window(tuple, list, Numpy array, or int, float): 2-element list-like object containing endpoints of time window,
 if not list-like then the lower bound is assumed t=0
 - data_monitor(brian2.data_monitor.SpikeMonitor): Brian2 SpikeMonitor object with recorded spikes
 """
+
+import brian2.monitors
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+from datetime import datetime, timedelta
 
 
 def has_spiked(window, monitor):

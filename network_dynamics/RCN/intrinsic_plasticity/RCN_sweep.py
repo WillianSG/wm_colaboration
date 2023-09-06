@@ -2,8 +2,9 @@
 """
 @author: t.f.tiotto@rug.nl
 @university: University of Groningen
-@group: Bernoulli Institute
+@group: CogniGron
 """
+
 import argparse
 import atexit
 import copy

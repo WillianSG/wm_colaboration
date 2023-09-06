@@ -25,8 +25,7 @@ else:
     from helper_functions.other import *
 
 
-def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rcn=None,
-                             filename=None, num_neurons=None, title_addition='', show=True):
+def plot_x_u_spks_from_basin(attractor_cues=None, pss_categorised=None, rcn=None, num_neurons=None, title_addition=''):
     # Plot settings
     plt.close('all')
 
@@ -323,7 +322,7 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
 
     trig, spont, accuracy, stability, f1_score = compute_ps_score(pss_categorised, attractor_cues)
 
-    fig.suptitle('Attractor Neurons\n' + title_addition, fontsize=suptitle_fontsize)
+    fig.suptitle('Neuron attractor activity\n' + title_addition, fontsize=suptitle_fontsize)
 
     fig.subplots_adjust(bottom=0.2)
     plt.figtext(0.1, 0.01,
@@ -332,13 +331,5 @@ def plot_x_u_spks_from_basin(path, attractor_cues=None, pss_categorised=None, rc
                 bbox={'facecolor': 'white', 'pad': 5})
 
     fig.tight_layout()
-
-    if not filename:
-        filename = 'x_u_spks_from_basin.png'
-    else:
-        filename = filename + '.png'
-
-    if show:
-        fig.show()
 
     return fig

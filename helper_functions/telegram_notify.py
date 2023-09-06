@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+@author: t.f.tiotto@rug.nl
+@university: University of Groningen
+@group: CogniGron
+"""
+
 import asyncio
 import telegram
 from datetime import datetime

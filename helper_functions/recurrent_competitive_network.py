@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-@author: w.soares.girao@rug.nl
+@author: t.f.tiotto@rug.nl / w.soares.girao@rug.nl
 @university: University of Groningen
-@group: Bio-Inspired Circuits and System
+@group: CogniGron
 """
+
 import glob
 import pickle
 import shutil
@@ -39,16 +40,21 @@ from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
 
 prefs.codegen.target = "numpy"
 
-if sys.platform == "linux":
+
+def is_pycharm():
+    return os.getenv("PYCHARM_HOSTED") != None
+
+
+if is_pycharm():
+    from helper_functions.load_rule_parameters import *
+    from helper_functions.load_synapse_model import *
+    from helper_functions.load_stimulus import *
+else:
     root = os.path.dirname(os.path.abspath(os.path.join(__file__, "../")))
     sys.path.append(os.path.join(root, "helper_functions"))
     from load_rule_parameters import *
     from load_synapse_model import *
     from load_stimulus import *
-else:
-    from helper_functions.load_rule_parameters import *
-    from helper_functions.load_synapse_model import *
-    from helper_functions.load_stimulus import *
 
 
 def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
@@ -221,23 +227,19 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
 
     if show_plot or save_plot is not None:
         title_addition = (
-            f"BA {ba} Hz, GS {cue_percentage} %, I-to-E {i_e_w} mV, I input {i_freq} Hz"
+            f"BA {ba:.2f} Hz, E-E max {e_e_maxw:.2f} mV, E-I {e_i_w:.2f} mV, I-E {i_e_w:.2f} mV, I {i_freq:.2f} Hz"
         )
-        filename_addition = f"_BA_{ba}_GS_{cue_percentage}_W_{i_e_w}_Hz_{i_freq}"
 
         fig = plot_x_u_spks_from_basin(
-            path=rcn.net_sim_data_path,
-            filename="x_u_spks_from_basin" + filename_addition,
             title_addition=title_addition,
             rcn=rcn,
             attractor_cues=attractors_cueing_order,
             pss_categorised=atr_ps_counts,
             num_neurons=len(rcn.E),
-            show=show_plot,
         )
 
         if save_plot is not None:
-            fig.savefig(os.path.join(save_plot, f"x_u_spks_from_basin{filename_addition}.png"))
+            fig.savefig(os.path.join(save_plot, f"ATR_plot.svg"))
 
         # plot_thresholds(
         #     path=rcn.net_sim_data_path,
@@ -274,13 +276,25 @@ class RecurrentCompetitiveNet:
             t_run=2 * second,
             seed_init=None,
             low_memory=False,
+            sFSA=False
     ):
+
+        self.sFSA = sFSA
 
         seed(seed_init)
 
         # When True then only E_mon is instantiated as it's the only one necessary to compute the PS score
         # When plotting the network activity, set this to False
         self.low_memory = low_memory
+
+        # ------ state transition connections
+        self.p_A2GO = 0.15
+        self.delay_A2GO = 2 * second
+
+        self.thr_GO_state = -48.5
+
+        self.p_A2B = 0.15
+        self.delay_A2B = 0.525 * second
 
         # ------ simulation parameters
         self.net_id = strftime("%d%b%Y_%H-%M-%S", localtime())
@@ -608,43 +622,38 @@ class RecurrentCompetitiveNet:
         self.Input_E = Synapses(
             source=self.Input_to_E,
             target=self.E,
-            model="w : volt",
-            on_pre="Vepsp += w",
-            name="Input_E",
-        )
+            model='w : volt',
+            on_pre='Vepsp += w',
+            name='Input_E')
 
         self.Input_E_spont = Synapses(
             source=self.Input_to_E_spont,
             target=self.E,
-            model="w : volt",
-            on_pre="Vepsp += w",
-            name="Input_E_spont",
-        )
+            model='w : volt',
+            on_pre='Vepsp += w',
+            name='Input_E_spont')
 
         self.Input_I = Synapses(
             source=self.Input_to_I,
             target=self.I,
-            model="w : volt",
-            on_pre="Vepsp += w",
-            name="Input_I",
-        )
+            model='w : volt',
+            on_pre='Vepsp += w',
+            name='Input_I')
 
         self.E_I = Synapses(
             source=self.E,
             target=self.I,
-            model="w : volt",
-            on_pre="Vepsp += w",
+            model='w : volt',
+            on_pre='Vepsp += w',
             delay=self.E_I_delay,
-            name="E_I",
-        )
+            name='E_I')
 
         self.I_E = Synapses(
             source=self.I,
             target=self.E,
-            model="w : volt",
-            on_pre="Vipsp += w",
-            name="I_E",
-        )
+            model='w : volt',
+            on_pre='Vipsp += w',
+            name='I_E')
 
         self.E_E = Synapses(  # E-E plastic synapses
             source=self.E,
@@ -653,27 +662,39 @@ class RecurrentCompetitiveNet:
             on_pre=self.pre_E_E,
             on_post=self.post_E_E,
             method=self.int_meth_syn,
-            name="E_E",
-        )
+            name='E_E')
 
-        # self.I_I = Synapses(  # I-I plastic synapses
-        #     source=self.I,
-        #     target=self.I,
-        #     # model=self.model_E_E,
-        #     # on_pre=self.pre_E_E,
-        #     # on_post=self.post_E_E,
-        #     method=self.int_meth_syn,
-        #     name='I_I')
+        # f'''w_ef = w*int(Vth_e_post < {self.thr_GO_state}*mV)*int(Vth_e_pre < {self.thr_GO_state}*mV), Vepsp += w_ef'''
+        self.A_2_B_synapses = Synapses(  # synapses between different attractors
+            source=self.E,
+            target=self.E,
+            model='''w_ef : volt
+            w : volt''',
+            on_pre=f'''w_ef = w*int(Vth_e_post < {self.thr_GO_state}*mV)*int(Vth_e_pre < {self.thr_GO_state}*mV)
+            Vepsp += w_ef''',
+            delay=self.delay_A2B,
+            name='A_2_B_synapses')
+
+        self.A_2_GO_synapses = Synapses(
+            source=self.E,
+            target=self.E,
+            model='''w_ef : volt
+            w : volt''',
+            on_pre=f'''w_ef = w
+            Vepsp += w_ef''',
+            delay=self.delay_A2GO,
+            name='A_2_GO_synapses')
 
         # connecting synapses
-        self.Input_E.connect(j="i")
-        self.Input_E_spont.connect(j="i")
-        self.Input_I.connect(j="i")
+        self.Input_E.connect(j='i')
+        self.Input_E_spont.connect(j='i')
+        self.Input_I.connect(j='i')
 
         self.E_I.connect(True, p=self.p_e_i)
         self.I_E.connect(True, p=self.p_i_e)
-        self.E_E.connect("i!=j", p=self.p_e_e)
-        # self.I_I.connect('i!=j', p=self.p_i_i)
+        self.E_E.connect('i!=j', p=self.p_e_e)
+        self.A_2_B_synapses.connect('i!=j', p=self.p_A2B)
+        self.A_2_GO_synapses.connect('i!=j', p=self.p_A2GO)
 
         # init synaptic variables
         self.Input_E.w = self.w_input_e
@@ -681,10 +702,11 @@ class RecurrentCompetitiveNet:
         self.Input_I.w = self.w_input_i
         self.E_I.w = self.w_e_i
         self.I_E.w = self.w_i_e
-        # self.E_E.w = self.w_e_e
-        # self.I_I.w = self.w_i_i
 
-        if self.plasticity_rule == "LR4":
+        self.A_2_B_synapses.w = 0 * mV
+        self.A_2_GO_synapses.w = 0 * mV
+
+        if self.plasticity_rule == 'LR4':
             self.E_E.x_ = 1.0
             self.E_E.u = self.U
 
@@ -740,6 +762,28 @@ class RecurrentCompetitiveNet:
             if self.E_E.i[x] in stim_ids and self.E_E.j[x] in stim_ids:
                 self.E_E.rho[self.E_E.i[x], self.E_E.j[x]] = 1.0
                 self.E_E.w[self.E_E.i[x], self.E_E.j[x]] = self.w_max
+
+    def set_synapses_A_2_B(self, A_ids, B_ids, weight):
+        '''
+            Connections implementing 'cue transfer' of the sFSM (A,i)->B mapping: this
+        method configures connections from i to A to implement a 'cue transfer'.
+
+        Obs.: The connection delay between i and A should be similart to the cueing time of i.
+        '''
+        for x in range(0, len(self.A_2_B_synapses)):
+            if self.A_2_B_synapses.i[x] in A_ids and self.A_2_B_synapses.j[x] in B_ids:
+                self.A_2_B_synapses.w[self.A_2_B_synapses.i[x], self.A_2_B_synapses.j[x]] = weight
+
+    def set_synapses_A_2_GO(self, A_ids, GO_ids, weight):
+        '''
+            Connections implementing the (A,i)->B mapping: this method configures connections from i
+            to B and from A to B.
+
+        Obs.: The connection delay should be around twice the cueing time of i.
+        '''
+        for x in range(0, len(self.A_2_GO_synapses)):
+            if self.A_2_GO_synapses.i[x] in A_ids and self.A_2_GO_synapses.j[x] in GO_ids:
+                self.A_2_GO_synapses.w[self.A_2_GO_synapses.i[x], self.A_2_GO_synapses.j[x]] = weight
 
     # 1.4 ------ network operation
 
@@ -881,7 +925,10 @@ class RecurrentCompetitiveNet:
 
     def net_init(self):
         # self.set_results_folder()  # sim. results
-        self.set_learning_rule()  # rule eqs./params.
+
+        if not self.sFSA:  # sFSA class calls it after RCN configuration.
+            self.set_learning_rule()  # rule eqs./params.
+
         self.set_neuron_pop()  # neuron populations
         self.set_synapses()  # syn. connections
         self.set_spk_monitors()
@@ -1176,10 +1223,10 @@ class RecurrentCompetitiveNet:
             self.E_I,
             self.I_E,
             self.E_E,
-            # self.I_I,
+            self.A_2_B_synapses,
+            self.A_2_GO_synapses,
             self.spk_monitors,
             self.state_monitors,
-            # stimulus_pulse,
             store_E_E_syn_matrix_snapshot,
             name="rcn_net",
         )

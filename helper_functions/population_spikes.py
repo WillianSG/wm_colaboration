@@ -2,7 +2,7 @@
 """
 @author: t.f.tiotto@rug.nl / w.soares.girao@rug.nl
 @university: University of Groningen
-@group: Bernoulli Institute / Bio-Inspired Circuits and System
+@group: CogniGron
 """
 import numpy as np
 

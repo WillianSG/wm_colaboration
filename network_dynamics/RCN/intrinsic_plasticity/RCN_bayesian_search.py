@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+@author: t.f.tiotto@rug.nl
+@university: University of Groningen
+@group: CogniGron
+"""
+
 import argparse
 import atexit
 import multiprocessing
@@ -24,8 +31,19 @@ from tqdm.auto import tqdm
 
 from hyperopt import fmin, tpe, hp
 
-from helper_functions.recurrent_competitive_network import run_rcn
-from helper_functions.telegram_notify import TelegramNotify
+
+def is_pycharm():
+    return os.getenv("PYCHARM_HOSTED") != None
+
+
+if is_pycharm():
+    from helper_functions.recurrent_competitive_network import run_rcn
+    from helper_functions.telegram_notify import TelegramNotify
+else:
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, "../")))
+    sys.path.append(os.path.join(root, "helper_functions"))
+    from recurrent_competitive_network import run_rcn
+    from telegram_notify import TelegramNotify
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_evals", type=int, default=2000)
@@ -35,10 +53,11 @@ parser.add_argument("--n_attractors", type=int, default=3)
 parser.add_argument("--parallel", action="store_true")
 args = parser.parse_args()
 
+telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
 msg_args = ""
 for k, v in vars(args).items():
     msg_args += f"{k}: {v}, "
-telegram_bot = TelegramNotify()
+telegram_bot = TelegramNotify(token=telegram_token)
 telegram_bot.unpin_all()
 main_msg_id = telegram_bot.send_timestamped_message(
     f"Starting Bayesian search with the following parameters: {msg_args}"
@@ -100,7 +119,7 @@ def objective(x):
     )
 
     # create new instance because Bot is not pickleable
-    telegram_bot = TelegramNotify()
+    telegram_bot = TelegramNotify(token=telegram_token)
     # hack to keep track of last update
     telegram_bot.pin_message(telegram_msg_id)
     last_update = int(

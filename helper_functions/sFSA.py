@@ -4,19 +4,122 @@
 @university: University of Groningen
 @group: Bio-Inspired Circuits and System
 """
+
 import sys, os, pickle
 from brian2 import Hz, mV, second, ms, prefs
 from datetime import datetime
+import numpy as np
+import shutil
 
 prefs.codegen.target = 'numpy'
 
-if sys.platform in ['linux', 'win32']:
-    sys.path.append(os.path.abspath(os.path.join(__file__, '../../')))
-    from recurrent_competitive_network import RecurrentCompetitiveNet
-    from firing_rate_histograms import firing_rate_histograms
-else:
-    from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+
+def is_pycharm():
+    return os.getenv("PYCHARM_HOSTED") != None
+
+
+if is_pycharm():
+    from helper_functions.load_rule_parameters import *
+    from helper_functions.load_stimulus import *
     from helper_functions.firing_rate_histograms import firing_rate_histograms
+    from helper_functions.other import make_timestamped_folder
+    from helper_functions.recurrent_competitive_network import RecurrentCompetitiveNet
+else:
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, "../")))
+    sys.path.append(os.path.join(root, "helper_functions"))
+    from load_rule_parameters import *
+    from load_stimulus import *
+
+
+def compute_transition(current_state, input_symbol, fsa):
+    '''
+    Function parsing bin. number to extract correct state transitions.
+    '''
+
+    match = f'({current_state}, {input_symbol})'
+
+    for transition in fsa['T']:
+
+        if transition.find(match) != -1:
+            return transition.split('->')[-1]
+
+
+def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=None, record_traces=False, save_path=''):
+    '''
+    Configures a RCN to implement a FSA to recognize a random binary word.
+    '''
+
+    pid = os.getpid()
+
+    ba = params["background_activity"]
+    i_e_w = params["i_e_weight"]
+    e_i_w = params["e_i_weight"]
+    e_e_maxw = params["e_e_max_weight"]
+    i_frequency = params["i_frequency"]
+    cue_percentage = params["cue_percentage"]
+    cue_time = params["cue_length"]
+    worker_id = params["worker_id"] if "worker_id" in params else None
+
+    # - Define FSA (1st state in S taken as 'start' state).
+
+    fsa = {
+        'S': ['A', 'B'],  # states
+        'I': ['0', '1'],  # symbols
+        'T': ['(A, 0)->B', '(A, 1)->A', '(B, 0)->A', '(B, 1)->B']  # transitions
+    }
+
+    # - Create input word.
+
+    binary_word = np.random.randint(2, size=word_length)
+    binary_word = [str(dig) for dig in binary_word]
+
+    true_state_transitions = [fsa['S'][0]]  # this FSM starts at 'A'
+
+    for dig in binary_word:  # computing true state transitions
+        true_state_transitions.append(compute_transition(true_state_transitions[-1], dig, fsa))
+
+    # - Create sFSA.
+
+    _rcn_path = make_timestamped_folder(os.path.join(tmp_folder, f"{pid}"))
+
+    sFSA_model = sFSA(FSA_model=fsa, params=params, RCN_path=_rcn_path, seed_init=seed_init,
+                      record_traces=record_traces)
+
+    # - Folder for simulation results.
+
+    sFSA_model.setSimulationFolder(_rcn_path)  # path
+    _f = os.path.join(sFSA_model.data_folder, "simulation_summary.txt")  # output .txt with simulation summary
+
+    # - Feed input word.
+
+    sFSA_model.feedInputWord(binary_word)
+
+    sFSA_model.exportSfsaData(network_plot=save_plot, pickle_dump=False)  # computes state transisitons
+
+    if save_plot and save_path != '':
+        title_addition = (
+            f"BA {ba:.2f} Hz, E-E max {e_e_maxw:.2f} mV, E-I {e_i_w:.2f} mV, I-E {i_e_w:.2f} mV, I {i_frequency:.2f} Hz"
+        )
+        fig = sFSA_model.plotSfsaNetwork(title_addition=title_addition)
+        fig.savefig(os.path.join(save_path, f"FSA_plot.png"))
+
+    pred_state_transitions = sFSA_model.sFSA_sim_data['state_history']
+
+    f1_score, recall, precision = sFSA_model.computeF1Score(true_state_transitions, pred_state_transitions)
+
+    # - Cleanup
+
+    shutil.rmtree(sFSA_model.data_folder)
+
+    del sFSA_model
+
+    params.pop("worker_id", None)
+
+    return params | {
+        "f1_score": f1_score,
+        "recall": recall,
+        "accuracy": precision
+    }
 
 
 class sFSA:
@@ -73,7 +176,7 @@ class sFSA:
         self.__RCN.w_max = self.__params['e_e_max_weight'] * mV
         self.__RCN.w_e_i = self.__params['e_i_weight'] * mV
         self.__RCN.w_i_e = self.__params['i_e_weight'] * mV
-        self.__RCN.stim_freq_i = self.__params['i_freq'] * Hz
+        self.__RCN.stim_freq_i = self.__params['i_frequency'] * Hz
         self.__RCN.tau_Vth_e = 0.1 * second
         self.__RCN.k = 4
         self.__RCN.U = 0.2
@@ -154,7 +257,7 @@ class sFSA:
 
         # - Setting inhibitory input and plasticity of connections.
 
-        self.__RCN.set_stimulus_i(stimulus='flat_to_I', frequency=self.__params['i_freq'] * Hz)
+        self.__RCN.set_stimulus_i(stimulus='flat_to_I', frequency=self.__params['i_frequency'] * Hz)
         self.__RCN.set_E_E_plastic(plastic=False)
         self.__RCN.set_E_E_ux_vars_plastic(plastic=True)
 
@@ -228,7 +331,7 @@ class sFSA:
         to let the activity in the network evolve.
         '''
 
-        print(f'> input: {input_token}')
+        # print(f'> input: {input_token}')
 
         self.inputed_sequence.append(input_token)
 
@@ -410,10 +513,10 @@ class sFSA:
         state_history = self.computeStateHistory()
         self.sFSA_sim_data['state_history'] = state_history
 
-        # - Plot network activity.
-
-        if network_plot:
-            self.plotSfsaNetwork(name_ext)
+        # # - Plot network activity.
+        #
+        # if network_plot:
+        #     self.plotSfsaNetwork(name_ext, title_addition=title_addition)
 
         # - Export data.
 
@@ -491,13 +594,15 @@ class sFSA:
 
         return state_sequence
 
-    def plotSfsaNetwork(self, name_ext=''):
+    def plotSfsaNetwork(self, title_addition=''):
         '''
             Plots (raster plot) the spikes from the E neurons representing input tokens (in black) and states (colored) as well as the voltage
         traces of each attractor in S.
         '''
         import matplotlib.pyplot as plt
         import numpy as np
+
+        suptitle_fontsize = 14
 
         # - Create a figure.
 
@@ -559,85 +664,11 @@ class sFSA:
         ax2.set_xlabel('time [s]')
         ax2.set_xticks(np.arange(0, int(round(self.sFSA_sim_data['sim_t'][-1])) + 0.5, 0.5))
 
-        plt.tight_layout()
-
-        plt.savefig(os.path.join(self.__RCN.net_sim_data_path, f'network_activity{name_ext}.svg'))
-
-        plt.close()
-
-    def plotSfsaNetworkToPath(self, save_path):
-        '''
-            Plots (raster plot) the spikes from the E neurons representing input tokens (in black) and states (colored) as well as the voltage
-        traces of each attractor in S.
-        '''
-        import matplotlib.pyplot as plt
-        import numpy as np
-
-        # - Create a figure.
-
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(15, 5))
-
-        states_colors = ['mediumslateblue', 'magenta', 'darkorange', 'purple', 'b', 'r', 'g', 'darkred']
-
-        # - Axis for the spike raster plot.
-
-        E_spk_trains = self.sFSA_sim_data['E_spk_trains']
-
-        _aux_c = 0
-
-        for _s, neur_IDs in self.sFSA_sim_data['sFSA']['S'].items():
-
-            for neuron_id in neur_IDs:
-                if neuron_id in E_spk_trains.keys():
-                    spikes = E_spk_trains[neuron_id]
-                    y = np.ones_like(spikes) * neuron_id
-                    ax1.scatter(spikes, y, c=states_colors[_aux_c], s=1.0, marker='|')
-
-            _aux_c += 1
-
-        for _s, neur_IDs in self.sFSA_sim_data['sFSA']['I'].items():
-
-            for neuron_id in neur_IDs:
-                if neuron_id in E_spk_trains.keys():
-                    spikes = E_spk_trains[neuron_id]
-                    y = np.ones_like(spikes) * neuron_id
-                    ax1.scatter(spikes, y, c='k', s=1.0, marker='|')
-
-        # - Axis for the voltage threshold traces.
-
-        _aux_c = 0
-        for state, Vth in self.sFSA_sim_data['Vth_traces'].items():
-            Vth_mu = np.mean(Vth, axis=0)
-            Vth_sg = np.std(Vth, axis=0)
-
-            ax2.plot(self.sFSA_sim_data['sim_t'], Vth_mu, color=states_colors[_aux_c])
-            ax2.plot(self.sFSA_sim_data['sim_t'], np.max(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
-            ax2.plot(self.sFSA_sim_data['sim_t'], np.min(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
-            ax2.fill_between(self.sFSA_sim_data['sim_t'], Vth_mu - Vth_sg, Vth_mu + Vth_sg, alpha=0.2,
-                             color=states_colors[_aux_c])
-
-            _aux_c += 1
-
-        ax2.hlines(y=self.sFSA_sim_data['thr_GO_state'], xmin=0, xmax=int(round(self.sFSA_sim_data['sim_t'][-1])) + 1,
-                   colors='b', linestyles='dashed', lw=0.75, ls='-.')
-
-        # - Set the axis labels and title.
-
-        ax1.set_ylabel('Neuron ID')
-        ax1.set_yticks(np.arange(0, self.sFSA_sim_data['sFSA']['N_e'], 64))
-        ax1.set_ylim(0, self.sFSA_sim_data['sFSA']['N_e'])
-        ax1.set_xticks(np.arange(0, int(round(self.sFSA_sim_data['sim_t'][-1])) + 0.5, 0.5))
-        ax1.set_xlim(0, int(round(self.sFSA_sim_data['sim_t'][-1])))
-
-        ax2.set_ylabel(r'$V_{th}$')
-        ax2.set_xlabel('time [s]')
-        ax2.set_xticks(np.arange(0, int(round(self.sFSA_sim_data['sim_t'][-1])) + 0.5, 0.5))
+        fig.suptitle('Neuron FSA activity\n' + title_addition, fontsize=suptitle_fontsize)
 
         plt.tight_layout()
 
-        plt.savefig(save_path)
-
-        plt.close()
+        return fig
 
     def makeSimulationFolder(self, sub_dir=''):
 
