@@ -114,9 +114,8 @@ print("VENV:", venv_path)
 
 
 def objective(x):
-    r = run_rcn(
-        x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution="3"
-    )
+    r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution="3",
+                already_in_tmp_folder=True if args.parallel else False)
 
     # create new instance because Bot is not pickleable
     telegram_bot = TelegramNotify(token=telegram_token)
@@ -278,13 +277,7 @@ save_folder = f'RESULTS/BAYESIAN_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M
 os.makedirs(save_folder)
 
 # Run model with the best parameters and plot output
-run_rcn(
-    best_params,
-    tmp_folder=tmp_folder,
-    save_plot=save_folder,
-    low_memory=False,
-    attractor_conflict_resolution="3",
-)
+run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution="3")
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 
 print(f"Best parameters: {best_params}")

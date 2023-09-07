@@ -73,13 +73,13 @@ def make_folders(path):
         os.makedirs(path)
 
 
-def make_timestamped_folder(path):
+def make_timestamped_folder(path, addition=''):
     if not os.path.exists(path):
         os.makedirs(path)
-    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S")
-    os.makedirs(os.path.join(path, timestamp))
+    timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S.%f")
+    os.makedirs(os.path.join(path, timestamp + addition))
 
-    return os.path.join(path, timestamp)
+    return os.path.join(path, timestamp + addition)
 
 
 def contiguous_regions(condition):

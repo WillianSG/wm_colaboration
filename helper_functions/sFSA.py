@@ -44,7 +44,8 @@ def compute_transition(current_state, input_symbol, fsa):
             return transition.split('->')[-1]
 
 
-def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=None, record_traces=False, save_path=''):
+def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=None, record_traces=False, save_path='',
+             already_in_tmp_folder=False):
     '''
     Configures a RCN to implement a FSA to recognize a random binary word.
     '''
@@ -78,10 +79,13 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
     for dig in binary_word:  # computing true state transitions
         true_state_transitions.append(compute_transition(true_state_transitions[-1], dig, fsa))
 
+    # --folder for simulation results
+    if already_in_tmp_folder:
+        _rcn_path = make_timestamped_folder('.', addition=f'_{pid}')
+    else:
+        _rcn_path = make_timestamped_folder(tmp_folder, addition=f'_{pid}')
+
     # - Create sFSA.
-
-    _rcn_path = make_timestamped_folder(os.path.join(tmp_folder, f"{pid}"))
-
     sFSA_model = sFSA(FSA_model=fsa, params=params, RCN_path=_rcn_path, seed_init=seed_init,
                       record_traces=record_traces)
 

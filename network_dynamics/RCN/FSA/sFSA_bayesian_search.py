@@ -112,7 +112,8 @@ print("VENV:", venv_path)
 
 
 def objective(x):
-    r = run_sfsa(x, tmp_folder=tmp_folder, word_length=1, save_plot=False)
+    r = run_sfsa(x, tmp_folder=tmp_folder, word_length=1, save_plot=False,
+                 already_in_tmp_folder=True if args.parallel else False)
 
     # create new instance because Bot is not pickleable
     telegram_bot = TelegramNotify(token=telegram_token)

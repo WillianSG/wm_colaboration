@@ -58,7 +58,7 @@ else:
 
 
 def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
-            attractor_conflict_resolution='0'):
+            attractor_conflict_resolution='0', already_in_tmp_folder=False):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
     if show_plot == True and low_memory == True:
@@ -149,7 +149,10 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
     rcn.set_stimulus_i(stimulus="flat_to_I", frequency=i_freq * Hz)  # default: 15 Hz
 
     # --folder for simulation results
-    rcn.net_sim_data_path = make_timestamped_folder(os.path.join(tmp_folder, f"{pid}"))
+    if already_in_tmp_folder:
+        rcn.net_sim_data_path = make_timestamped_folder('.', addition=f'_{pid}')
+    else:
+        rcn.net_sim_data_path = make_timestamped_folder(tmp_folder, addition=f'_{pid}')
 
     # output .txt with simulation summary.
     _f = os.path.join(rcn.net_sim_data_path, "simulation_summary.txt")
