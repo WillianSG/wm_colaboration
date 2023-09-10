@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-@author: t.f.tiotto@rug.nl
-@university: University of Groningen
-@group: CogniGron
-"""
-
 import argparse
 import atexit
 import multiprocessing
@@ -29,48 +22,9 @@ from hyperopt.pyll.base import Apply
 from hyperopt.pyll.stochastic import sample
 from tqdm.auto import tqdm
 
-from hyperopt import fmin, tpe, hp
 
-
-def is_pycharm():
-    return os.getenv("PYCHARM_HOSTED") != None
-
-
-if is_pycharm():
-    from helper_functions.recurrent_competitive_network import run_rcn
-    from helper_functions.telegram_notify import TelegramNotify
-else:
-    root = os.path.dirname(os.path.abspath(os.path.join(__file__, "../")))
-    sys.path.append(os.path.join(root, "helper_functions"))
-    from recurrent_competitive_network import run_rcn
-    from telegram_notify import TelegramNotify
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--n_evals", type=int, default=2000)
-parser.add_argument("--n_workers", type=int, default=-1)
-parser.add_argument("--n_cues", type=int, default=10)
-parser.add_argument("--n_attractors", type=int, default=3)
-parser.add_argument("--parallel", action="store_true")
-args = parser.parse_args()
-
-telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
-msg_args = ""
-for k, v in vars(args).items():
-    msg_args += f"{k}: {v}, "
-telegram_bot = TelegramNotify(token=telegram_token)
-telegram_bot.unpin_all()
-main_msg_id = telegram_bot.send_timestamped_message(
-    f"Starting Bayesian search with the following parameters: {msg_args}"
-).id
-
-tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-os.makedirs(tmp_folder)
-print("TMP:", tmp_folder)
-
-if args.parallel:
-    from hyperopt.mongoexp import MongoTrials
-
-import os
+from helper_functions.recurrent_competitive_network import run_rcn
+from helper_functions.telegram_notify import TelegramNotify
 
 
 def cleanup(exit_code=None, frame=None):
@@ -83,12 +37,56 @@ def cleanup(exit_code=None, frame=None):
     except OSError:
         print("Cannot remove tmp folder")
 
+    try:
+        os.remove("logfile.txt")
+    except FileNotFoundError:
+        pass
+
     if args.parallel:
         # -- Kill all subprocesses
         mongod.terminate()
         for w in workers:
             w.terminate()
 
+
+def is_pycharm():
+    return os.getenv("PYCHARM_HOSTED") != None
+
+
+if is_pycharm():
+    from helper_functions.sFSA import run_sfsa
+    from helper_functions.telegram_notify import TelegramNotify
+else:
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, "../")))
+    sys.path.append(os.path.join(root, "helper_functions"))
+    from sFSA import run_sfsa
+    from telegram_notify import TelegramNotify
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--n_evals", type=int, default=2000)
+parser.add_argument("--n_workers", type=int, default=-1)
+parser.add_argument("--n_cues", type=int, default=10)
+parser.add_argument("--n_attractors", type=int, default=3)
+parser.add_argument("--parallel", action="store_true")
+args = parser.parse_args()
+
+tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+os.makedirs(tmp_folder)
+print("TMP:", tmp_folder)
+
+telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
+# telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+msg_args = ""
+for k, v in vars(args).items():
+    msg_args += f"{k}: {v}, "
+telegram_bot = TelegramNotify(token=telegram_token)
+telegram_bot.unpin_all()
+main_msg_id = telegram_bot.send_timestamped_message(
+    f"Starting Bayesian search with the following parameters: {msg_args}\ntmp_folder: {tmp_folder}"
+).id
+
+if args.parallel:
+    from hyperopt.mongoexp import MongoTrials
 
 # -- folder and environment setup
 atexit.register(cleanup)
@@ -114,11 +112,16 @@ print("VENV:", venv_path)
 
 
 def objective(x):
-    r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution="3",
-                already_in_tmp_folder=True if args.parallel else False)
+    r = run_rcn(
+        x,
+        tmp_folder=tmp_folder,
+        progressbar=False,
+        attractor_conflict_resolution="3",
+        already_in_tmp_folder=True if args.parallel else False,
+    )
 
     # create new instance because Bot is not pickleable
-    telegram_bot = TelegramNotify(token=telegram_token)
+    telegram_bot = TelegramNotify()
     # hack to keep track of last update
     telegram_bot.pin_message(telegram_msg_id)
     last_update = int(
@@ -277,7 +280,13 @@ save_folder = f'RESULTS/BAYESIAN_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M
 os.makedirs(save_folder)
 
 # Run model with the best parameters and plot output
-run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False, attractor_conflict_resolution="3")
+run_rcn(
+    best_params,
+    tmp_folder=tmp_folder,
+    save_plot=save_folder,
+    low_memory=False,
+    attractor_conflict_resolution="3",
+)
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 
 print(f"Best parameters: {best_params}")
@@ -296,7 +305,7 @@ print(
     "Use this string as command-line parameters for RCN_sweep.py:",
     joint_parameter_string,
 )
-with open(f"{save_folder}/string.txt", "w") as f:
+with open(f"{save_folder}/strings_for_RCN_sweep.txt", "w") as f:
     f.write(joint_parameter_string)
 
 for par in best_params.items():
@@ -309,7 +318,7 @@ for par in best_params.items():
             " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
         )
         parameter_sweep_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size {args.n_attractors * (64 + 16)} -attractor_size {64} -cue_length 1"
-        with open(f"{save_folder}/string.txt", "a") as f:
+        with open(f"{save_folder}/strings_for_RCN_sweep.txt", "a") as f:
             f.write("\n" + parameter_sweep_string)
 
 telegram_bot.reply_to_timestamped_message(

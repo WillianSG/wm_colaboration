@@ -51,20 +51,20 @@ def visualise_connectivity(S):
     Nt = len(S.target)
     plt.figure(figsize=(10, 4))
     plt.subplot(121)
-    plt.plot(np.zeros(Ns), np.arange(Ns), 'ok', ms=10)
-    plt.plot(np.ones(Nt), np.arange(Nt), 'ok', ms=10)
+    plt.plot(np.zeros(Ns), np.arange(Ns), "ok", ms=10)
+    plt.plot(np.ones(Nt), np.arange(Nt), "ok", ms=10)
     for i, j in zip(S.i, S.j):
-        plt.plot([0, 1], [i, j], '-k')
-    plt.xticks([0, 1], ['Source', 'Target'])
-    plt.ylabel('Neuron index')
+        plt.plot([0, 1], [i, j], "-k")
+    plt.xticks([0, 1], ["Source", "Target"])
+    plt.ylabel("Neuron index")
     plt.xlim(-0.1, 1.1)
     plt.ylim(-1, max(Ns, Nt))
     plt.subplot(122)
-    plt.plot(S.i, S.j, 'ok')
+    plt.plot(S.i, S.j, "ok")
     plt.xlim(-1, Ns)
     plt.ylim(-1, Nt)
-    plt.xlabel('Source neuron index')
-    plt.ylabel('Target neuron index')
+    plt.xlabel("Source neuron index")
+    plt.ylabel("Target neuron index")
     plt.show()
 
 
@@ -73,7 +73,7 @@ def make_folders(path):
         os.makedirs(path)
 
 
-def make_timestamped_folder(path, addition=''):
+def make_timestamped_folder(path, addition=""):
     if not os.path.exists(path):
         os.makedirs(path)
     timestamp = datetime.now().strftime("%d-%m-%Y_%H-%M-%S.%f")
@@ -89,7 +89,7 @@ def contiguous_regions(condition):
 
     # Find the indices of changes in "condition"
     d = np.diff(condition)
-    idx, = d.nonzero()
+    (idx,) = d.nonzero()
 
     # We need to start things after the change in "condition". Therefore,
     # we'll shift the index by 1 to the right.
@@ -118,30 +118,39 @@ def append_df_to_excel(df, excel_path, sheet_name, index=False):
         book.create_sheet(sheet_name)
     book.save(excel_path)
 
-    df_excel = pd.read_excel(excel_path, engine='openpyxl', sheet_name=sheet_name)
+    df_excel = pd.read_excel(excel_path, engine="openpyxl", sheet_name=sheet_name)
     result = pd.concat([df_excel, df], ignore_index=not index)
 
     excel_book = load_workbook(excel_path)
-    with pd.ExcelWriter(excel_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+    with pd.ExcelWriter(
+        excel_path, engine="openpyxl", mode="a", if_sheet_exists="overlay"
+    ) as writer:
         writer.book = excel_book
         writer.sheets = dict((ws.title, ws) for ws in excel_book.worksheets)
 
-        result.to_excel(writer, index=index, sheet_name=sheet_name, engine='openpyxl')
+        result.to_excel(writer, index=index, sheet_name=sheet_name, engine="openpyxl")
 
 
-def count_pss_in_gss(pss_path, normalise_by_PS=False, num_gss=None, write_to_file=False, ba=None, gss=None,
-                     verbose=True):
+def count_pss_in_gss(
+    pss_path,
+    normalise_by_PS=False,
+    num_gss=None,
+    write_to_file=False,
+    ba=None,
+    gss=None,
+    verbose=True,
+):
     import pandas as pd
 
-    fn_pss = os.path.join(pss_path, 'pss.xlsx')
-    df = pd.read_excel(fn_pss, engine='openpyxl', sheet_name='PSs')
+    fn_pss = os.path.join(pss_path, "pss.xlsx")
+    df = pd.read_excel(fn_pss, engine="openpyxl", sheet_name="PSs")
 
-    for atr in df['atr'].unique():
+    for atr in df["atr"].unique():
         num_ps_in_gs = 0
         for _, row in df.iterrows():
-            if row['atr'] == atr:
+            if row["atr"] == atr:
                 for gs in gss:
-                    if row['start_s'] >= gs[1][0] and row['end_s'] <= gs[1][1]:
+                    if row["start_s"] >= gs[1][0] and row["end_s"] <= gs[1][1]:
                         num_ps_in_gs += 1
 
         if normalise_by_PS:
@@ -159,32 +168,42 @@ def count_pss_in_gss(pss_path, normalise_by_PS=False, num_gss=None, write_to_fil
                 ps_in_gs = 0
 
         if verbose:
-            print(f'In {atr}: found {num_ps_in_gs} PS in GS out of {total_num} total ({ps_in_gs} %)')
+            print(
+                f"In {atr}: found {num_ps_in_gs} PS in GS out of {total_num} total ({ps_in_gs} %)"
+            )
 
         if write_to_file:
             ensure_excel_exists(fn_pss)
 
-            df_to_file = pd.DataFrame([[atr, ba, gss[0][0], num_ps_in_gs, total_num, ps_in_gs]],
-                                      columns=['atr', 'ba_Hz', 'gs_%', 'num_ps_in_gs', 'total_num',
-                                               'percent_ps_in_gs'])
+            df_to_file = pd.DataFrame(
+                [[atr, ba, gss[0][0], num_ps_in_gs, total_num, ps_in_gs]],
+                columns=[
+                    "atr",
+                    "ba_Hz",
+                    "gs_%",
+                    "num_ps_in_gs",
+                    "total_num",
+                    "percent_ps_in_gs",
+                ],
+            )
 
             if normalise_by_PS:
-                append_df_to_excel(df_to_file, fn_pss, sheet_name='PSs_in_GSs_norm_PS')
+                append_df_to_excel(df_to_file, fn_pss, sheet_name="PSs_in_GSs_norm_PS")
             else:
-                append_df_to_excel(df_to_file, fn_pss, sheet_name='PSs_in_GSs_norm_GS')
+                append_df_to_excel(df_to_file, fn_pss, sheet_name="PSs_in_GSs_norm_GS")
 
 
 def append_pss_to_xlsx(experiment_path, iteration_path):
     import pandas as pd
 
-    fn_iteration = os.path.join(iteration_path, 'pss.xlsx')
-    fn_experiment = os.path.join(experiment_path, 'pss.xlsx')
+    fn_iteration = os.path.join(iteration_path, "pss.xlsx")
+    fn_experiment = os.path.join(experiment_path, "pss.xlsx")
 
     ensure_excel_exists(fn_experiment)
 
     xls = pd.ExcelFile(fn_iteration)
     for sheet in xls.sheet_names:
-        df = pd.read_excel(fn_iteration, sheet_name=sheet, engine='openpyxl')
+        df = pd.read_excel(fn_iteration, sheet_name=sheet, engine="openpyxl")
         append_df_to_excel(df, fn_experiment, sheet_name=sheet)
 
 
@@ -192,46 +211,65 @@ def ensure_excel_exists(fn):
     import pandas as pd
 
     if not os.path.isfile(fn):
-        with pd.ExcelWriter(fn, engine='openpyxl') as writer:
+        with pd.ExcelWriter(fn, engine="openpyxl") as writer:
             df_empty = pd.DataFrame()
             df_empty.to_excel(writer, index=False, sheet_name="PSs")
             # df_empty.to_excel( writer, index=False, sheet_name="PSs_in_GSs" )
 
 
-def compute_pss_statistics(timestamp_folder, parameters=None, write_to_file=True, verbose=True):
+def compute_pss_statistics(
+    timestamp_folder, parameters=None, write_to_file=True, verbose=True
+):
     import pandas as pd
 
-    fn = os.path.join(timestamp_folder, 'pss.xlsx')
-    df = pd.read_excel(fn, engine='openpyxl', sheet_name='PSs')
+    fn = os.path.join(timestamp_folder, "pss.xlsx")
+    df = pd.read_excel(fn, engine="openpyxl", sheet_name="PSs")
 
-    group_pss_by_attractor = pd.DataFrame(df.groupby(by='atr').size(), columns=['Count'])
-    group_pss_by_experiment = pd.DataFrame(df.groupby(parameters).size(), columns=['Count'])
-    group_pss_by_experiment_and_attractor = pd.DataFrame(df.groupby(parameters + ['atr']).size(),
-                                                         columns=['Count'])
+    group_pss_by_attractor = pd.DataFrame(
+        df.groupby(by="atr").size(), columns=["Count"]
+    )
+    group_pss_by_experiment = pd.DataFrame(
+        df.groupby(parameters).size(), columns=["Count"]
+    )
+    group_pss_by_experiment_and_attractor = pd.DataFrame(
+        df.groupby(parameters + ["atr"]).size(), columns=["Count"]
+    )
 
     if verbose:
-        print('PSs per attractor across whole experiment\n', group_pss_by_attractor)
-        print('PSs within each experiment\n', group_pss_by_experiment)
+        print("PSs per attractor across whole experiment\n", group_pss_by_attractor)
+        print("PSs within each experiment\n", group_pss_by_experiment)
 
     if write_to_file:
         ensure_excel_exists(fn)
         # TODO include zero counts in Excel file
-        append_df_to_excel(group_pss_by_attractor, fn, sheet_name='PSs_groupby_atr', index=True)
-        append_df_to_excel(group_pss_by_experiment, fn, sheet_name='PSs_groupby_exp', index=True)
-        append_df_to_excel(group_pss_by_experiment_and_attractor, fn, sheet_name='PSs_groupby_exp_and_atr',
-                           index=True)
+        append_df_to_excel(
+            group_pss_by_attractor, fn, sheet_name="PSs_groupby_atr", index=True
+        )
+        append_df_to_excel(
+            group_pss_by_experiment, fn, sheet_name="PSs_groupby_exp", index=True
+        )
+        append_df_to_excel(
+            group_pss_by_experiment_and_attractor,
+            fn,
+            sheet_name="PSs_groupby_exp_and_atr",
+            index=True,
+        )
 
     return df
 
 
-def generate_gss(gs_percentage, gs_length, pre_runtime, gs_runtime, target=None, length=None):
+def generate_gss(
+    gs_percentage, gs_length, pre_runtime, gs_runtime, target=None, length=None
+):
     if length is None:
         length = gs_runtime - gs_length
 
     return [(gs_percentage, target, (pre_runtime, pre_runtime + gs_length), length)]
 
 
-def generate_periodic_gss(gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target):
+def generate_periodic_gss(
+    gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target
+):
     import numpy as np
     from scipy import signal as sg
 
@@ -255,8 +293,12 @@ def generate_periodic_gss(gs_percentage, gs_freq, gs_length, pre_runtime, gs_run
             act_ids = np.random.choice(target, n_act_ids, replace=False)
         try:
             gss.append(
-                (gs_percentage, act_ids, (gss_times[i], gss_times[i + 1]),
-                 gss_times[i + 2] - gss_times[i + 1])
+                (
+                    gs_percentage,
+                    act_ids,
+                    (gss_times[i], gss_times[i + 1]),
+                    gss_times[i + 2] - gss_times[i + 1],
+                )
             )
         except IndexError:
             pass
@@ -271,7 +313,9 @@ def compile_xlsx_from_folders(base_folder):
     from tqdm import tqdm
 
     # base_fol = '/Users/thomas/PycharmProjects/wm_colaboration/results/RCN_attractor_reactivation/15-03-2022_21-15-09'
-    iter_folds = os_sorted([f for f in listdir(base_folder) if not isfile(join(base_folder, f))])
+    iter_folds = os_sorted(
+        [f for f in listdir(base_folder) if not isfile(join(base_folder, f))]
+    )
     for fol in tqdm(iter_folds):
         append_pss_to_xlsx(base_folder, os.path.join(base_folder, fol))
 
@@ -284,11 +328,11 @@ def remove_pickles(base_folder):
     count = 0
     for path, subdirs, files in os.walk(base_folder):
         for name in files:
-            if name.endswith('.pickle'):
+            if name.endswith(".pickle"):
                 os.remove(os.path.join(path, name))
                 count += 1
 
-    print(f'Removed {count} .pickle files')
+    print(f"Removed {count} .pickle files")
 
 
 def compile_overlapping_gss(gss1, gss2):
@@ -322,12 +366,12 @@ def clear_screen():
     from os import system, name
 
     # for windows
-    if name == 'nt':
-        _ = system('cls')
+    if name == "nt":
+        _ = system("cls")
 
     # for mac and linux(here, os.name is 'posix')
     else:
-        _ = system('clear')
+        _ = system("clear")
 
 
 def firing_rates(rcn, neurons=None, time_window=None, mean=False):
@@ -338,11 +382,17 @@ def firing_rates(rcn, neurons=None, time_window=None, mean=False):
     elif isinstance(time_window, brian2.Quantity):
         time_window = (0, time_window)
 
-    spikes = {k: rcn.E_mon.spike_trains()[k][
-        (rcn.E_mon.spike_trains()[k] > time_window[0]) & (rcn.E_mon.spike_trains()[k] < time_window[1])
-        ] for k in neurons}
+    spikes = {
+        k: rcn.E_mon.spike_trains()[k][
+            (rcn.E_mon.spike_trains()[k] > time_window[0])
+            & (rcn.E_mon.spike_trains()[k] < time_window[1])
+        ]
+        for k in neurons
+    }
 
-    spike_rates = {k: len(spikes[k]) / (time_window[1] - time_window[0]) for k in spikes}
+    spike_rates = {
+        k: len(spikes[k]) / (time_window[1] - time_window[0]) for k in spikes
+    }
 
     if mean:
         return sum(spike_rates.values()) / len(spike_rates)
@@ -355,14 +405,14 @@ def hz2sec(hz):
 
     if isinstance(hz, int) or isinstance(hz, float):
         return 1 / hz * second
-    return (1 / hz)
+    return 1 / hz
 
 
 def estimate_search_time(function, param_grid, cv, num_cpus=-1, repeat=1):
     while True:
-        estimate_time = input('Estimate time? (y/n): ')
-        if estimate_time == 'y':
-            print('Evaluating execution time')
+        estimate_time = input("Estimate time? (y/n): ")
+        if estimate_time == "y":
+            print("Evaluating execution time")
             # -- estimate execution time
             start = datetime.now()
             function(param_grid[0])
@@ -376,20 +426,24 @@ def estimate_search_time(function, param_grid, cv, num_cpus=-1, repeat=1):
             else:
                 time_iterations = num_cv_iteration * time_iteration * repeat
 
-            print(f'Estimated time for 1 iteration: {time_iteration.total_seconds():.2f} seconds')
+            print(
+                f"Estimated time for 1 iteration: {time_iteration.total_seconds():.2f} seconds"
+            )
             if repeat == 1:
                 print(
-                    f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv: {time_iterations.total_seconds() / 60:.2f} minutes')
+                    f"Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv: {time_iterations.total_seconds() / 60:.2f} minutes"
+                )
             else:
                 print(
-                    f'Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv, repeated {repeat} times: {time_iterations.total_seconds() / 60:.2f} minutes')
-            print('Estimated end time:', datetime.now() + time_iterations)
+                    f"Estimated time for {num_params} parameters, on {num_cpus} cores, with {cv}-fold cv, repeated {repeat} times: {time_iterations.total_seconds() / 60:.2f} minutes"
+                )
+            print("Estimated end time:", datetime.now() + time_iterations)
 
             return
-        elif estimate_time == 'n':
+        elif estimate_time == "n":
             return
         else:
-            print('Invalid input. Please try again.')
+            print("Invalid input. Please try again.")
 
 
 def compute_ps_score(atr_ps_counts, attractors_cueing_order):
@@ -399,17 +453,17 @@ def compute_ps_score(atr_ps_counts, attractors_cueing_order):
         atr_window_lengths[a[0]] += a[2]
 
     # -- count reactivations per attractor
-    atr_pss = {k: {'triggered': 0, 'spontaneous': 0} for k in atr_ps_counts.keys()}
+    atr_pss = {k: {"triggered": 0, "spontaneous": 0} for k in atr_ps_counts.keys()}
     for k, v in atr_ps_counts.items():
-        atr_pss[k]['triggered'] += len(v['triggered'])
-        atr_pss[k]['spontaneous'] += len(v['spontaneous'])
+        atr_pss[k]["triggered"] += len(v["triggered"])
+        atr_pss[k]["spontaneous"] += len(v["spontaneous"])
 
     # -- compute accuracy
     spont = 0
     trig = 0
     for k, v in atr_pss.items():
-        spont += v['spontaneous']
-        trig += v['triggered']
+        spont += v["spontaneous"]
+        trig += v["triggered"]
     try:
         accuracy = trig / (trig + spont)
     except ZeroDivisionError:
@@ -417,7 +471,9 @@ def compute_ps_score(atr_ps_counts, attractors_cueing_order):
 
     # -- compute recall
     # The maximum frequency of reactivations seems to be % Hz with 2.3 parameter set
-    recall = {k: v['triggered'] / (atr_window_lengths[k] * 5) for k, v in atr_pss.items()}
+    recall = {
+        k: v["triggered"] / (atr_window_lengths[k] * 5) for k, v in atr_pss.items()
+    }
     mean_recall = sum(recall.values()) / len(recall)
 
     return trig, spont, accuracy, mean_recall, f1_score(accuracy, mean_recall)

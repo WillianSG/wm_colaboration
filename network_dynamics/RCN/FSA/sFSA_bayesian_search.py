@@ -28,6 +28,28 @@ from hyperopt.pyll.base import Apply
 from hyperopt.pyll.stochastic import sample
 
 
+def cleanup(exit_code=None, frame=None):
+    try:
+        print("Cleaning up leftover tmp folder...")
+        # delete tmp folder
+        shutil.rmtree(tmp_folder)
+    except FileNotFoundError:
+        print("No tmp folder to remove")
+    except OSError:
+        print("Cannot remove tmp folder")
+
+    try:
+        os.remove("logfile.txt")
+    except FileNotFoundError:
+        pass
+
+    if args.parallel:
+        # -- Kill all subprocesses
+        mongod.terminate()
+        for w in workers:
+            w.terminate()
+
+
 def is_pycharm():
     return os.getenv("PYCHARM_HOSTED") != None
 
@@ -49,7 +71,8 @@ parser.add_argument("--n_attractors", type=int, default=3)
 parser.add_argument("--parallel", action="store_true")
 args = parser.parse_args()
 
-telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
+# telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
 msg_args = ""
 for k, v in vars(args).items():
     msg_args += f"{k}: {v}, "
@@ -63,30 +86,8 @@ tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
 print("TMP:", tmp_folder)
 
-from hyperopt import fmin, tpe, hp
-
 if args.parallel:
     from hyperopt.mongoexp import MongoTrials
-
-import os
-
-
-def cleanup(exit_code=None, frame=None):
-    try:
-        print("Cleaning up leftover tmp folder...")
-        # delete tmp folder
-        shutil.rmtree(tmp_folder)
-    except FileNotFoundError:
-        print("No tmp folder to remove")
-    except OSError:
-        print("Cannot remove tmp folder")
-
-    if args.parallel:
-        # -- Kill all subprocesses
-        mongod.terminate()
-        for w in workers:
-            w.terminate()
-
 
 # -- folder and environment setup
 atexit.register(cleanup)
@@ -112,8 +113,13 @@ print("VENV:", venv_path)
 
 
 def objective(x):
-    r = run_sfsa(x, tmp_folder=tmp_folder, word_length=1, save_plot=False,
-                 already_in_tmp_folder=True if args.parallel else False)
+    r = run_sfsa(
+        x,
+        tmp_folder=tmp_folder,
+        word_length=1,
+        save_plot=False,
+        already_in_tmp_folder=True if args.parallel else False,
+    )
 
     # create new instance because Bot is not pickleable
     telegram_bot = TelegramNotify(token=telegram_token)
@@ -132,10 +138,7 @@ def objective(x):
         "loss": -r["f1_score"],
         "status": STATUS_OK,
         "x": x,
-        "ps_statistics": {
-            "recall": r["recall"],
-            "accuracy": r["accuracy"]
-        },
+        "ps_statistics": {"recall": r["recall"], "accuracy": r["accuracy"]},
     }
 
 
@@ -234,7 +237,7 @@ results_df = pd.DataFrame(
         "params": [x["x"] for x in results],
         "iteration": list(range(len(results))),
         "recall": [x["ps_statistics"]["recall"] for x in results],
-        "accuracy": [x["ps_statistics"]["accuracy"] for x in results]
+        "accuracy": [x["ps_statistics"]["accuracy"] for x in results],
     }
 )
 
@@ -268,12 +271,21 @@ telegram_bot.reply_to_timestamped_message(
 )
 
 # Save folder
-save_folder = f'RESULTS/FSA_BAYESIAN_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+save_folder = (
+    f'RESULTS/FSA_BAYESIAN_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+)
 os.makedirs(save_folder)
 
 # Run model with the best parameters and plot output
-run_sfsa(best_params, tmp_folder=tmp_folder, word_length=1, save_plot=True, seed_init=None, record_traces=True,
-         save_path=save_folder)
+run_sfsa(
+    best_params,
+    tmp_folder=tmp_folder,
+    word_length=1,
+    save_plot=True,
+    seed_init=None,
+    record_traces=True,
+    save_path=save_folder,
+)
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 
 print(f"Best parameters: {best_params}")
@@ -295,10 +307,12 @@ for par in best_params.items():
         for k, v in best_params.items():
             if isinstance(space[k], Apply):
                 parameter_sweep_string += f" -{k} {v}"
-        parameter_sweep_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+        parameter_sweep_string += (
+            " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
+        )
         parameter_sweep_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size {args.n_attractors * (64 + 16)} -attractor_size {64} -cue_length 1"
         with open(f"{save_folder}/string.txt", "a") as f:
-            f.write('\n' + parameter_sweep_string)
+            f.write("\n" + parameter_sweep_string)
 
 telegram_bot.reply_to_timestamped_message(
     f"Saved results to {save_folder}", main_msg_id
