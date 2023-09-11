@@ -22,7 +22,6 @@ from hyperopt.pyll.base import Apply
 from hyperopt.pyll.stochastic import sample
 from tqdm.auto import tqdm
 
-
 from helper_functions.recurrent_competitive_network import run_rcn
 from helper_functions.telegram_notify import TelegramNotify
 
@@ -74,16 +73,16 @@ tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
 print("TMP:", tmp_folder)
 
-telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
-# telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+# telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
+telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+
 msg_args = ""
 for k, v in vars(args).items():
     msg_args += f"{k}: {v}, "
 telegram_bot = TelegramNotify(token=telegram_token)
 telegram_bot.unpin_all()
-main_msg_id = telegram_bot.send_timestamped_message(
-    f"Starting Bayesian search with the following parameters: {msg_args}\ntmp_folder: {tmp_folder}"
-).id
+main_msgs = telegram_bot.send_timestamped_messages(
+    f"Starting RCN Bayesian search with the following parameters: {msg_args}\ntmp_folder: {tmp_folder}")
 
 if args.parallel:
     from hyperopt.mongoexp import MongoTrials
@@ -121,17 +120,9 @@ def objective(x):
     )
 
     # create new instance because Bot is not pickleable
-    telegram_bot = TelegramNotify()
+    telegram_bot = TelegramNotify(token=telegram_token)
     # hack to keep track of last update
-    telegram_bot.pin_message(telegram_msg_id)
-    last_update = int(
-        re.findall(r"\d+", telegram_bot.get_chat().pinned_message.text_markdown_v2)[6]
-    )
-    telegram_bot.unpin_all()
-    telegram_bot.edit_timestamped_message(
-        f'*{last_update + 1}/{args.n_evals}* Finished run.  Score: {r["f1_score"]}',
-        telegram_msg_id,
-    )
+    telegram_bot.read_pinned_and_increment_it(telegram_msgs, r["f1_score"])
 
     return {
         "loss": -r["f1_score"],
@@ -214,9 +205,9 @@ if args.parallel:
 else:
     trials = Trials()
 
-telegram_msg_id = telegram_bot.reply_to_timestamped_message(
-    f"*0/0* Waiting for first evaluation to finish.", main_msg_id
-).id
+telegram_msgs = telegram_bot.reply_to_timestamped_messages(
+    f"*0/{args.n_evals}* Waiting for first evaluation to finish.",
+    main_msgs)
 
 # Run the tpe algorithm
 tpe_best = fmin(
@@ -270,10 +261,8 @@ if args.parallel:
 best_params = results_df.iloc[0]["params"]
 best_score = results_df.iloc[0]["score"]
 
-telegram_bot.reply_to_timestamped_message(
-    f"Finished Bayesian search with the following results:\n{best_params}\nScore: {best_score}",
-    main_msg_id,
-)
+telegram_bot.reply_to_timestamped_messages(
+    f"Finished Bayesian search with the following results:\n{best_params}\nScore: {best_score}", main_msgs)
 
 # Save folder
 save_folder = f'RESULTS/BAYESIAN_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
@@ -321,9 +310,7 @@ for par in best_params.items():
         with open(f"{save_folder}/strings_for_RCN_sweep.txt", "a") as f:
             f.write("\n" + parameter_sweep_string)
 
-telegram_bot.reply_to_timestamped_message(
-    f"Saved results to {save_folder}", main_msg_id
-)
+telegram_bot.reply_to_timestamped_messages(f"Saved results to {save_folder}", main_msgs)
 telegram_bot.unpin_all()
 
 cleanup()
