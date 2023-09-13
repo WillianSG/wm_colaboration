@@ -29,14 +29,6 @@ from numpy import VisibleDeprecationWarning
 from tqdm import TqdmWarning
 from tqdm.auto import tqdm
 
-from helper_functions.other import *
-from plotting_functions.plot_thresholds import *
-from helper_functions.recurrent_competitive_network import run_rcn
-
-warnings.simplefilter("ignore", PicklingWarning)
-warnings.simplefilter("ignore", UnpicklingWarning)
-warnings.simplefilter("ignore", VisibleDeprecationWarning)
-
 
 def cleanup(exit_code=None, frame=None):
     try:
@@ -69,13 +61,31 @@ def product_dict_to_list(dic):
     return out_list
 
 
+def is_pycharm():
+    return os.getenv("PYCHARM_HOSTED") != None
+
+
+if is_pycharm():
+    from helper_functions.other import *
+    from plotting_functions.plot_thresholds import *
+    from helper_functions.recurrent_competitive_network import run_rcn
+    from helper_functions.telegram_notify import TelegramNotify
+else:
+    root = os.path.dirname(os.path.abspath(os.path.join(__file__, "../")))
+    sys.path.append(os.path.join(root, "helper_functions"))
+    from other import *
+    from plot_thresholds import *
+    from recurrent_competitive_network import run_rcn
+    from telegram_notify import TelegramNotify
+
+warnings.simplefilter("ignore", PicklingWarning)
+warnings.simplefilter("ignore", UnpicklingWarning)
+warnings.simplefilter("ignore", VisibleDeprecationWarning)
+
 if __name__ == '__main__':
     atexit.register(cleanup)
     signal.signal(signal.SIGINT, cleanup)
     signal.signal(signal.SIGTERM, cleanup)
-
-    tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
-    os.makedirs(tmp_folder)
 
     parser = argparse.ArgumentParser(
         description='Parallel sweep for parameters of RCN model with STSP and intrinsic plasticity.\n'
@@ -114,8 +124,23 @@ if __name__ == '__main__':
     parser.add_argument('-estimate_time', type=bool, default=False, help='Estimate time of execution')
     args = parser.parse_args()
 
+    tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
+    os.makedirs(tmp_folder)
+    print("TMP:", tmp_folder)
+
     num_cpus = pathos.multiprocessing.cpu_count()
     cv = args.cross_validation
+
+    # telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
+    telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+
+    msg_args = ""
+    for k, v in vars(args).items():
+        msg_args += f"{k}: {v}, "
+    telegram_bot = TelegramNotify(token=telegram_token)
+    telegram_bot.unpin_all()
+    main_msgs = telegram_bot.send_timestamped_messages(
+        f"Starting RCN sweep with the following parameters: {msg_args}\ntmp_folder: {tmp_folder}")
 
     if args.joint_distribution:
         param_grid = {k: v for k, v in vars(args).items() if isinstance(v, list) and k != 'sweep'}
@@ -206,9 +231,14 @@ if __name__ == '__main__':
 
     # chunked_param_grid = list(chunks(param_grid_pool, num_cpus))
 
+    telegram_msgs = telegram_bot.reply_to_timestamped_messages(
+        f"*0/{len(param_grid_pool)}* Waiting for first evaluation to finish.",
+        main_msgs)
+
     results = tqdm_pathos.map(
         partial(run_rcn, show_plot=False, save_plot=False, tmp_folder=tmp_folder, attractor_conflict_resolution='3',
-                progressbar=os.isatty(sys.stdout.fileno())), param_grid_pool,
+                progressbar=os.isatty(sys.stdout.fileno()), already_in_tmp_folder=True,
+                telegram_update=(telegram_token, telegram_msgs)), param_grid_pool,
         n_cpus=num_cpus)
 
     score_param_names = ['f1_score', 'recall', 'accuracy', 'triggered', 'spontaneous']
@@ -283,11 +313,18 @@ if __name__ == '__main__':
     best_params = best_params.drop(score_param_names + ['sweeped']).to_dict()
     print(f'Best parameters: {best_params}')
 
+    telegram_bot.reply_to_timestamped_messages(
+        f"Finished RCN sweep with the following results:\n{best_params}\nScore: {best_score}", main_msgs)
+
     # Run model with the best parameters and plot output
     run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False,
             attractor_conflict_resolution='3')
     # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
     os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
+
+    telegram_bot.reply_to_timestamped_messages(f"Saved results to {save_folder}", main_msgs)
+    telegram_bot.unpin_all()
+
     cleanup()
 
-# TODO ordering of parameters in sweeped plot is missing so it makes sense to calculate performance metric and visualise that or calculate robustness to one parameter at a time
+    # TODO ordering of parameters in sweeped plot is missing so it makes sense to calculate performance metric and visualise that or calculate robustness to one parameter at a time

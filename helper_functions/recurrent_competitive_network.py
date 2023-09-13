@@ -36,6 +36,7 @@ from tqdm import TqdmWarning, tqdm
 
 from helper_functions.other import make_timestamped_folder, compute_ps_score
 from helper_functions.population_spikes import count_ps
+from helper_functions.telegram_notify import TelegramNotify
 from plotting_functions.x_u_spks_from_basin import plot_x_u_spks_from_basin
 
 prefs.codegen.target = "numpy"
@@ -58,7 +59,7 @@ else:
 
 
 def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
-            attractor_conflict_resolution='0', already_in_tmp_folder=False):
+            attractor_conflict_resolution='0', already_in_tmp_folder=False, telegram_update=None):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
     if show_plot == True and low_memory == True:
@@ -260,6 +261,11 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
     pbar.close()
 
     params.pop("worker_id", None)
+
+    if telegram_update is not None:
+        telegram_bot = TelegramNotify(token=telegram_update[0])
+        # hack to keep track of last update
+        telegram_bot.read_pinned_and_increment_it(telegram_update[1], f1_score)
 
     return params | {
         "f1_score": f1_score,

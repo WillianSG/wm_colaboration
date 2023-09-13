@@ -49,7 +49,10 @@ class TelegramNotify:
     async def _get_chatid(self):
         chat_ids = []
         async with self.bot:
-            updates = await self.bot.get_updates()
+            try:
+                updates = await self.bot.get_updates()
+            except TimeoutError:
+                return None
             try:
                 for update in updates:
                     chat_ids.append(update.message.chat.id) if update.message.chat.id not in chat_ids else None
@@ -152,15 +155,19 @@ class TelegramNotify:
 
     def read_pinned_and_increment_it(self, msgs, score):
         import re
+
         last_updates = []
 
         self.pin_messages(msgs)
         chats = self.get_chats()
         for chat in chats:
-            last_updates.append((chat.id,
-                                 int(re.findall(r"\d+", chat.pinned_message.text_markdown_v2)[6]),
-                                 int(re.findall(r"\d+", chat.pinned_message.text_markdown_v2)[7]),
-                                 ))
-        self.unpin_all()
-        max_up = max(last_updates, key=lambda x: x[1])
-        self.edit_timestamped_messages(f'*{max_up[1] + 1}/{max_up[2]}* Finished run. Score: {score}', msgs)
+            try:
+                last_updates.append((chat.id,
+                                     int(re.findall(r"\d+", chat.pinned_message.text_markdown_v2)[6]),
+                                     int(re.findall(r"\d+", chat.pinned_message.text_markdown_v2)[7]),
+                                     ))
+                self.unpin_all()
+                max_up = max(last_updates, key=lambda x: x[1])
+                self.edit_timestamped_messages(f'*{max_up[1] + 1}/{max_up[2]}* Finished run. Score: {score}', msgs)
+            except:
+                pass

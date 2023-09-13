@@ -117,12 +117,13 @@ def objective(x):
         progressbar=False,
         attractor_conflict_resolution="3",
         already_in_tmp_folder=True if args.parallel else False,
+        telegram_update=(telegram_token, telegram_msgs)
     )
 
-    # create new instance because Bot is not pickleable
-    telegram_bot = TelegramNotify(token=telegram_token)
-    # hack to keep track of last update
-    telegram_bot.read_pinned_and_increment_it(telegram_msgs, r["f1_score"])
+    # # create new instance because Bot is not pickleable
+    # telegram_bot = TelegramNotify(token=telegram_token)
+    # # hack to keep track of last update
+    # telegram_bot.read_pinned_and_increment_it(telegram_msgs, r["f1_score"])
 
     return {
         "loss": -r["f1_score"],
