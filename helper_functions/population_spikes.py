@@ -56,6 +56,8 @@ def count_ps(rcn, attractor_cueing_order):
                         if max_sync_t not in attractor_ps_counts[a[0]]['spontaneous']:
                             attractor_ps_counts[a[0]]['spontaneous'].append(max_sync_t)
 
+        attractor_ps_counts[a[0]]['cued_time'] = a[2]
+
     return attractor_ps_counts
 
 

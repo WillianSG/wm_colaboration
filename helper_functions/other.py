@@ -123,7 +123,7 @@ def append_df_to_excel(df, excel_path, sheet_name, index=False):
 
     excel_book = load_workbook(excel_path)
     with pd.ExcelWriter(
-        excel_path, engine="openpyxl", mode="a", if_sheet_exists="overlay"
+            excel_path, engine="openpyxl", mode="a", if_sheet_exists="overlay"
     ) as writer:
         writer.book = excel_book
         writer.sheets = dict((ws.title, ws) for ws in excel_book.worksheets)
@@ -132,13 +132,13 @@ def append_df_to_excel(df, excel_path, sheet_name, index=False):
 
 
 def count_pss_in_gss(
-    pss_path,
-    normalise_by_PS=False,
-    num_gss=None,
-    write_to_file=False,
-    ba=None,
-    gss=None,
-    verbose=True,
+        pss_path,
+        normalise_by_PS=False,
+        num_gss=None,
+        write_to_file=False,
+        ba=None,
+        gss=None,
+        verbose=True,
 ):
     import pandas as pd
 
@@ -218,7 +218,7 @@ def ensure_excel_exists(fn):
 
 
 def compute_pss_statistics(
-    timestamp_folder, parameters=None, write_to_file=True, verbose=True
+        timestamp_folder, parameters=None, write_to_file=True, verbose=True
 ):
     import pandas as pd
 
@@ -259,7 +259,7 @@ def compute_pss_statistics(
 
 
 def generate_gss(
-    gs_percentage, gs_length, pre_runtime, gs_runtime, target=None, length=None
+        gs_percentage, gs_length, pre_runtime, gs_runtime, target=None, length=None
 ):
     if length is None:
         length = gs_runtime - gs_length
@@ -268,7 +268,7 @@ def generate_gss(
 
 
 def generate_periodic_gss(
-    gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target
+        gs_percentage, gs_freq, gs_length, pre_runtime, gs_runtime, target
 ):
     import numpy as np
     from scipy import signal as sg
@@ -386,7 +386,7 @@ def firing_rates(rcn, neurons=None, time_window=None, mean=False):
         k: rcn.E_mon.spike_trains()[k][
             (rcn.E_mon.spike_trains()[k] > time_window[0])
             & (rcn.E_mon.spike_trains()[k] < time_window[1])
-        ]
+            ]
         for k in neurons
     }
 
@@ -472,15 +472,15 @@ def compute_ps_score(atr_ps_counts, attractors_cueing_order):
     # -- compute recall
     # The maximum frequency of reactivations seems to be % Hz with 2.3 parameter set
     recall = {
-        k: v["triggered"] / (atr_window_lengths[k] * 5) for k, v in atr_pss.items()
+        k: v["triggered"] / (atr_window_lengths[k] * 10) for k, v in atr_pss.items()
     }
     mean_recall = sum(recall.values()) / len(recall)
 
     return trig, spont, accuracy, mean_recall, f1_score(accuracy, mean_recall)
 
 
-def f1_score(precision, recall):
+def f1_score(accuracy, recall):
     try:
-        return 2 * (precision * recall) / (precision + recall)
+        return 2 * (accuracy * recall) / (accuracy + recall)
     except ZeroDivisionError:
         return 0

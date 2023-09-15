@@ -242,6 +242,9 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
             num_neurons=len(rcn.E),
         )
 
+        if show_plot:
+            fig.show()
+
         if save_plot is not None:
             fig.savefig(os.path.join(save_plot, f"ATR_plot.svg"))
 
@@ -273,6 +276,7 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
         "accuracy": accuracy,
         "triggered": trig,
         "spontaneous": spont,
+        "ps_counts": atr_ps_counts,
     }
 
 
