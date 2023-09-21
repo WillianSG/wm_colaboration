@@ -66,13 +66,11 @@ else:
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_evals", type=int, default=2000)
 parser.add_argument("--n_workers", type=int, default=-1)
-parser.add_argument("--n_cues", type=int, default=10)
-parser.add_argument("--n_attractors", type=int, default=3)
 parser.add_argument("--parallel", action="store_true")
 args = parser.parse_args()
 
-# telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
-telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
+# telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
 
 msg_args = ""
 for k, v in vars(args).items():
@@ -80,7 +78,8 @@ for k, v in vars(args).items():
 telegram_bot = TelegramNotify(token=telegram_token)
 telegram_bot.unpin_all()
 main_msgs = telegram_bot.send_timestamped_messages(
-    f"Starting FSA Bayesian search with the following parameters: {msg_args}")
+    f"Starting FSA Bayesian search with the following parameters: {msg_args}"
+)
 
 tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
 os.makedirs(tmp_folder)
@@ -116,7 +115,7 @@ def objective(x):
     r = run_sfsa(
         x,
         tmp_folder=tmp_folder,
-        word_length=1,
+        word_length=4,
         save_plot=False,
         already_in_tmp_folder=True if args.parallel else False,
     )
@@ -137,13 +136,13 @@ def objective(x):
 # Create the domain space (  hp.uniform(label, low, high) or hp.normal(label, mu, sigma)  )
 param_dist = hp.uniform
 # param_dist = hp.normal
-
+# {'attractor_size': 64, 'background_activity': 13.855558143033827, 'cue_length': 1, 'cue_percentage': 100, 'e_e_max_weight': 14.337885250035841, 'e_i_weight': 4.253159333783978, 'i_e_weight': 5.302236785709991, 'i_frequency': 31.841289668071244, 'network_size': 256, 'num_attractors': 4, 'num_cues': 10}
 space = {
-    "background_activity": param_dist("background_activity", 10, 30),
-    "i_e_weight": param_dist("i_e_weight", 5, 20),
-    "e_i_weight": param_dist("e_i_weight", 0.5, 10),
-    "e_e_max_weight": param_dist("e_e_max_weight", 5, 20),
-    "i_frequency": param_dist("i_freq", 10, 40),
+    "background_activity": 13.855558143033827,
+    "i_e_weight": 5.302236785709991,
+    "e_i_weight": 4.253159333783978,
+    "e_e_max_weight": 14.337885250035841,
+    "i_frequency": 31.841289668071244,
     "cue_percentage": 100,
     "cue_length": param_dist("cue_length", 0.5, 1.0),
     "w_acpt": param_dist("w_acpt", 1.0, 4.0),
@@ -204,8 +203,8 @@ else:
     trials = Trials()
 
 telegram_msgs = telegram_bot.reply_to_timestamped_messages(
-    f"*0/{args.n_evals}* Waiting for first evaluation to finish.",
-    main_msgs)
+    f"*0/{args.n_evals}* Waiting for first evaluation to finish.", main_msgs
+)
 
 # Run the tpe algorithm
 tpe_best = fmin(
@@ -258,7 +257,9 @@ best_params = results_df.iloc[0]["params"]
 best_score = results_df.iloc[0]["score"]
 
 telegram_bot.reply_to_timestamped_messages(
-    f"Finished Bayesian search with the following results:\n{best_params}\nScore: {best_score}", main_msgs)
+    f"Finished Bayesian search with the following results:\n{best_params}\nScore: {best_score}",
+    main_msgs,
+)
 
 # Save folder
 save_folder = (
@@ -270,37 +271,13 @@ os.makedirs(save_folder)
 run_sfsa(
     best_params,
     tmp_folder=tmp_folder,
-    word_length=1,
+    word_length=4,
     save_plot=True,
     seed_init=None,
     record_traces=True,
     save_path=save_folder,
 )
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
-
-print(f"Best parameters: {best_params}")
-best_string = "-sweep"
-for k, v in best_params.items():
-    if isinstance(space[k], Apply):
-        best_string += f" {k}"
-for k, v in best_params.items():
-    if isinstance(space[k], Apply):
-        best_string += f" -{k} {v}"
-best_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
-print("Use this string as command-line parameters for RCN_sweep.py:", best_string)
-with open(f"{save_folder}/string.txt", "w") as f:
-    f.write(best_string)
-
-for par in best_params.items():
-    if isinstance(space[par[0]], Apply):
-        parameter_sweep_string = f"-sweep {par[0]}"
-        for k, v in best_params.items():
-            if isinstance(space[k], Apply):
-                parameter_sweep_string += f" -{k} {v}"
-        parameter_sweep_string += " -joint_distribution -sigma 3 -num_samples 20 -cross_validation 3"
-        parameter_sweep_string += f" -num_cues {args.n_cues} -num_attractors {args.n_attractors} -network_size {args.n_attractors * (64 + 16)} -attractor_size {64} -cue_length 1"
-        with open(f"{save_folder}/string.txt", "a") as f:
-            f.write('\n' + parameter_sweep_string)
 
 telegram_bot.reply_to_timestamped_messages(f"Saved results to {save_folder}", main_msgs)
 telegram_bot.unpin_all()
