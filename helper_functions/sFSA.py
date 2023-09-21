@@ -57,8 +57,6 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
     e_i_w = params["e_i_weight"]
     e_e_maxw = params["e_e_max_weight"]
     i_frequency = params["i_frequency"]
-    cue_percentage = params["cue_percentage"]
-    cue_time = params["cue_length"]
     worker_id = params["worker_id"] if "worker_id" in params else None
 
     # - Define FSA (1st state in S taken as 'start' state).
@@ -70,7 +68,12 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
     }
 
     # - Create input word.
-
+    '''
+    https://eng.libretexts.org/@api/deki/files/40644/DFAexample.svg?revision=1
+    S1(which is also the start state) indicates the state at which an even number of 0 s has been input.
+    S1 is therefore an accepting state.This acceptor will finish in an accept state, if the binary string contains an even number of 0s (including any binary string containing no 0s).
+    Examples of strings accepted by this acceptor are ε (the empty string), 1, 11, 11..., 00, 010, 1010, 10110, etc
+    '''
     binary_word = np.random.randint(2, size=word_length)
     binary_word = [str(dig) for dig in binary_word]
 
@@ -98,7 +101,7 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
 
     sFSA_model.feedInputWord(binary_word)
 
-    sFSA_model.exportSfsaData(network_plot=save_plot, pickle_dump=False)  # computes state transisitons
+    sFSA_model.exportSfsaData(network_plot=save_plot, pickle_dump=False)  # computes state transitions
 
     if save_plot and save_path != '':
         title_addition = (
@@ -360,13 +363,13 @@ class sFSA:
         '''
             Computes the mean rate of each attractor representing a state in S within a simulation time window. The highest 
         mean rate is taken to be currently active attractor (the state in which the FSA is at) and the state S it represents 
-        is returned. If the highest mean rate if bellow 5Hz then all attractors are taken to be at spontaneous activity level, 
+        is returned. If the highest mean rate if bellow 4 Hz then all attractors are taken to be at spontaneous activity level,
         in which case 'null' is returned.
         '''
         import numpy as np
 
         # @TODO: compute threshold to prevent false positives.
-        rate_thr = 7  # threshold for spontaneous activity.
+        rate_thr = 4  # threshold for spontaneous activity.
 
         states_mean_rate = {}
 

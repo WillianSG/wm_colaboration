@@ -69,8 +69,8 @@ parser.add_argument("--n_workers", type=int, default=-1)
 parser.add_argument("--parallel", action="store_true")
 args = parser.parse_args()
 
-telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
-# telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+# telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
+telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
 
 msg_args = ""
 for k, v in vars(args).items():
@@ -145,12 +145,17 @@ space = {
     "i_frequency": 31.841289668071244,
     "cue_percentage": 100,
     "cue_length": param_dist("cue_length", 0.5, 1.0),
+    # FSA parameters
     "w_acpt": param_dist("w_acpt", 1.0, 4.0),
     "w_trans": param_dist("w_trans", 1.8, 13.8),
     "thr_GO_state": param_dist("thr_GO_state", -54.0, -42.0),
     "delay_A2GO": param_dist("delay_A2GO", 1.5, 3.0),
     "delay_gap_A2B": param_dist("delay_gap_A2B", 0.0, 0.3),
 }
+space = {'background_activity': 13.855558143033827, 'cue_length': 0.5521549837529528, 'cue_percentage': 100,
+         'delay_A2GO': 1.6379076494149138, 'delay_gap_A2B': 0.06110151087793095, 'e_e_max_weight': 14.337885250035841,
+         'e_i_weight': 4.253159333783978, 'i_e_weight': 5.302236785709991, 'i_frequency': 31.841289668071244,
+         'thr_GO_state': -44.56554287084625, 'w_acpt': 1.5290052875899312, 'w_trans': 2.4609301496577096}
 
 # Create the algorithm
 tpe_algo = tpe.suggest
