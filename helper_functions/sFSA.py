@@ -112,7 +112,7 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
 
     pred_state_transitions = sFSA_model.sFSA_sim_data['state_history']
 
-    f1_score, recall, precision = sFSA_model.computeF1Score(true_state_transitions, pred_state_transitions)
+    accuracy = sFSA_model.computeAccuracy(true_state_transitions, pred_state_transitions)
 
     # - Cleanup
 
@@ -123,9 +123,7 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
     params.pop("worker_id", None)
 
     return params | {
-        "f1_score": f1_score,
-        "recall": recall,
-        "accuracy": precision
+        "score": accuracy
     }
 
 
@@ -369,7 +367,7 @@ class sFSA:
         import numpy as np
 
         # @TODO: compute threshold to prevent false positives.
-        rate_thr = 4  # threshold for spontaneous activity.
+        rate_thr = 800  # threshold for spontaneous activity.
 
         states_mean_rate = {}
 
@@ -380,18 +378,12 @@ class sFSA:
             spks_in_window = [i for i in spikes if i >= t_window[0] and i <= t_window[1]]
 
             if len(spks_in_window) > 0:
+                self.__RCN.stimulus_neurons_e_ids = self.__sfsa_state['S'][state]
+                spk_mon_ids, spk_mon_ts = self.__RCN.get_spks_from_pattern_neurons()
 
-                [_,
-                 __,
-                 ___,
-                 t_hist_fr] = firing_rate_histograms(
-                    tpoints=np.array(spks_in_window) * second,
-                    inds=np.arange(0, attractor_size),  # not important the correct IDs.
-                    bin_width=25 * ms,
-                    N_pop=attractor_size,
-                    flag_hist='time_resolved')
-
-                states_mean_rate[state] = np.round(np.mean(t_hist_fr), 1)
+                states_mean_rate[state] = len(
+                    np.argwhere((np.array(spk_mon_ts) >= t_window[0]) & (np.array(spk_mon_ts) <= t_window[1]))) / (
+                                                  t_window[1] - t_window[0])
 
                 if states_mean_rate[state] > rate_thr:
                     activations.append(states_mean_rate[state])
@@ -494,7 +486,7 @@ class sFSA:
                          self.__RCN.E_mon.spike_trains().items()}  # excitatory spike trains.
 
         # sim_t = self.__RCN.E_rec.t / second
-        sim_t = self.__RCN.self.E_mon.t / second
+        sim_t = self.__RCN.E_mon.t / second
 
         states_Vth_traces = {}
 
@@ -649,10 +641,11 @@ class sFSA:
             Vth_mu = np.mean(Vth, axis=0)
             Vth_sg = np.std(Vth, axis=0)
 
-            ax2.plot(self.sFSA_sim_data['sim_t'], Vth_mu, color=states_colors[_aux_c])
-            ax2.plot(self.sFSA_sim_data['sim_t'], np.max(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
-            ax2.plot(self.sFSA_sim_data['sim_t'], np.min(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
-            ax2.fill_between(self.sFSA_sim_data['sim_t'], Vth_mu - Vth_sg, Vth_mu + Vth_sg, alpha=0.2,
+            sim_t_vth = self._.E_rec.t / second
+            ax2.plot(sim_t_vth, Vth_mu, color=states_colors[_aux_c])
+            ax2.plot(sim_t_vth, np.max(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
+            ax2.plot(sim_t_vth, np.min(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
+            ax2.fill_between(sim_t_vth, Vth_mu - Vth_sg, Vth_mu + Vth_sg, alpha=0.2,
                              color=states_colors[_aux_c])
 
             _aux_c += 1
@@ -736,56 +729,11 @@ class sFSA:
         self.__RCN.net.restore(name=f'{self.sFSA_id}_initial_state',
                                filename=os.path.join(self.data_folder, f'{self.sFSA_id}_initial_state'))
 
-    def computeF1Score(self, true_state_transitions, pred_state_transitions):
-        '''
-        Computes the F1 score based on the state transition history and the true state transition sequence.
-        '''
-        tp = 0
-        fp = 0
-        fn = 0
+    def computeAccuracy(self, true_state_transitions, pred_state_transitions):
+        correct = 0
+        for p, t in zip(pred_state_transitions, true_state_transitions):
+            if p == t:
+                correct += 1
+        accuracy = correct / len(true_state_transitions)
 
-        if len(pred_state_transitions) != len(true_state_transitions):
-            return 0.0, 0.0, 0.0
-
-        # - It always starts at the 1st state in the state set.
-
-        if pred_state_transitions[0] != self.__FSA_model['S'][0]:
-            pred_state_transitions[0] = self.__FSA_model['S'][0]
-
-        # - loop over state transitions.
-
-        for i in range(0, len(true_state_transitions) - 1):
-
-            tru_trans = [true_state_transitions[i], true_state_transitions[i + 1]]
-            pred_trans = [pred_state_transitions[i], pred_state_transitions[i + 1]]
-
-            if pred_trans == tru_trans:
-
-                tp += 1
-
-            elif pred_trans[-1] == 'null' or pred_trans[-1] == 'two' or pred_trans[-1] == pred_trans[0]:
-
-                fn += 1
-
-            else:
-
-                fp += 1
-
-        # - Compute F1 score.
-
-        try:
-            recall = tp / (tp + fn)
-        except:
-            recall = 0
-
-        try:
-            precision = tp / (tp + fp)
-        except:
-            precision = 0
-
-        try:
-            f1_score = (2 * (precision * recall)) / (precision + recall)
-        except:
-            f1_score = 0
-
-        return f1_score, recall, precision
+        return accuracy

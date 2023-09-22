@@ -115,7 +115,7 @@ def objective(x):
     r = run_sfsa(
         x,
         tmp_folder=tmp_folder,
-        word_length=4,
+        word_length=2,
         save_plot=False,
         already_in_tmp_folder=True if args.parallel else False,
     )
@@ -123,13 +123,12 @@ def objective(x):
     # create new instance because Bot is not pickleable
     telegram_bot = TelegramNotify(token=telegram_token)
     # hack to keep track of last update
-    telegram_bot.read_pinned_and_increment_it(telegram_msgs, r["f1_score"])
+    telegram_bot.read_pinned_and_increment_it(telegram_msgs, r["score"])
 
     return {
-        "loss": -r["f1_score"],
+        "loss": -r["score"],
         "status": STATUS_OK,
         "x": x,
-        "ps_statistics": {"recall": r["recall"], "accuracy": r["accuracy"]},
     }
 
 
@@ -232,8 +231,6 @@ results_df = pd.DataFrame(
         "score": [x["loss"] for x in results],
         "params": [x["x"] for x in results],
         "iteration": list(range(len(results))),
-        "recall": [x["ps_statistics"]["recall"] for x in results],
-        "accuracy": [x["ps_statistics"]["accuracy"] for x in results],
     }
 )
 
@@ -276,7 +273,7 @@ os.makedirs(save_folder)
 run_sfsa(
     best_params,
     tmp_folder=tmp_folder,
-    word_length=4,
+    word_length=2,
     save_plot=True,
     seed_init=None,
     record_traces=True,
