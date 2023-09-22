@@ -493,7 +493,8 @@ class sFSA:
         _E_spk_trains = {key: value for key, value in
                          self.__RCN.E_mon.spike_trains().items()}  # excitatory spike trains.
 
-        sim_t = self.__RCN.E_rec.t / second
+        # sim_t = self.__RCN.E_rec.t / second
+        sim_t = self.__RCN.self.E_mon.t / second
 
         states_Vth_traces = {}
 
