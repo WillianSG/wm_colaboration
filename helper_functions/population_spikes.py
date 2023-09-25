@@ -29,7 +29,7 @@ def count_ps(rcn, attractor_cueing_order):
 
     for a in attractor_cueing_order:
         if not a[0] in attractor_ps_counts:
-            attractor_ps_counts[a[0]] = {'triggered': list(), 'spontaneous': list()}
+            attractor_ps_counts[a[0]] = {'triggered': list(), 'spontaneous': list(), 'cued_time': 0}
 
         x, y, y_smooth, pss = rcn.find_ps(a)
 
@@ -56,7 +56,7 @@ def count_ps(rcn, attractor_cueing_order):
                         if max_sync_t not in attractor_ps_counts[a[0]]['spontaneous']:
                             attractor_ps_counts[a[0]]['spontaneous'].append(max_sync_t)
 
-        attractor_ps_counts[a[0]]['cued_time'] = a[2]
+        attractor_ps_counts[a[0]]['cued_time'] += a[2]
 
     return attractor_ps_counts
 

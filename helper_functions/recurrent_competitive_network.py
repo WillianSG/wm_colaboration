@@ -58,8 +58,17 @@ else:
     from load_stimulus import *
 
 
+def count_spikes():
+    pass
+
+
+def compute_energy():
+    pass
+
+
 def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar=True, seed_init=None, low_memory=True,
-            attractor_conflict_resolution='0', already_in_tmp_folder=False, telegram_update=None):
+            attractor_conflict_resolution='0', already_in_tmp_folder=False, telegram_update=None,
+            return_complete_stats=False):
     warnings.filterwarnings("ignore", category=TqdmWarning)
 
     if show_plot == True and low_memory == True:
@@ -77,6 +86,9 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
     i_freq = params["i_frequency"]
     cue_percentage = params["cue_percentage"]
     cue_time = params["cue_length"]
+    recall_time = params["recall_time"] if "recall_time" in params else (1, 5)
+    if not isinstance(recall_time, tuple):
+        recall_time = (recall_time, recall_time)
     num_attractors = int(params["num_attractors"])
     num_cues = int(params["num_cues"])
     attractor_size = int(params["attractor_size"])
@@ -181,13 +193,14 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
     attractors_cueing_order = [copy.deepcopy(random.choice(attractors_list))]
     for i in range(num_cues - 1):
         atr_sel = copy.deepcopy(random.choice(attractors_list))
-        while attractors_cueing_order[i][0] == atr_sel[0]:
-            atr_sel = copy.deepcopy(random.choice(attractors_list))
+        if not len(attractors_list) == 1:
+            while attractors_cueing_order[i][0] == atr_sel[0]:
+                atr_sel = copy.deepcopy(random.choice(attractors_list))
         attractors_cueing_order.append(atr_sel)
 
     # generate random reactivation times in range
     for a in attractors_cueing_order:
-        a.append(random.uniform(1, 5))
+        a.append(random.uniform(*recall_time))
 
     overall_sim_time = len(attractors_cueing_order) * cue_time + sum(
         [a[2] for a in attractors_cueing_order]
@@ -211,7 +224,6 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
         )
         rcn.run_net(duration=cue_time)
         rcn.generic_stimulus_off(act_ids)
-        # # wait for 2 seconds before cueing next attractor
         rcn.run_net(duration=a[2])
         a.append(gs)
         pbar.update(cue_time + a[2])
@@ -260,7 +272,8 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
 
     # cleanup
     shutil.rmtree(rcn.net_sim_data_path)
-    del rcn
+    if low_memory:
+        del rcn
     pbar.close()
 
     params.pop("worker_id", None)
@@ -270,14 +283,24 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
         # hack to keep track of last update
         telegram_bot.read_pinned_and_increment_it(telegram_update[1], f1_score)
 
-    return params | {
-        "f1_score": f1_score,
-        "recall": recall,
-        "accuracy": accuracy,
-        "triggered": trig,
-        "spontaneous": spont,
-        "ps_counts": atr_ps_counts,
-    }
+    if return_complete_stats:
+        return rcn, params | {
+            "f1_score": f1_score,
+            "recall": recall,
+            "accuracy": accuracy,
+            "triggered": trig,
+            "spontaneous": spont,
+            "ps_counts": atr_ps_counts,
+            "attractors_cueing_order": attractors_cueing_order
+        }
+    else:
+        return params | {
+            "f1_score": f1_score,
+            "recall": recall,
+            "accuracy": accuracy,
+            "triggered": trig,
+            "spontaneous": spont,
+        }
 
 
 class RecurrentCompetitiveNet:
@@ -425,8 +448,8 @@ class RecurrentCompetitiveNet:
 
         self.Input_E_rec_attributes = "w"
         self.Input_I_rec_attributes = "w"
-        self.E_rec_attributes = ["Vm", "Vepsp", "Vipsp", "Vth_e"]
-        self.I_rec_attributes = ("Vm", "Vepsp", "Vipsp")
+        self.E_rec_attributes = ["Vm", "Vth_e"]
+        self.I_rec_attributes = ("Vm")
         self.E_E_rec_attributes = ["w"]
         self.E_I_rec_attributes = "w"
         self.I_E_rec_attributes = "w"
