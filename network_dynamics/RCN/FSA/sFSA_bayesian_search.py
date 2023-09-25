@@ -269,7 +269,7 @@ save_folder = (
 )
 os.makedirs(save_folder)
 
-# Run model with the best parameters and plot output
+# Run model with the best parameters and plot output to results folder
 run_sfsa(
     best_params,
     tmp_folder=tmp_folder,
@@ -278,6 +278,7 @@ run_sfsa(
     seed_init=None,
     record_traces=True,
     save_path=save_folder,
+    progressbar=True
 )
 os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 

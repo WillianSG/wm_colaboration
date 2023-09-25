@@ -10,6 +10,7 @@ from brian2 import Hz, mV, second, ms, prefs
 from datetime import datetime
 import numpy as np
 import shutil
+from tqdm.auto import tqdm
 
 prefs.codegen.target = 'numpy'
 
@@ -45,7 +46,7 @@ def compute_transition(current_state, input_symbol, fsa):
 
 
 def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=None, record_traces=False, save_path='',
-             already_in_tmp_folder=False):
+             already_in_tmp_folder=False, progressbar=False):
     '''
     Configures a RCN to implement a FSA to recognize a random binary word.
     '''
@@ -99,7 +100,7 @@ def run_sfsa(params, tmp_folder=".", word_length=4, save_plot=None, seed_init=No
 
     # - Feed input word.
 
-    sFSA_model.feedInputWord(binary_word)
+    sFSA_model.feedInputWord(binary_word, progressbar=progressbar)
 
     sFSA_model.exportSfsaData(network_plot=save_plot, pickle_dump=False)  # computes state transitions
 
@@ -401,14 +402,14 @@ class sFSA:
 
     # - Public Functions -
 
-    def feedInputWord(self, input_word: list):
+    def feedInputWord(self, input_word: list, progressbar=False):
         '''
         For each input token in input_word the respective attractor in I is cued.
         '''
 
         self.inputed_sequence = []
 
-        for token in input_word:
+        for token in tqdm(input_word, desc='Inputing word', disable=not progressbar):
             self.__feedInputToken(token)
 
         self.__RCN.run_net(duration=self.free_activity)
