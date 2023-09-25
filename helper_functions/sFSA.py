@@ -641,7 +641,7 @@ class sFSA:
             Vth_mu = np.mean(Vth, axis=0)
             Vth_sg = np.std(Vth, axis=0)
 
-            sim_t_vth = self._.E_rec.t / second
+            sim_t_vth = self.__RCN.E_rec.t / second
             ax2.plot(sim_t_vth, Vth_mu, color=states_colors[_aux_c])
             ax2.plot(sim_t_vth, np.max(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
             ax2.plot(sim_t_vth, np.min(Vth, axis=0), color=states_colors[_aux_c], ls='--', lw=0.8)
