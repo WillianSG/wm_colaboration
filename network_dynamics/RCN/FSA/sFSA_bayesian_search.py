@@ -149,7 +149,7 @@ space = {
     "cue_percentage": 100,
     "cue_length": param_dist("cue_length", 0.5, 1.0),
     # FSA parameters
-    "w_acpt": param_dist("w_acpt", 1.0, 4.0),
+    "w_acpt": param_dist("w_acpt", 1.0, 8.0),
     "w_trans": param_dist("w_trans", 1.8, 13.8),
     "thr_GO_state": param_dist("thr_GO_state", -54.0, -42.0),
     "delay_A2GO": param_dist("delay_A2GO", 1.5, 3.0),
