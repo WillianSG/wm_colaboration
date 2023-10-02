@@ -141,15 +141,16 @@ param_dist = hp.uniform
 # param_dist = hp.normal
 # {'attractor_size': 64, 'background_activity': 13.855558143033827, 'cue_length': 1, 'cue_percentage': 100, 'e_e_max_weight': 14.337885250035841, 'e_i_weight': 4.253159333783978, 'i_e_weight': 5.302236785709991, 'i_frequency': 31.841289668071244, 'network_size': 256, 'num_attractors': 4, 'num_cues': 10}
 space = {
-    "background_activity": 13.855558143033827,
-    "i_e_weight": 5.302236785709991,
-    "e_i_weight": 4.253159333783978,
-    "e_e_max_weight": 14.337885250035841,
-    "i_frequency": 31.841289668071244,
+    # RCN WM parameters
+    "background_activity": param_dist("background_activity", 10, 30),
+    "i_e_weight": param_dist("i_e_weight", 5, 20),
+    "e_i_weight": param_dist("e_i_weight", 0.5, 10),
+    "e_e_max_weight": param_dist("e_e_weight", 5, 20),
+    "i_frequency": param_dist("i_frequency", 10, 40),
     "cue_percentage": 100,
     "cue_length": param_dist("cue_length", 0.5, 1.0),
     # FSA parameters
-    "w_acpt": param_dist("w_acpt", 1.0, 4.0),
+    "w_acpt": param_dist("w_acpt", 1.0, 8.0),
     "w_trans": param_dist("w_trans", 1.8, 13.8),
     "thr_GO_state": param_dist("thr_GO_state", -54.0, -42.0),
     "delay_A2GO": param_dist("delay_A2GO", 1.5, 3.0),
