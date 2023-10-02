@@ -409,7 +409,7 @@ class sFSA:
 
         self.inputed_sequence = []
 
-        for token in tqdm(input_word, desc='Inputing word', disable=not progressbar):
+        for token in tqdm(input_word, desc='Inputting word', disable=not progressbar):
             self.__feedInputToken(token)
 
         self.__RCN.run_net(duration=self.free_activity)
