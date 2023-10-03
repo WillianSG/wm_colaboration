@@ -758,11 +758,32 @@ class sFSA:
         self.__RCN.net.restore(name=f'{self.sFSA_id}_initial_state',
                                filename=os.path.join(self.data_folder, f'{self.sFSA_id}_initial_state'))
 
+    # def computeAccuracy(self, true_state_transitions, pred_state_transitions):
+    #     correct = 0
+    #     for p, t in zip(pred_state_transitions, true_state_transitions):
+    #         if p == t:
+    #             correct += 1
+    #     accuracy = correct / len(true_state_transitions)
+
+    #     return accuracy
+    
     def computeAccuracy(self, true_state_transitions, pred_state_transitions):
+    
         correct = 0
-        for p, t in zip(pred_state_transitions, true_state_transitions):
-            if p == t:
+        
+        for i in range(len(true_state_transitions)-1):
+            
+            true_ = [true_state_transitions[i], true_state_transitions[i+1]]
+            pred_ = [pred_state_transitions[i], pred_state_transitions[i+1]]
+            
+            if true_ == pred_:
+                
                 correct += 1
-        accuracy = correct / len(true_state_transitions)
+                
+            else:
+                
+                break
+        
+        accuracy = correct / (len(true_state_transitions) - 1)
 
         return accuracy
