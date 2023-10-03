@@ -41,6 +41,11 @@ params = {}
 for arg in vars(args):
     params[arg] = getattr(args, arg)
 
+params = {'background_activity': 13.855558143033827, 'cue_length': 0.513141209303625, 'cue_percentage': 100,
+          'delay_A2GO': 2.0506400454172526, 'delay_gap_A2B': 0.06729242159249718, 'e_e_max_weight': 14.337885250035841,
+          'e_i_weight': 4.253159333783978, 'i_e_weight': 5.302236785709991, 'i_frequency': 31.841289668071244,
+          'thr_GO_state': -52.56353267076404, 'w_acpt': 1.4391073837024586, 'w_trans': 6.898596074987625}
+
 # 1st state in S taken as 'start' state.
 fsa = {
     'S': ['A', 'B'],
@@ -50,7 +55,7 @@ fsa = {
 
 # create sFSA.
 
-sFSA_model = sFSA(fsa, params)
+sFSA_model = sFSA(fsa, params, RCN_path='')
 
 sFSA_model.makeSimulationFolder()
 
@@ -89,10 +94,10 @@ for i in range(len(digits)):
     if 'two' in state_hist:
         double_activation += 1
 
-    f1_score, recall, precision = sFSA_model.computeAccuracy(true_state_hist[i], state_hist)
+    accuracy = sFSA_model.computeAccuracy(true_state_hist, state_hist)
 
     print(f'true_state_hist: {true_state_hist[i]}, pred. state_hist: {state_hist}')
-    print(f'f1_score: {f1_score}, recall: {recall}, precision: {precision}')
+    print(f'accuracy: {accuracy}')
 
 CR = correct / len(digits)
 

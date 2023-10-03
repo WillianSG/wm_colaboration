@@ -368,7 +368,7 @@ class sFSA:
         import numpy as np
 
         # @TODO: compute threshold to prevent false positives.
-        rate_thr = 800  # threshold for spontaneous activity.
+        rate_thr = 500  # threshold for spontaneous activity.
 
         states_mean_rate = {}
 
@@ -379,7 +379,22 @@ class sFSA:
             spks_in_window = [i for i in spikes if i >= t_window[0] and i <= t_window[1]]
 
             if len(spks_in_window) > 0:
-                self.__RCN.stimulus_neurons_e_ids = self.__sfsa_state['S'][state]
+
+                found = False
+
+                try:
+                    self.__RCN.stimulus_neurons_e_ids = self.__sfsa_state['S'][state]
+                    found = True
+                except:
+                    pass
+
+                if not found:
+
+                    try:
+                        self.__RCN.stimulus_neurons_e_ids = self.__sfsa_state['I'][state]
+                    except:
+                        pass
+
                 spk_mon_ids, spk_mon_ts = self.__RCN.get_spks_from_pattern_neurons()
 
                 states_mean_rate[state] = len(
@@ -561,6 +576,19 @@ class sFSA:
                 if neur_id in S_neur_ids:  # save spikes if neuron belongs to attractor S.
 
                     spikes_per_state[S] += list(simulation_data['E_spk_trains'][neur_id] / second)
+
+        for I, I_neur_ids in simulation_data['sFSA'][
+            'I'].items():  # for each neuron in an attractor representing an input.
+
+            attractor_size = len(I_neur_ids)  # assumes all attractors have the same size.
+
+            spikes_per_state[I] = []  # all state's I spikes.
+
+            for neur_id in simulation_data['E_spk_trains'].keys():  # for each neuron spike train.
+
+                if neur_id in I_neur_ids:  # save spikes if neuron belongs to attractor S.
+
+                    spikes_per_state[I] += list(simulation_data['E_spk_trains'][neur_id] / second)
 
         # - Getting state transisitons based on mean rate and input tokens.
 
