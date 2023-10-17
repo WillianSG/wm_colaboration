@@ -133,6 +133,8 @@ def objective(x):
         "loss": -r["score"],
         "status": STATUS_OK,
         "x": x,
+        "true_states": r["true_states"],
+        "pred_states": r["pred_states"],
     }
 
 
@@ -142,6 +144,13 @@ param_dist = hp.uniform
 # {'attractor_size': 64, 'background_activity': 13.855558143033827, 'cue_length': 1, 'cue_percentage': 100, 'e_e_max_weight': 14.337885250035841, 'e_i_weight': 4.253159333783978, 'i_e_weight': 5.302236785709991, 'i_frequency': 31.841289668071244, 'network_size': 256, 'num_attractors': 4, 'num_cues': 10}
 space = {
     # RCN WM parameters
+    # "background_activity": 13.855558143033827,
+    # "i_e_weight": 5.302236785709991,
+    # "e_i_weight": 4.253159333783978,
+    # "e_e_max_weight": 14.337885250035841,
+    # "i_frequency": 31.841289668071244,
+    # "cue_percentage": 100,
+    # "cue_length": 1,
     "background_activity": param_dist("background_activity", 10, 30),
     "i_e_weight": param_dist("i_e_weight", 5, 20),
     "e_i_weight": param_dist("e_i_weight", 0.5, 10),
@@ -230,6 +239,8 @@ if args.parallel:
 results_df = pd.DataFrame(
     {
         "score": [x["loss"] for x in results],
+        "true_states": [x["true_states"] for x in results],
+        "pred_states": [x["pred_states"] for x in results],
         "params": [x["x"] for x in results],
         "iteration": list(range(len(results))),
     }
