@@ -14,15 +14,14 @@ df = pd.read_csv(
 df_filtered = df.query(f'accuracy == 1')
 df_filtered = df
 df_params = pd.DataFrame.from_records([ast.literal_eval(p) for p in df_filtered['params']])
+variance_selector = VarianceThreshold()
+X = variance_selector.fit_transform(df_params)
 
 # load X and y
 # NOTE BorutaPy accepts numpy arrays only, hence the .values attribute
-variance_selector = VarianceThreshold()
-X = variance_selector.fit_transform(df_params)
-y = df_filtered['score'].values
+y = df_filtered['recall'].values
 
-# define random forest classifier, with utilising all cores and
-# sampling in proportion to y labels
+# define random forest regressor, utilising all cores
 rf = RandomForestRegressor(n_jobs=-1, max_depth=5)
 
 # define Boruta feature selection method

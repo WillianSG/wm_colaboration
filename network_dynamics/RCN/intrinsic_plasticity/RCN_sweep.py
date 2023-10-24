@@ -238,8 +238,7 @@ if __name__ == '__main__':
     results = tqdm_pathos.map(
         partial(run_rcn, show_plot=False, save_plot=False, tmp_folder=tmp_folder, attractor_conflict_resolution='3',
                 progressbar=os.isatty(sys.stdout.fileno()), already_in_tmp_folder=True,
-                telegram_update=(telegram_token, telegram_msgs)), param_grid_pool,
-        n_cpus=num_cpus)
+                telegram_update=(telegram_token, telegram_msgs)), param_grid_pool, n_cpus=num_cpus)
 
     score_param_names = ['f1_score', 'recall', 'accuracy', 'triggered', 'spontaneous']
 
@@ -257,10 +256,10 @@ if __name__ == '__main__':
     df_results_aggregated.to_csv(f'{tmp_folder}/results.csv')
 
     # print best results in order
-    print(
-        df_results_aggregated[args.sweep + score_param_names].sort_values(
-            by='f1_score',
-            ascending=False))
+    # print(
+    #     df_results_aggregated[args.sweep + score_param_names].sort_values(
+    #         by='f1_score',
+    #         ascending=False))
 
     df_results_aggregated['sweeped'] = df_results_aggregated[args.sweep].apply(
         lambda x: ', '.join(x.apply('{:,.2f}'.format)), axis=1)
@@ -272,53 +271,30 @@ if __name__ == '__main__':
     # plot results for cue time
     fig, axes = plt.subplots(2, 2, figsize=(15, 15))
 
-    df_results_aggregated.plot(kind='bar', ax=axes[0, 0], x='sweeped', y='f1_score', legend=False)
-    axes[0, 0].set_ylabel('F1 score')
-    axes[0, 0].set_xlabel(args.sweep)
-    axes[0, 0].set_ylim([0, 1])
-    axes[0, 0].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-    axes[0, 0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    axes[0, 0].set_title('F1 score for sweeped parameters')
-
-    df_results_aggregated.plot(kind='bar', ax=axes[1, 1], x='sweeped', y=['triggered', 'spontaneous'], color=['g', 'r'])
-    axes[0, 1].set_ylabel('Reactivations')
-    axes[0, 1].set_xlabel(args.sweep)
-    axes[0, 1].set_ylim([0, 1])
-    axes[0, 1].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-    axes[0, 1].set_title('Reactivations for sweeped parameters')
-
-    df_results_aggregated.plot(kind='bar', ax=axes[1, 0], x='sweeped', y='recall', legend=False)
-    axes[1, 0].set_ylabel('recall')
-    axes[1, 0].set_xlabel(args.sweep)
-    axes[1, 0].set_ylim([0, 1])
-    axes[1, 0].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-    axes[1, 0].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    axes[1, 0].set_title('Recall for sweeped parameters')
-
-    df_results_aggregated.plot(kind='bar', ax=axes[0, 1], x='sweeped', y='accuracy', legend=False)
-    axes[1, 1].set_ylabel('Accuracy')
-    axes[1, 1].set_xlabel(args.sweep)
-    axes[1, 1].set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-    axes[1, 1].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-    axes[1, 1].set_title('Accuracy for sweeped parameters')
-
-    fig.suptitle(f'Results', fontsize=16)
-    fig.tight_layout()
-    fig.savefig(f'{save_folder}/sweep_results.png')
-    fig.show()
+    for p in sweeped_param_names:
+        axis = df_results_aggregated.plot(kind='bar', x=p, y='f1_score', legend=False)
+        axis.set_ylabel('F1 score')
+        axis.set_xlabel(args.sweep)
+        axis.set_ylim([0, 1])
+        axis.set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
+        axis.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+        axis.set_title(p.replace('_', ' ').title())
+        fig = plt.gcf()
+        fig.savefig(f'{save_folder}/sweep_results_{p}.png')
+        fig.show()
 
     # Find best parameters
-    best_params = df_results_aggregated.loc[df_results_aggregated.f1_score.idxmax()]
-    best_score = best_params['f1_score']
-    best_params = best_params.drop(score_param_names + ['sweeped']).to_dict()
-    print(f'Best parameters: {best_params}')
-
-    telegram_bot.reply_to_timestamped_messages(
-        f"Finished RCN sweep with the following results:\n{best_params}\nScore: {best_score}", main_msgs)
+    # best_params = df_results_aggregated.loc[df_results_aggregated.f1_score.idxmax()]
+    # best_score = best_params['f1_score']
+    # best_params = best_params.drop(score_param_names + ['sweeped']).to_dict()
+    # print(f'Best parameters: {best_params}')
+    #
+    # telegram_bot.reply_to_timestamped_messages(
+    #     f"Finished RCN sweep with the following results:\n{best_params}\nScore: {best_score}", main_msgs)
 
     # Run model with the best parameters and plot output
-    run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False,
-            attractor_conflict_resolution='3')
+    # run_rcn(best_params, tmp_folder=tmp_folder, save_plot=save_folder, low_memory=False,
+    #         attractor_conflict_resolution='3')
     # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
     os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 

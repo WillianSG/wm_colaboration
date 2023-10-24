@@ -88,7 +88,7 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2, energy_m
 
 
 num_attractors = 2
-num_cues = 2
+num_cues = 100
 seed = randrange(1000000)
 # load results from RCN Bayesian sweep
 df = pd.read_csv("RESULTS/4ATR_SWEEP_(2023-08-31_00-39-08)/results_min_max_scaled.csv")
