@@ -5,7 +5,6 @@ graph_analysis/network_results
 sim_results/
 plots_results/
 *.pickle
-*.txt
-*.png
 **/network_results
 **/__pycache__/
+.idea/

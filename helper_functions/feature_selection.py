@@ -5,27 +5,32 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.feature_selection import VarianceThreshold
 from boruta import BorutaPy
 
-folder = '4ATR_SWEEP_(2023-08-31_00-39-08)'
-folder = '8ATR_SWEEP_(2023-09-14_20-37-13)'
+# folder = "4ATR_SWEEP_(2023-09-09_09-02-10)"
+folder = "8ATR_SWEEP_(2023-09-14_20-37-13)"
 df = pd.read_csv(
-    f"../network_dynamics/RCN/intrinsic_plasticity/RESULTS/{folder}/results_optimal_recall=0.5.csv")
+    f"../network_dynamics/RCN/intrinsic_plasticity/RESULTS/{folder}/results_optimal_recall=0.5.csv"
+)
 
 # Select only accuracy=1 and remove zero-variance features
-df_filtered = df.query(f'accuracy == 1')
+df_filtered = df.query(f"accuracy == 1")
 df_filtered = df
-df_params = pd.DataFrame.from_records([ast.literal_eval(p) for p in df_filtered['params']])
+df_params = pd.DataFrame.from_records(
+    [ast.literal_eval(p) for p in df_filtered["params"]]
+)
 variance_selector = VarianceThreshold()
 X = variance_selector.fit_transform(df_params)
 
 # load X and y
 # NOTE BorutaPy accepts numpy arrays only, hence the .values attribute
-y = df_filtered['recall'].values
+y = df_filtered["recall"].values
 
 # define random forest regressor, utilising all cores
 rf = RandomForestRegressor(n_jobs=-1, max_depth=5)
 
 # define Boruta feature selection method
-feat_selector = BorutaPy(rf, n_estimators='auto', max_iter=100, verbose=2, random_state=1)
+feat_selector = BorutaPy(
+    rf, n_estimators="auto", max_iter=100, verbose=2, random_state=1
+)
 
 # find all relevant features
 feat_selector.fit(X, y)
@@ -39,7 +44,23 @@ feat_selector.fit(X, y)
 # call transform() on X to filter it down to selected features
 X_selected = feat_selector.transform(X)
 
-print('Original features and assigned importance:\n',
-      [f'{a} ({b})' for a, b in zip(list(df_params.columns[variance_selector.get_support()]), feat_selector.ranking_)])
-print('Selected features:\n', list(df_params.columns[variance_selector.get_support()][feat_selector.support_]))
-print('Weak features:\n', list(df_params.columns[variance_selector.get_support()][feat_selector.support_weak_]))
+print(
+    "Original features and assigned importance:\n",
+    [
+        f"{a} ({b})"
+        for a, b in zip(
+            list(df_params.columns[variance_selector.get_support()]),
+            feat_selector.ranking_,
+        )
+    ],
+)
+print(
+    "Selected features:\n",
+    list(df_params.columns[variance_selector.get_support()][feat_selector.support_]),
+)
+print(
+    "Weak features:\n",
+    list(
+        df_params.columns[variance_selector.get_support()][feat_selector.support_weak_]
+    ),
+)
