@@ -272,8 +272,8 @@ def run_rcn(params, tmp_folder=".", show_plot=False, save_plot=None, progressbar
 
     # cleanup
     shutil.rmtree(rcn.net_sim_data_path)
-    if low_memory:
-        del rcn
+    # if low_memory:
+    #     del rcn
     pbar.close()
 
     params.pop("worker_id", None)

@@ -253,6 +253,8 @@ if __name__ == '__main__':
     df_results_aggregated = df_results.copy()
     df_results_aggregated = df_results_aggregated.groupby(sweeped_param_names).mean().reset_index()
     df_results_aggregated.sort_values(by=args.sweep, ascending=True, inplace=True)
+    df_results_aggregated['sweeped'] = df_results_aggregated[args.sweep].apply(
+        lambda x: ', '.join(x.apply('{:,.2f}'.format)), axis=1)
     df_results_aggregated.to_csv(f'{tmp_folder}/results.csv')
 
     # print best results in order
@@ -260,9 +262,6 @@ if __name__ == '__main__':
     #     df_results_aggregated[args.sweep + score_param_names].sort_values(
     #         by='f1_score',
     #         ascending=False))
-
-    df_results_aggregated['sweeped'] = df_results_aggregated[args.sweep].apply(
-        lambda x: ', '.join(x.apply('{:,.2f}'.format)), axis=1)
 
     # save results folder
     save_folder = f'RESULTS/SWEEP_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
