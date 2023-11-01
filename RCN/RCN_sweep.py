@@ -48,7 +48,7 @@ def get_default(param):
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
-        yield lst[i:i + n]
+        yield lst[i : i + n]
 
 
 def product_dict_to_list(dic):
@@ -82,46 +82,119 @@ warnings.simplefilter("ignore", PicklingWarning)
 warnings.simplefilter("ignore", UnpicklingWarning)
 warnings.simplefilter("ignore", VisibleDeprecationWarning)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     atexit.register(cleanup)
     signal.signal(signal.SIGINT, cleanup)
     signal.signal(signal.SIGTERM, cleanup)
 
     parser = argparse.ArgumentParser(
-        description='Parallel sweep for parameters of RCN model with STSP and intrinsic plasticity.\n'
-                    'Passing one value for parameter will default to using Gaussian distribution with that value as mu'
-                    'Passing two values for parameter will default to using grid distribution with those values lower and upper bounds')
-    parser.add_argument('-background_activity', type=float, default=[15], nargs='+',
-                        help='Level of background activity in Hz')
-    parser.add_argument('-i_e_weight', type=float, default=[10], nargs='+',
-                        help='Weight of I-to-E synapses in mV')
-    parser.add_argument('-e_i_weight', type=float, default=[3], nargs='+',
-                        help='Weight of E-to-I synapses in mV')
-    parser.add_argument('-e_e_max_weight', type=float, default=[10], nargs='+',
-                        help='Maximum weight of E-to-E synapses in mV')
-    parser.add_argument('-i_frequency', type=float, default=[20], nargs='+',
-                        help='Frequency of I input in Hz')
-    parser.add_argument('-cue_percentage', type=float, default=[100], nargs='+',
-                        help='Percentage of neurons in the attractor to be stimulated')
-    parser.add_argument('-cue_length', type=float, default=[1], nargs='+',
-                        help='Duration of the cue in seconds')
-    parser.add_argument('-num_attractors', type=int, default=[3], nargs='+',
-                        help='Number of attractors to be generated')
-    parser.add_argument('-attractor_size', type=int, default=[64], nargs='+',
-                        help='Number of neurons in each attractor')
-    parser.add_argument('-network_size', type=int, default=[256], nargs='+',
-                        help='Number of neurons in the network')
-    parser.add_argument('-num_cues', type=int, default=[10], nargs='+',
-                        help='Number of cues given to the network')
-    parser.add_argument('-num_samples', type=int, default=2,
-                        help='Number of parameters to pick from each distribution')
-    parser.add_argument('-sigma', type=float, default=3,
-                        help='Sigma when using gaussian distribution (pass one value for all parameters)')
-    parser.add_argument('-sweep', type=str, default=[], nargs='+', help='Parameters to sweep')
-    parser.add_argument('-joint_distribution', action='store_true', help='Use joint distribution')
-    parser.add_argument('-cross_validation', type=int, default=2, help='Number of cross validation folds')
-    parser.add_argument('-plot', type=bool, default=False, help='Plot the results')
-    parser.add_argument('-estimate_time', type=bool, default=False, help='Estimate time of execution')
+        description="Parallel sweep for parameters of RCN model with STSP and intrinsic plasticity.\n"
+        "Passing one value for parameter will default to using Gaussian distribution with that value as mu"
+        "Passing two values for parameter will default to using grid distribution with those values lower and upper bounds"
+    )
+    parser.add_argument(
+        "-background_activity",
+        type=float,
+        default=[15],
+        nargs="+",
+        help="Level of background activity in Hz",
+    )
+    parser.add_argument(
+        "-i_e_weight",
+        type=float,
+        default=[10],
+        nargs="+",
+        help="Weight of I-to-E synapses in mV",
+    )
+    parser.add_argument(
+        "-e_i_weight",
+        type=float,
+        default=[3],
+        nargs="+",
+        help="Weight of E-to-I synapses in mV",
+    )
+    parser.add_argument(
+        "-e_e_max_weight",
+        type=float,
+        default=[10],
+        nargs="+",
+        help="Maximum weight of E-to-E synapses in mV",
+    )
+    parser.add_argument(
+        "-i_frequency",
+        type=float,
+        default=[20],
+        nargs="+",
+        help="Frequency of I input in Hz",
+    )
+    parser.add_argument(
+        "-cue_percentage",
+        type=float,
+        default=[100],
+        nargs="+",
+        help="Percentage of neurons in the attractor to be stimulated",
+    )
+    parser.add_argument(
+        "-cue_length",
+        type=float,
+        default=[1],
+        nargs="+",
+        help="Duration of the cue in seconds",
+    )
+    parser.add_argument(
+        "-num_attractors",
+        type=int,
+        default=[3],
+        nargs="+",
+        help="Number of attractors to be generated",
+    )
+    parser.add_argument(
+        "-attractor_size",
+        type=int,
+        default=[64],
+        nargs="+",
+        help="Number of neurons in each attractor",
+    )
+    parser.add_argument(
+        "-network_size",
+        type=int,
+        default=[256],
+        nargs="+",
+        help="Number of neurons in the network",
+    )
+    parser.add_argument(
+        "-num_cues",
+        type=int,
+        default=[10],
+        nargs="+",
+        help="Number of cues given to the network",
+    )
+    parser.add_argument(
+        "-num_samples",
+        type=int,
+        default=2,
+        help="Number of parameters to pick from each distribution",
+    )
+    parser.add_argument(
+        "-sigma",
+        type=float,
+        default=3,
+        help="Sigma when using gaussian distribution (pass one value for all parameters)",
+    )
+    parser.add_argument(
+        "-sweep", type=str, default=[], nargs="+", help="Parameters to sweep"
+    )
+    parser.add_argument(
+        "-joint_distribution", action="store_true", help="Use joint distribution"
+    )
+    parser.add_argument(
+        "-cross_validation",
+        type=int,
+        default=2,
+        help="Number of cross validation folds",
+    )
+    parser.add_argument("-plot", type=bool, default=False, help="Plot the results")
+
     args = parser.parse_args()
 
     tmp_folder = f'tmp_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}'
@@ -132,7 +205,8 @@ if __name__ == '__main__':
     cv = args.cross_validation
 
     # telegram_token = "6491481149:AAFomgrhyBRohH4szH5jPT2_AoAdOYA_flY"
-    telegram_token = '6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8'  # Test
+    telegram_token = "6488991500:AAEIZwY1f0dioEK-R8vPYMatnmmb_gCobZ8"  # Test
+    telegram_token = None
 
     msg_args = ""
     for k, v in vars(args).items():
@@ -140,16 +214,21 @@ if __name__ == '__main__':
     telegram_bot = TelegramNotify(token=telegram_token)
     telegram_bot.unpin_all()
     main_msgs = telegram_bot.send_timestamped_messages(
-        f"Starting RCN sweep with the following parameters: {msg_args}\ntmp_folder: {tmp_folder}")
+        f"Starting RCN sweep with the following parameters: {msg_args}\ntmp_folder: {tmp_folder}"
+    )
 
     if args.joint_distribution:
-        param_grid = {k: v for k, v in vars(args).items() if isinstance(v, list) and k != 'sweep'}
+        param_grid = {
+            k: v for k, v in vars(args).items() if isinstance(v, list) and k != "sweep"
+        }
 
         param_names = vars(args).keys()
         # -- generate samples
-        param_samples = np.random.multivariate_normal(np.ravel(list(param_grid.values())),
-                                                      np.eye(len(param_grid)) * np.square(args.sigma),
-                                                      args.num_samples).tolist()
+        param_samples = np.random.multivariate_normal(
+            np.ravel(list(param_grid.values())),
+            np.eye(len(param_grid)) * np.square(args.sigma),
+            args.num_samples,
+        ).tolist()
 
         param_list_dict = []
         for p in param_samples:
@@ -177,6 +256,7 @@ if __name__ == '__main__':
         # -- generate cv samples
         param_grid_pool = [x.copy() for x in param_list_dict for _ in range(cv)]
     else:
+
         def float_sample(param):
             params = vars(args)
             if len(params[param]) > 1:
@@ -184,63 +264,82 @@ if __name__ == '__main__':
             else:
                 return np.random.normal(params[param][0], args.sigma, args.num_samples)
 
-
         def int_sample(param):
             from scipy.stats import norm
 
             params = vars(args)
             if len(params[param]) > 1:
-                assert args.num_samples == params[param][0] - params[param][1] + 1, \
-                    f'{param}: Number of samples must match grid size for integer parameters'
+                assert (
+                    args.num_samples == params[param][0] - params[param][1] + 1
+                ), f"{param}: Number of samples must match grid size for integer parameters"
                 return np.linspace(params[param][0], params[param][1], args.num_samples)
             else:
-                return norm.ppf(np.random.random(args.num_samples), loc=params[param][0], scale=args.sigma).astype(int)
-
+                return norm.ppf(
+                    np.random.random(args.num_samples),
+                    loc=params[param][0],
+                    scale=args.sigma,
+                ).astype(int)
 
         def param_sample(param):
             for a in parser._actions:
                 if a.dest == param:
-                    if a.type.__name__ == 'int':
+                    if a.type.__name__ == "int":
                         return int_sample(param)
-                    elif a.type.__name__ == 'float':
+                    elif a.type.__name__ == "float":
                         return float_sample(param)
 
-
-        param_grid_sweep = {k: param_sample(k) for k, v in vars(args).items()
-                            if isinstance(v, list) and k in args.sweep}
+        param_grid_sweep = {
+            k: param_sample(k)
+            for k, v in vars(args).items()
+            if isinstance(v, list) and k in args.sweep
+        }
 
         for k, v in param_grid_sweep.items():
             param_grid_sweep[k] = np.append(param_grid_sweep[k], get_default(k))
-        param_grid_default = {k: v for k, v in vars(args).items() if isinstance(v, list) and k not in args.sweep}
+        param_grid_default = {
+            k: v
+            for k, v in vars(args).items()
+            if isinstance(v, list) and k not in args.sweep
+        }
         param_grid = param_grid_sweep | param_grid_default
-        param_grid.pop('sweep')
+        param_grid.pop("sweep")
 
         for v in param_grid.values():
             v.sort()
         print(param_grid)
 
         param_grid_pool = list(
-            itertools.chain.from_iterable(map(copy.copy, product_dict_to_list(param_grid)) for _ in range(cv)))
-
-    if args.estimate_time:
-        estimate_search_time(partial(run_rcn, low_memory=False, plot=True), param_grid_pool, cv, num_cpus=num_cpus)
+            itertools.chain.from_iterable(
+                map(copy.copy, product_dict_to_list(param_grid)) for _ in range(cv)
+            )
+        )
 
     # hack to keep track of process ids
     for i, g in enumerate(param_grid_pool):
-        g['worker_id'] = i % num_cpus
+        g["worker_id"] = i % num_cpus
 
     # chunked_param_grid = list(chunks(param_grid_pool, num_cpus))
 
     telegram_msgs = telegram_bot.reply_to_timestamped_messages(
-        f"*0/{len(param_grid_pool)}* Waiting for first evaluation to finish.",
-        main_msgs)
+        f"*0/{len(param_grid_pool)}* Waiting for first evaluation to finish.", main_msgs
+    )
 
     results = tqdm_pathos.map(
-        partial(run_rcn, show_plot=False, save_plot=False, tmp_folder=tmp_folder, attractor_conflict_resolution='3',
-                progressbar=os.isatty(sys.stdout.fileno()), already_in_tmp_folder=True,
-                telegram_update=(telegram_token, telegram_msgs)), param_grid_pool, n_cpus=num_cpus)
+        partial(
+            run_rcn,
+            show_plot=False,
+            save_plot=False,
+            tmp_folder=tmp_folder,
+            attractor_conflict_resolution="3",
+            progressbar=os.isatty(sys.stdout.fileno()),
+            already_in_tmp_folder=True,
+            telegram_update=(telegram_token, telegram_msgs),
+        ),
+        param_grid_pool,
+        n_cpus=num_cpus,
+    )
 
-    score_param_names = ['f1_score', 'recall', 'accuracy', 'triggered', 'spontaneous']
+    score_param_names = ["f1_score", "recall", "accuracy", "triggered", "spontaneous"]
 
     # create a dataframe with the raw results
     df_results = pd.DataFrame(results)
@@ -251,11 +350,14 @@ if __name__ == '__main__':
     else:
         sweeped_param_names = args.sweep
     df_results_aggregated = df_results.copy()
-    df_results_aggregated = df_results_aggregated.groupby(sweeped_param_names).mean().reset_index()
+    df_results_aggregated = (
+        df_results_aggregated.groupby(sweeped_param_names).mean().reset_index()
+    )
     df_results_aggregated.sort_values(by=args.sweep, ascending=True, inplace=True)
-    df_results_aggregated['sweeped'] = df_results_aggregated[args.sweep].apply(
-        lambda x: ', '.join(x.apply('{:,.2f}'.format)), axis=1)
-    df_results_aggregated.to_csv(f'{tmp_folder}/results.csv')
+    df_results_aggregated["sweeped"] = df_results_aggregated[args.sweep].apply(
+        lambda x: ", ".join(x.apply("{:,.2f}".format)), axis=1
+    )
+    df_results_aggregated.to_csv(f"{tmp_folder}/results.csv")
 
     # print best results in order
     # print(
@@ -264,22 +366,24 @@ if __name__ == '__main__':
     #         ascending=False))
 
     # save results folder
-    save_folder = f'RESULTS/SWEEP_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+    save_folder = (
+        f'RESULTS/SWEEP_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+    )
     os.makedirs(save_folder)
 
     # plot results for cue time
     fig, axes = plt.subplots(2, 2, figsize=(15, 15))
 
     for p in sweeped_param_names:
-        axis = df_results_aggregated.plot(kind='bar', x=p, y='f1_score', legend=False)
-        axis.set_ylabel('F1 score')
+        axis = df_results_aggregated.plot(kind="bar", x=p, y="f1_score", legend=False)
+        axis.set_ylabel("F1 score")
         axis.set_xlabel(args.sweep)
         axis.set_ylim([0, 1])
-        axis.set_xticklabels(df_results_aggregated['sweeped'], rotation=45)
-        axis.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-        axis.set_title(p.replace('_', ' ').title())
+        axis.set_xticklabels(df_results_aggregated["sweeped"], rotation=45)
+        axis.yaxis.set_major_formatter(FormatStrFormatter("%.2f"))
+        axis.set_title(p.replace("_", " ").title())
         fig = plt.gcf()
-        fig.savefig(f'{save_folder}/sweep_results_{p}.png')
+        fig.savefig(f"{save_folder}/sweep_results_{p}.png")
         fig.show()
 
     # Find best parameters
@@ -297,7 +401,9 @@ if __name__ == '__main__':
     # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
     os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
 
-    telegram_bot.reply_to_timestamped_messages(f"Saved results to {save_folder}", main_msgs)
+    telegram_bot.reply_to_timestamped_messages(
+        f"Saved results to {save_folder}", main_msgs
+    )
     telegram_bot.unpin_all()
 
     cleanup()
