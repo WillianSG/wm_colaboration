@@ -22,6 +22,7 @@ from hyperopt.pyll.base import Apply
 from hyperopt.pyll.stochastic import sample
 from tqdm.auto import tqdm
 
+from helper_functions.other import f1_score
 from helper_functions.recurrent_competitive_network import run_rcn
 from helper_functions.telegram_notify import TelegramNotify
 
@@ -114,10 +115,9 @@ def objective(x):
     r = run_rcn(x, tmp_folder=tmp_folder, progressbar=False, attractor_conflict_resolution="3",
                 already_in_tmp_folder=True if args.parallel else False, telegram_update=(telegram_token, telegram_msgs))
 
-    # # create new instance because Bot is not pickleable
-    # telegram_bot = TelegramNotify(token=telegram_token)
-    # # hack to keep track of last update
-    # telegram_bot.read_pinned_and_increment_it(telegram_msgs, r["f1_score"])
+    # We want R=0.5 to be optimal
+    r['recall'] = max(1 - 2 * abs(r['recall'] - 0.5), 0)
+    r['f1_score'] = f1_score(r['accuracy'], r['recall'])
 
     return {
         "loss": -r["f1_score"],
