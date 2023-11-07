@@ -48,22 +48,22 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2):
             spikes_recall[i[0]].append(
                 len(np.argwhere((np.array(spk_mon_ts) > i[3][2][1]) & (np.array(spk_mon_ts) <= i[3][2][1] + i[2]))) / i[
                     2])
-        print('\t\tCued frequency')
+        # print('\t\tCued frequency')
         for k, v in spikes_cues.items():
             spikes_cues[k] = np.mean(v)
             print(f"\t\t\t{k}: {spikes_cues[k]} Hz")
-        print('\t\tRecall frequency')
+        # print('\t\tRecall frequency')
         for k, v in spikes_recall.items():
             spikes_recall[k] = np.mean(v)
             print(f"\t\t\t{k}: {spikes_recall[k]} Hz")
 
         return spikes_cues, spikes_recall
 
-    print('\tExcitatory spikes frequency')
+    # print('\tExcitatory spikes frequency')
     spk_mon_ids_e, spk_mon_ts_e = rcn.get_spks_from_pattern_neurons()
     freq_cues_e, freq_recall_e = get_spikes_frequency(spk_mon_ts_e)
 
-    print('\tInhibitory spikes frequency')
+    # print('\tInhibitory spikes frequency')
     spk_mon_ids_i, spk_mon_ts_i = rcn.get_I_spks()
     freq_cues_i, freq_recall_i = get_spikes_frequency(spk_mon_ts_i)
 
@@ -72,7 +72,7 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2):
     return ps_frequencies, freq_cues_e, freq_recall_e, freq_cues_i, freq_recall_i, returned_params
 
 
-save_folder = f'RESULTS/EFFICIENCY_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
+save_folder = f'RESULTS/EFFICIENCY/EFFICIENCY_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
 os.makedirs(save_folder)
 print("TMP:", save_folder)
 
@@ -80,7 +80,7 @@ num_attractors = 2
 num_cues = 100
 seed = randrange(1000000)
 # load results from RCN Bayesian sweep
-df = pd.read_csv("RESULTS/BAYESIAN_OPTIMISATION/4ATR_SWEEP_(2023-08-31_00-39-08)/results_min_max_scaled.csv")
+df = pd.read_csv("RESULTS/BAYESIAN_OPTIMISATION/R=0.5_BAYESIAN_SAVED_(2023-11-04_13-09-55)/results.csv")
 # original parameters
 # run_rcn_and_compute_frequency(pd.Series({'score': -1, 'accuracy': -1, 'recall': -1,
 #                                          'params': "{'attractor_size': 64, 'background_activity': 15, 'cue_length': 1, 'cue_percentage': 100, 'e_e_max_weight': 10, 'e_i_weight': 3, 'i_e_weight': 10, 'i_frequency': 20, 'network_size': 256, 'num_attractors': 4, 'num_cues': 10}"}),
@@ -111,42 +111,14 @@ for r1, r2 in zip(lower_lim, upper_lim):
     spikes_recall_plot_list_i.append(mean(freq_recall_i.values()))
     accuracies_plot_list.append(returned_params)
 
-results = pd.DataFrame({'Recall': recall_plot_list,
-                        'Frequency Cue E': spikes_cues_plot_list_e,
-                        'Frequency Recall E': spikes_recall_plot_list_e,
-                        'Frequency Cue I': spikes_cues_plot_list_i,
-                        'Frequency Recall I': spikes_recall_plot_list_i,
-                        'PS Frequency': ps_frequencies_plot_list},
+num_E_neurons = num_attractors * ast.literal_eval(queried_param['params'])['attractor_size']
+num_I_neurons = ast.literal_eval(queried_param['params'])['network_size'] // 4
+
+results = pd.DataFrame({'Recall': np.array(recall_plot_list),
+                        'Frequency Cue E': np.array(spikes_cues_plot_list_e) / num_E_neurons,
+                        'Frequency Recall E': np.array(spikes_recall_plot_list_e) / num_E_neurons,
+                        'Frequency Cue I': np.array(spikes_cues_plot_list_i) / num_I_neurons,
+                        'Frequency Recall I': np.array(spikes_recall_plot_list_i) / num_I_neurons,
+                        'PS Frequency': np.array(ps_frequencies_plot_list)},
                        index=recall_plot_list)
 results.to_csv(f'{save_folder}/results.csv')
-
-
-def annotate_plot(ax, spikes_plot_list):
-    shift = np.mean(spikes_plot_list) / 1000
-
-    for i, txt in enumerate(spikes_plot_list):
-        ax.annotate(f'{txt:.2f}', (recall_plot_list[i], spikes_plot_list[i]),
-                    xytext=(recall_plot_list[i], spikes_plot_list[i] + shift))
-
-
-fig, axes = plt.subplots(2, figsize=(10, 15))
-axes[0].scatter(recall_plot_list, ps_frequencies_plot_list)
-annotate_plot(axes[0], ps_frequencies_plot_list)
-axes[0].set_ylabel('Frequency (Hz)')
-axes[0].set_xlabel('Recall')
-axes[0].set_title('PS frequency')
-axes[1].scatter(recall_plot_list, spikes_cues_plot_list_e, color='b', marker=',', label='Cue (E)')
-axes[1].scatter(recall_plot_list, spikes_cues_plot_list_i, color='r', marker=',', label='Cue (I)')
-annotate_plot(axes[1], spikes_cues_plot_list_e)
-annotate_plot(axes[1], spikes_cues_plot_list_i)
-axes[1].scatter(recall_plot_list, spikes_recall_plot_list_e, color='b', label='Recall (E)')
-axes[1].scatter(recall_plot_list, spikes_recall_plot_list_i, color='r', label='Recall (I)')
-annotate_plot(axes[1], spikes_recall_plot_list_e)
-annotate_plot(axes[1], spikes_recall_plot_list_i)
-axes[1].set_ylabel('Frequency (Hz)')
-axes[1].set_xlabel('Recall')
-axes[1].set_title('Spikes frequency')
-axes[1].legend()
-fig.tight_layout()
-fig.show()
-fig.savefig(f'{save_folder}/recall_vs_efficiency.png')
