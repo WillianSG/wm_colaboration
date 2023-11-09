@@ -48,7 +48,7 @@ def get_default(param):
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
-        yield lst[i : i + n]
+        yield lst[i: i + n]
 
 
 def product_dict_to_list(dic):
@@ -89,8 +89,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         description="Parallel sweep for parameters of RCN model with STSP and intrinsic plasticity.\n"
-        "Passing one value for parameter will default to using Gaussian distribution with that value as mu"
-        "Passing two values for parameter will default to using grid distribution with those values lower and upper bounds"
+                    "Passing one value for parameter will default to using Gaussian distribution with that value as mu"
+                    "Passing two values for parameter will default to using grid distribution with those values lower and upper bounds"
     )
     parser.add_argument(
         "-background_activity",
@@ -176,16 +176,13 @@ if __name__ == "__main__":
         help="Number of parameters to pick from each distribution",
     )
     parser.add_argument(
-        "-sigma",
+        "-coefficient_variation",
         type=float,
-        default=3,
-        help="Sigma when using gaussian distribution (pass one value for all parameters)",
+        default=0.2,
+        help="CV when using gaussian distribution (pass one value for all parameters)",
     )
     parser.add_argument(
         "-sweep", type=str, default=[], nargs="+", help="Parameters to sweep"
-    )
-    parser.add_argument(
-        "-joint_distribution", action="store_true", help="Use joint distribution"
     )
     parser.add_argument(
         "-cross_validation",
@@ -217,102 +214,44 @@ if __name__ == "__main__":
         f"Starting RCN sweep with the following parameters: {msg_args}\ntmp_folder: {tmp_folder}"
     )
 
-    if args.joint_distribution:
-        param_grid = {
-            k: v for k, v in vars(args).items() if isinstance(v, list) and k != "sweep"
-        }
+    param_grid = {
+        k: v for k, v in vars(args).items() if isinstance(v, list) and k != "sweep"
+    }
 
-        param_names = vars(args).keys()
-        # -- generate samples
-        param_samples = np.random.multivariate_normal(
-            np.ravel(list(param_grid.values())),
-            np.eye(len(param_grid)) * np.square(args.sigma),
-            args.num_samples,
-        ).tolist()
+    param_names = vars(args).keys()
+    # -- generate samples
+    sigmas = [args.coefficient_variation * p[0] for p in param_grid.values()]
+    param_samples = np.random.multivariate_normal(
+        np.ravel(list(param_grid.values())),
+        np.eye(len(param_grid)) * np.square(sigmas),
+        args.num_samples,
+    ).tolist()
 
-        param_list_dict = []
-        for p in param_samples:
-            param_list_dict.append({k: v for k, v in zip(param_names, p)})
-        # -- parameters that were not explicitly set are given their default value
-        for p in param_list_dict:
-            for k in p.keys():
-                if k not in args.sweep:
-                    p[k] = vars(args)[k][0]
-        # param_list_dict.append({k: get_default(k) for k, v in param_grid.items()})
-        param_list_dict.append({k: args.__dict__[k][0] for k, v in param_grid.items()})
+    param_list_dict = []
+    for p in param_samples:
+        param_list_dict.append({k: v for k, v in zip(param_names, p)})
+    # -- parameters that were not explicitly set are given their default value
+    for p in param_list_dict:
+        for k in p.keys():
+            if k not in args.sweep:
+                p[k] = vars(args)[k][0]
+    # param_list_dict.append({k: get_default(k) for k, v in param_grid.items()})
+    param_list_dict.append({k: args.__dict__[k][0] for k, v in param_grid.items()})
 
-        print_dict = {k: [] for k in param_list_dict[0].keys()}
-        for p in param_list_dict:
-            for k, v in p.items():
-                print_dict[k].append(p[k])
-        for k, v in print_dict.items():
-            if len(np.unique(v)) == 1:
-                print_dict[k] = [v[0]]
-            else:
-                v.sort()
-
-        print(print_dict)
-
-        # -- generate cv samples
-        param_grid_pool = [x.copy() for x in param_list_dict for _ in range(cv)]
-    else:
-
-        def float_sample(param):
-            params = vars(args)
-            if len(params[param]) > 1:
-                return np.linspace(params[param][0], params[param][1], args.num_samples)
-            else:
-                return np.random.normal(params[param][0], args.sigma, args.num_samples)
-
-        def int_sample(param):
-            from scipy.stats import norm
-
-            params = vars(args)
-            if len(params[param]) > 1:
-                assert (
-                    args.num_samples == params[param][0] - params[param][1] + 1
-                ), f"{param}: Number of samples must match grid size for integer parameters"
-                return np.linspace(params[param][0], params[param][1], args.num_samples)
-            else:
-                return norm.ppf(
-                    np.random.random(args.num_samples),
-                    loc=params[param][0],
-                    scale=args.sigma,
-                ).astype(int)
-
-        def param_sample(param):
-            for a in parser._actions:
-                if a.dest == param:
-                    if a.type.__name__ == "int":
-                        return int_sample(param)
-                    elif a.type.__name__ == "float":
-                        return float_sample(param)
-
-        param_grid_sweep = {
-            k: param_sample(k)
-            for k, v in vars(args).items()
-            if isinstance(v, list) and k in args.sweep
-        }
-
-        for k, v in param_grid_sweep.items():
-            param_grid_sweep[k] = np.append(param_grid_sweep[k], get_default(k))
-        param_grid_default = {
-            k: v
-            for k, v in vars(args).items()
-            if isinstance(v, list) and k not in args.sweep
-        }
-        param_grid = param_grid_sweep | param_grid_default
-        param_grid.pop("sweep")
-
-        for v in param_grid.values():
+    print_dict = {k: [] for k in param_list_dict[0].keys()}
+    for p in param_list_dict:
+        for k, v in p.items():
+            print_dict[k].append(p[k])
+    for k, v in print_dict.items():
+        if len(np.unique(v)) == 1:
+            print_dict[k] = [v[0]]
+        else:
             v.sort()
-        print(param_grid)
 
-        param_grid_pool = list(
-            itertools.chain.from_iterable(
-                map(copy.copy, product_dict_to_list(param_grid)) for _ in range(cv)
-            )
-        )
+    print(print_dict)
+
+    # -- generate cv samples
+    param_grid_pool = [x.copy() for x in param_list_dict for _ in range(cv)]
 
     # hack to keep track of process ids
     for i, g in enumerate(param_grid_pool):

@@ -484,3 +484,27 @@ def f1_score(accuracy, recall):
         return 2 * (accuracy * recall) / (accuracy + recall)
     except ZeroDivisionError:
         return 0
+
+
+def dir_walker(root, extension):
+    files = []
+    for dir in os.listdir(root):
+        if os.path.isdir(os.path.join(root, dir)):
+            res = dir_walker(os.path.join(root, dir), extension)
+            files.extend(res)
+        else:
+            if dir.endswith(extension):
+                files.append(os.path.join(root, dir))
+
+    return files
+
+
+def get_truncated_normal(mean, sd, low, upp, out_size, in_size):
+    from scipy.stats import truncnorm
+
+    try:
+        return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd) \
+            .rvs(out_size * in_size) \
+            .reshape((out_size, in_size))
+    except ZeroDivisionError:
+        return np.full((out_size, in_size), mean)
