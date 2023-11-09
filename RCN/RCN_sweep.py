@@ -218,9 +218,8 @@ if __name__ == "__main__":
         k: v for k, v in vars(args).items() if isinstance(v, list) and k != "sweep"
     }
 
-    param_names = vars(args).keys()
     # -- generate samples
-    sigmas = [args.coefficient_variation * p[0] for p in param_grid.values()]
+    sigmas = [args.coefficient_variation * v[0] for v in param_grid.values()]
     param_samples = np.random.multivariate_normal(
         np.ravel(list(param_grid.values())),
         np.eye(len(param_grid)) * np.square(sigmas),
@@ -229,7 +228,7 @@ if __name__ == "__main__":
 
     param_list_dict = []
     for p in param_samples:
-        param_list_dict.append({k: v for k, v in zip(param_names, p)})
+        param_list_dict.append({k: v for k, v in zip(param_grid.keys(), p)})
     # -- parameters that were not explicitly set are given their default value
     for p in param_list_dict:
         for k in p.keys():
