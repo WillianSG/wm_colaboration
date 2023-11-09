@@ -1113,7 +1113,7 @@ class RecurrentCompetitiveNet:
         self.E_rate_mon = PopulationRateMonitor(source=self.E, name="E_rate_mon")
 
         if self.low_memory:
-            self.spk_monitors = [self.E_mon]
+            self.spk_monitors = [self.E_mon, self.I_mon]
         else:
             self.spk_monitors = [
                 self.Input_to_E_mon,
@@ -1362,7 +1362,10 @@ class RecurrentCompetitiveNet:
     """
 
     def get_I_spks(self):
-        return [self.I_mon.t[:], self.I_mon.i[:]]
+        if self.dumped_mons_dict:
+            return [self.dumped_mons_dict["I_mon"]["t"], self.dumped_mons_dict["I_mon"]["i"]]
+        else:
+            return [self.I_mon.t[:], self.I_mon.i[:]]
 
     """
     Returns a 2D array containing recorded spikes from input to the E population:

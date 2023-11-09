@@ -30,7 +30,7 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2):
     params['recall_time'] = 4
 
     rcn, returned_params = run_rcn(params, show_plot=False,
-                                   progressbar=False, low_memory=False,
+                                   progressbar=False, low_memory=True,
                                    attractor_conflict_resolution="3", return_complete_stats=True,
                                    seed_init=seed)
 
@@ -80,7 +80,7 @@ os.makedirs(save_folder)
 print("TMP:", save_folder)
 
 num_attractors = 2
-num_cues = 100
+num_cues = 1
 seed = randrange(1000000)
 # load results from RCN Bayesian sweep
 df = pd.read_csv("RESULTS/BAYESIAN_OPTIMISATION/R=0.5_BAYESIAN_SAVED_(2023-11-04_13-09-55)/results.csv")
