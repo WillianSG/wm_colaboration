@@ -312,10 +312,13 @@ class RecurrentCompetitiveNet:
             t_run=2 * second,
             seed_init=None,
             low_memory=False,
-            sFSA=False
+            sFSA=False,
+            mismatch=False
     ):
 
         self.sFSA = sFSA
+
+        self.mismatched_parameters = mismatch
 
         seed(seed_init)
 
@@ -381,6 +384,11 @@ class RecurrentCompetitiveNet:
         self.tau_ipsp_e = 5.5 * ms  # time constant of IPSP
 
         self.k = 2  # shape of f(u) function for calcium-threshold
+
+        self.gompz_a = 0.004
+        self.gompz_b = 3
+        self.gompz_c = 3.4
+        self.gompz_d = 9.5
 
         # inhibitory population
 
@@ -482,77 +490,127 @@ class RecurrentCompetitiveNet:
     """
 
     def set_neuron_pop(self):
-        # equations (voltage based neuron model)
-        # Gompertz:
-        # a = 1
-        # b = 2.7083893552094156
-        # c = 5.509734056519429
-        self.eqs_e = Equations(
-            """
-            plastic_u : boolean (shared)
-            dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
-            dVepsp/dt = -Vepsp / tau_epsp : volt
-            dVipsp/dt = -Vipsp / tau_ipsp : volt
-            du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-            dVth_e/dt = (Vth_e_init - (0.004 * (3 * exp(-exp(3.4 - 9.5 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
-            """,
-            Vr_e=self.Vr_e,
-            taum_e=self.taum_e,
-            tau_epsp=self.tau_epsp_e,
-            tau_ipsp=self.tau_ipsp_e,
-            Vth_e_init=self.Vth_e_init,
-            tau_Vth_e=self.tau_Vth_e,
-        )
 
-        # self.eqs_e = Equations('''
-        #     plastic_u : boolean (shared)
-        #     dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
-        #     dVepsp/dt = -Vepsp / tau_epsp : volt
-        #     dVipsp/dt = -Vipsp / tau_ipsp : volt
-        #     du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
-        #     dVth_e/dt = (Vth_e_init - (0.02*(1/(1+exp(u*6))) * volt) - Vth_e) / tau_Vth_e  : volt
-        #     ''',
-        #                        Vr_e=self.Vr_e,
-        #                        taum_e=self.taum_e,
-        #                        tau_epsp=self.tau_epsp_e,
-        #                        tau_ipsp=self.tau_ipsp_e,
-        #                        Vth_e_init=self.Vth_e_init,
-        #                        tau_Vth_e=self.tau_Vth_e)
+        if self.mismatched_parameters:
 
-        self.eqs_i = Equations(
-            """
-            dVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)
-            dVepsp/dt = -Vepsp / tau_epsp : volt
-            dVipsp/dt = -Vipsp / tau_ipsp : volt""",
-            Vr_i=self.Vr_i,
-            taum_i=self.taum_i,
-            tau_epsp=self.tau_epsp_i,
-            tau_ipsp=self.tau_ipsp_i,
-        )
+            '''
+                To simulate mismatch the parameters have to be variables defined within Equations
+            such that they can be set independently for each neuron.
+            '''
+		
+            self.eqs_e = Equations(
+                """
+                m_gompz_a : 1
+                m_gompz_b : 1
+                m_gompz_c : 1
+                m_gompz_d : 1
+                plastic_u : boolean (shared)
+                m_tref_e : second
+				m_tau_epsp : second
+				m_tau_ipsp : second
+				m_tau_Vth_e : second
+				m_taum_e : second
+                m_tau_f : second
+				m_Vth_e_init : volt
+				m_Vr_e : volt
+				m_Vrst_e : volt
+                dVm/dt = (Vepsp - Vipsp - (Vm - m_Vr_e)) / m_taum_e : volt (unless refractory)
+                dVepsp/dt = -Vepsp / m_tau_epsp : volt
+			    dVipsp/dt = -Vipsp / m_tau_ipsp : volt
+                du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
+                dVth_e/dt = (m_Vth_e_init - (m_gompz_a * (m_gompz_b * exp(-exp(m_gompz_c - m_gompz_d * u))) * volt) - Vth_e) / m_tau_Vth_e  : volt
+                """
+            )
 
-        # populations
-        self.E = NeuronGroup(
-            N=self.N_e,
-            model=self.eqs_e,
-            reset="""
-                                    Vm = Vrst_e
-                                    u = u + U * (1 - u) * int(plastic_u)
-                                    """,
-            threshold="Vm > Vth_e",
-            refractory=self.tref_e,
-            method=self.int_meth_neur,
-            name="E",
-        )
+            self.eqs_i = Equations(
+                """
+                m_tref_i : second
+			    m_taum_i : second
+			    m_tau_epsp : second
+			    m_tau_ipsp :  second
+			    m_Vr_i : volt
+			    m_Vrst_i : volt
+			    m_Vth_i : volt
+                dVm/dt = (Vepsp - Vipsp - (Vm - m_Vr_i)) / m_taum_i : volt (unless refractory)
+                dVepsp/dt = -Vepsp / m_tau_epsp : volt
+                dVipsp/dt = -Vipsp / m_tau_ipsp : volt"""
+            )
 
-        self.I = NeuronGroup(
-            N=self.N_i,
-            model=self.eqs_i,
-            reset="Vm = Vrst_i",
-            threshold="Vm > Vth_i",
-            refractory=self.tref_i,
-            method=self.int_meth_neur,
-            name="I",
-        )
+            self.E = NeuronGroup(N = self.N_e, model = self.eqs_e,
+                reset = """Vm = m_Vrst_e
+                        u = u + U * (1 - u) * int(plastic_u)""",
+                threshold = "Vm > Vth_e",
+                refractory = self.tref_e,
+                method = self.int_meth_neur,
+                name = "E",
+            )
+
+            self.I = NeuronGroup(N = self.N_i, model = self.eqs_i,
+                reset = "Vm = m_Vrst_i",
+                threshold = "Vm > m_Vth_i",
+                refractory = self.tref_i,
+                method = self.int_meth_neur,
+                name = "I",
+            )
+
+        else:
+
+            # equations (voltage based neuron model)
+            # Gompertz:
+            # a = 1
+            # b = 2.7083893552094156
+            # c = 5.509734056519429
+            self.eqs_e = Equations(
+                """
+                plastic_u : boolean (shared)
+                dVm/dt = (Vepsp - Vipsp - (Vm - Vr_e)) / taum_e : volt (unless refractory)
+                dVepsp/dt = -Vepsp / tau_epsp : volt
+                dVipsp/dt = -Vipsp / tau_ipsp : volt
+                du/dt = ((U - u) / tau_f) * int(plastic_u) : 1
+                dVth_e/dt = (Vth_e_init - (0.004 * (3 * exp(-exp(3.4 - 9.5 * u))) * volt) - Vth_e) / tau_Vth_e  : volt
+                """,
+                Vr_e=self.Vr_e,
+                taum_e=self.taum_e,
+                tau_epsp=self.tau_epsp_e,
+                tau_ipsp=self.tau_ipsp_e,
+                Vth_e_init=self.Vth_e_init,
+                tau_Vth_e=self.tau_Vth_e,
+            )
+
+            self.eqs_i = Equations(
+                """
+                dVm/dt = (Vepsp - Vipsp - (Vm - Vr_i)) / taum_i : volt (unless refractory)
+                dVepsp/dt = -Vepsp / tau_epsp : volt
+                dVipsp/dt = -Vipsp / tau_ipsp : volt""",
+                Vr_i=self.Vr_i,
+                taum_i=self.taum_i,
+                tau_epsp=self.tau_epsp_i,
+                tau_ipsp=self.tau_ipsp_i,
+            )
+
+            # populations
+            self.E = NeuronGroup(
+                N=self.N_e,
+                model=self.eqs_e,
+                reset="""
+                                        Vm = Vrst_e
+                                        u = u + U * (1 - u) * int(plastic_u)
+                                        """,
+                threshold="Vm > Vth_e",
+                refractory=self.tref_e,
+                method=self.int_meth_neur,
+                name="E",
+            )
+
+            self.I = NeuronGroup(
+                N=self.N_i,
+                model=self.eqs_i,
+                reset="Vm = Vrst_i",
+                threshold="Vm > Vth_i",
+                refractory=self.tref_i,
+                method=self.int_meth_neur,
+                name="I",
+            )
 
         self.Input_to_E = NeuronGroup(
             N=self.N_input_e,
@@ -1790,3 +1848,203 @@ class RecurrentCompetitiveNet:
 
         with open(fn, "wb") as f:
             pickle.dump((uTracesValues), f)
+
+    def add_noise_2_I_neurons(self, sigma):
+
+        if sigma == 0:
+
+            # 1. refractory time
+
+            self.I.m_tref_i[:] = self.tref_i
+
+            # 2. Tau EPSP
+
+            self.I.m_tau_epsp[:] = self.tau_epsp_i
+
+            # 3. Tau IPSP
+
+            self.I.m_tau_ipsp[:] = self.tau_ipsp_i
+
+            # 4. Tau membrane
+
+            self.I.m_taum_i[:] = self.taum_i
+
+            # 7. others
+
+            self.I.m_Vth_i[:] = self.Vth_i
+            self.I.m_Vrst_i[:] = self.Vrst_i
+            self.I.m_Vr_i[:] = self.Vr_i
+
+        else:
+
+            for j in range(0, len(self.I.i)):
+
+                # 1. refractory time
+
+                x = np.random.normal(self.tref_i/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.tref_i/ms, sigma, 1)[0]
+
+                self.I.m_tref_i[j] = x*ms
+
+
+                # 2. Tau EPSP
+
+                x = np.random.normal(self.tau_epsp_i/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.tau_epsp_i/ms, sigma, 1)[0]
+
+                self.I.m_tau_epsp[j] = x*ms
+
+                # 3. Tau IPSP
+
+                x = np.random.normal(self.tau_ipsp_i/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.tau_ipsp_i/ms, sigma, 1)[0]
+
+                self.I.m_tau_ipsp[j] = x*ms
+
+                # 4. Tau membrane
+
+                x = np.random.normal(self.taum_i/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.taum_i/ms, sigma, 1)[0]
+
+                self.I.m_taum_i[j] = x*ms
+
+                # 7. others
+
+                _rest_pot = np.random.normal(self.Vr_i/mV, sigma, 1)[0]
+
+                _init_pot = np.random.normal(self.Vth_i/mV, sigma, 1)[0]
+
+                while(_init_pot < _rest_pot):
+                    _init_pot = np.random.normal(self.Vth_i/mV, sigma, 1)[0]
+
+                self.I.m_Vth_i[j] = _init_pot*mV
+                self.I.m_Vrst_i[j] = _rest_pot*mV
+                self.I.m_Vr_i[j] = _rest_pot*mV
+
+    def add_noise_2_E_neurons(self, sigma):
+
+        if sigma == 0:
+
+            # 1. refractory time
+
+            self.E.m_tref_e[:] = self.tref_e
+
+            # 2. Tau EPSP
+
+            self.E.m_tau_epsp[:] = self.tau_epsp_e
+
+            # 3. Tau IPSP
+
+            self.E.m_tau_ipsp[:] = self.tau_ipsp_e
+
+            # 4. Tau membrene threshold
+
+            self.E.m_tau_Vth_e[:] = self.tau_Vth_e
+
+            # 5. Tau membrane
+
+            self.E.m_taum_e[:] = self.taum_e
+
+            # 6. others
+
+            self.E.Vth_e[:] = self.Vth_e_init
+            self.E.m_Vr_e[:] = self.Vr_e
+            self.E.m_Vrst_e[:] = self.Vrst_e
+            self.E.m_Vth_e_init[:] = self.Vth_e_init
+
+            # 7. Gompertz curve
+
+            self.E.m_gompz_a[:] = self.gompz_a
+            self.E.m_gompz_b[:] = self.gompz_b
+            self.E.m_gompz_c[:] = self.gompz_c
+            self.E.m_gompz_d[:] = self.gompz_d
+
+        else:
+
+            for j in range(0, len(self.E.i)):
+
+                # 1. refractory time
+
+                x = np.random.normal(self.tref_e/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.tref_e/ms, sigma, 1)[0]
+
+                self.E.m_tref_e[j] = x*ms
+
+
+                # 2. Tau EPSP
+
+                x = np.random.normal(self.tau_epsp_e/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.tau_epsp_e/ms, sigma, 1)[0]
+
+                self.E.m_tau_epsp[j] = x*ms
+
+
+                # 3. Tau IPSP
+
+                x = np.random.normal(self.tau_ipsp_e/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.tau_ipsp_e/ms, sigma, 1)[0]
+
+                self.E.m_tau_ipsp[j] = x*ms
+
+                # 4. Tau membrene threshold
+
+                x = np.random.normal(self.tau_Vth_e/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.tau_Vth_e/ms, sigma, 1)[0]
+
+                self.E.m_tau_Vth_e[j] = x*ms
+
+                # 5. Tau membrane
+
+                x = np.random.normal(self.taum_e/ms, sigma, 1)[0]
+                while(x < 0.5):
+                    x = np.random.normal(self.taum_e/ms, sigma, 1)[0]
+
+                self.E.m_taum_e[j] = x*ms
+
+                # 6. others
+
+                _rest_pot = np.random.normal(self.Vr_e/mV, sigma, 1)[0]
+
+
+                _init_pot = np.random.normal(self.Vth_e_init/mV, sigma, 1)[0]
+
+                while(_init_pot < _rest_pot):
+                    _init_pot = np.random.normal(self.Vth_e_init/mV, sigma, 1)[0]
+
+                self.E.Vth_e[j] = np.random.normal(self.Vth_e_init/mV, sigma, 1)[0]*mV
+
+                self.E.m_Vr_e[j] = _rest_pot*mV
+
+                self.E.m_Vrst_e[j] = _rest_pot*mV
+
+                self.E.m_Vth_e_init[j] = _init_pot*mV
+
+                # 7. Gompertz curve
+
+                x = np.random.normal(self.gompz_a, sigma, 1)[0]
+                while(x < 0):
+                    x = np.random.normal(self.gompz_a, sigma, 1)[0]
+                self.E.m_gompz_a[:] = x
+
+                x = np.random.normal(self.gompz_b, sigma, 1)[0]
+                while(x < 0):
+                    x = np.random.normal(self.gompz_b, sigma, 1)[0]
+                self.E.m_gompz_b[:] = x
+
+                x = np.random.normal(self.gompz_c, sigma, 1)[0]
+                while(x < 0):
+                    x = np.random.normal(self.gompz_c, sigma, 1)[0]
+                self.E.m_gompz_c[:] = self.gompz_c
+
+                x = np.random.normal(self.gompz_d, sigma, 1)[0]
+                while(x < 0):
+                    x = np.random.normal(self.gompz_d, sigma, 1)[0]
+                self.E.m_gompz_d[:] = self.gompz_d
