@@ -22,6 +22,7 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2):
     # print(f'\tScore: {params["score"]}')
     # print(f'\tAccuracy: {params["accuracy"]}')
     # print(f'\tRecall: {params["recall"]}')
+    original_recall = params['recall']
     params = ast.literal_eval(params['params'])
     # print(f'\t{params}')
 
@@ -31,8 +32,7 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2):
 
     rcn, returned_params = run_rcn(params, show_plot=False,
                                    progressbar=False, low_memory=True,
-                                   attractor_conflict_resolution="3", return_complete_stats=True,
-                                   seed_init=seed)
+                                   attractor_conflict_resolution="3", return_complete_stats=True)
 
     # print('\tPS frequency')
     ps_frequencies = {}
@@ -72,7 +72,7 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2):
 
     del rcn
 
-    return ps_frequencies, freq_cues_e, freq_recall_e, freq_cues_i, freq_recall_i, returned_params
+    return ps_frequencies, freq_cues_e, freq_recall_e, freq_cues_i, freq_recall_i, returned_params, original_recall
 
 
 save_folder = f'RESULTS/EFFICIENCY/EFFICIENCY_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
@@ -80,8 +80,9 @@ os.makedirs(save_folder)
 print("TMP:", save_folder)
 
 num_attractors = 2
-num_cues = 1
-seed = randrange(1000000)
+cv = 10
+num_cues = 100
+
 # load results from RCN Bayesian sweep
 df = pd.read_csv("RESULTS/BAYESIAN_OPTIMISATION/R=0.5_BAYESIAN_SAVED_(2023-11-04_13-09-55)/results.csv")
 
@@ -91,12 +92,12 @@ upper_lim = np.arange(0.1, 1.1, 0.1)
 # lower_lim = [0.8, 0.9]
 # upper_lim = [0.9, 1.0]
 
-recall_plot_list = []
 param_grid_pool = []
 for r1, r2 in zip(lower_lim, upper_lim):
     queried_param = df.query(f'accuracy == 1 & recall > {r1} & recall <= {r2}').iloc[0]
     param_grid_pool.append(queried_param)
-    recall_plot_list.append(queried_param['recall'])
+
+param_grid_pool = [x.copy() for x in param_grid_pool for _ in range(cv)]
 
 results = tqdm_pathos.map(
     partial(
@@ -108,20 +109,31 @@ results = tqdm_pathos.map(
     n_cpus=pathos.multiprocessing.cpu_count(),
 )
 
-ps_frequencies_plot_list = [mean(p[0].values()) for p in results]
-spikes_cues_plot_list_e = [mean(p[1].values()) for p in results]
-spikes_recall_plot_list_e = [mean(p[2].values()) for p in results]
-spikes_cues_plot_list_i = [mean(p[3].values()) for p in results]
-spikes_recall_plot_list_i = [mean(p[4].values()) for p in results]
+
+def results_to_dict(col):
+    dic = defaultdict(list)
+    for p in results:
+        dic[p[6]].append(mean(p[col].values()))
+    return dic
+
+
+ps_frequencies_plot_list = results_to_dict(0)
+spikes_cues_plot_list_e = results_to_dict(1)
+spikes_recall_plot_list_e = results_to_dict(2)
+spikes_cues_plot_list_i = results_to_dict(3)
+spikes_recall_plot_list_i = results_to_dict(4)
+
+for d in [ps_frequencies_plot_list, spikes_cues_plot_list_e, spikes_recall_plot_list_e, spikes_cues_plot_list_i,
+          spikes_recall_plot_list_i]:
+    for k, v in d.items():
+        d[k] = mean(v)
 
 num_E_neurons = num_attractors * ast.literal_eval(queried_param['params'])['attractor_size']
 num_I_neurons = ast.literal_eval(queried_param['params'])['network_size'] // 4
 
-results = pd.DataFrame({'Recall': np.array(recall_plot_list),
-                        'Frequency Cue E': np.array(spikes_cues_plot_list_e) / num_E_neurons,
-                        'Frequency Recall E': np.array(spikes_recall_plot_list_e) / num_E_neurons,
-                        'Frequency Cue I': np.array(spikes_cues_plot_list_i) / num_I_neurons,
-                        'Frequency Recall I': np.array(spikes_recall_plot_list_i) / num_I_neurons,
-                        'PS Frequency': np.array(ps_frequencies_plot_list)},
-                       index=recall_plot_list)
-results.to_csv(f'{save_folder}/results.csv')
+pd.DataFrame({'Recall': spikes_cues_plot_list_e.keys(),
+              'Frequency Cue E': np.array(list(spikes_cues_plot_list_e.values())) / num_E_neurons,
+              'Frequency Recall E': np.array(list(spikes_recall_plot_list_e.values())) / num_E_neurons,
+              'Frequency Cue I': np.array(list(spikes_cues_plot_list_i.values())) / num_I_neurons,
+              'Frequency Recall I': np.array(list(spikes_recall_plot_list_i.values())) / num_I_neurons,
+              'PS Frequency': np.array(list(ps_frequencies_plot_list.values()))}).to_csv(f'{save_folder}/results.csv')
