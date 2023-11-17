@@ -77,11 +77,11 @@ def run_rcn_and_compute_frequency(params, num_attractors=2, num_cues=2):
 
 save_folder = f'RESULTS/EFFICIENCY/EFFICIENCY_SAVED_({datetime.now().strftime("%Y-%m-%d_%H-%M-%S")})'
 os.makedirs(save_folder)
-print("TMP:", save_folder)
 
+num_cpus = pathos.multiprocessing.cpu_count()
 num_attractors = 2
 cv = 10
-num_cues = 100
+num_cues = 10
 
 # load results from RCN Bayesian sweep
 df = pd.read_csv("RESULTS/BAYESIAN_OPTIMISATION/R=0.5_BAYESIAN_SAVED_(2023-11-04_13-09-55)/results.csv")
@@ -94,10 +94,9 @@ upper_lim = np.arange(0.1, 1.1, 0.1)
 
 param_grid_pool = []
 for r1, r2 in zip(lower_lim, upper_lim):
-    queried_param = df.query(f'accuracy == 1 & recall > {r1} & recall <= {r2}').iloc[0]
-    param_grid_pool.append(queried_param)
-
-param_grid_pool = [x.copy() for x in param_grid_pool for _ in range(cv)]
+    queried_params = df.query(f'accuracy == 1 & recall > {r1} & recall <= {r2}').sample(cv)
+    for p in queried_params.iterrows():
+        param_grid_pool.append(p[1])
 
 results = tqdm_pathos.map(
     partial(
@@ -106,7 +105,7 @@ results = tqdm_pathos.map(
         num_cues=num_cues
     ),
     param_grid_pool,
-    n_cpus=pathos.multiprocessing.cpu_count(),
+    n_cpus=num_cpus,
 )
 
 
@@ -128,12 +127,22 @@ for d in [ps_frequencies_plot_list, spikes_cues_plot_list_e, spikes_recall_plot_
     for k, v in d.items():
         d[k] = mean(v)
 
-num_E_neurons = num_attractors * ast.literal_eval(queried_param['params'])['attractor_size']
-num_I_neurons = ast.literal_eval(queried_param['params'])['network_size'] // 4
+num_E_neurons = num_attractors * ast.literal_eval(queried_params['params'].iloc[0])['attractor_size']
+num_I_neurons = ast.literal_eval(queried_params['params'].iloc[0])['network_size'] // 4
 
-pd.DataFrame({'Recall': spikes_cues_plot_list_e.keys(),
-              'Frequency Cue E': np.array(list(spikes_cues_plot_list_e.values())) / num_E_neurons,
-              'Frequency Recall E': np.array(list(spikes_recall_plot_list_e.values())) / num_E_neurons,
-              'Frequency Cue I': np.array(list(spikes_cues_plot_list_i.values())) / num_I_neurons,
-              'Frequency Recall I': np.array(list(spikes_recall_plot_list_i.values())) / num_I_neurons,
-              'PS Frequency': np.array(list(ps_frequencies_plot_list.values()))}).to_csv(f'{save_folder}/results.csv')
+df_res = (pd.DataFrame({'Recall': spikes_cues_plot_list_e.keys(),
+                        'Frequency Cue E': np.array(list(spikes_cues_plot_list_e.values())) / num_E_neurons,
+                        'Frequency Recall E': np.array(list(spikes_recall_plot_list_e.values())) / num_E_neurons,
+                        'Frequency Cue I': np.array(list(spikes_cues_plot_list_i.values())) / num_I_neurons,
+                        'Frequency Recall I': np.array(list(spikes_recall_plot_list_i.values())) / num_I_neurons,
+                        'PS Frequency': np.array(list(ps_frequencies_plot_list.values()))}).sort_values(by='Recall'))
+
+# Compute the mean within each recall bin
+df_res_mean = pd.DataFrame()
+for r1, r2 in zip(lower_lim, upper_lim):
+    df_res_mean = df_res_mean.append(pd.Series(df_res.query(f'Recall > {r1} & Recall <= {r2}').mean(),
+                                               name=(np.round(r1, 1), np.round(r2, 1)))
+                                     )
+
+df_res.to_csv(f'{save_folder}/results.csv')
+print("Saved in:", save_folder)
