@@ -219,12 +219,25 @@ if __name__ == "__main__":
     }
 
     # -- generate samples
+    mus = [v[0] for v in param_grid.values()]
     sigmas = [args.coefficient_variation * v[0] for v in param_grid.values()]
-    param_samples = np.random.multivariate_normal(
-        np.ravel(list(param_grid.values())),
-        np.eye(len(param_grid)) * np.square(sigmas),
-        args.num_samples,
-    ).tolist()
+    pd.DataFrame({'mu': mus, 'sigma': sigmas}, index=param_grid.keys()).to_csv(f'{tmp_folder}/mu_sigma.csv')
+
+    samples = []
+    for m, s in zip(mus, sigmas):
+        samples.append(
+            list(np.linspace(m - 1 * s, m + 1 * s, args.num_samples // 3)) +
+            list(np.linspace(m - 2 * s, m + 2 * s, args.num_samples // 3)) +
+            list(np.linspace(m - 3 * s, m + 3 * s, args.num_samples // 3))
+        )
+
+    # param_samples = np.random.multivariate_normal(
+    #     np.ravel(list(param_grid.values())),
+    #     np.eye(len(param_grid)) * np.square(sigmas),
+    #     args.num_samples,
+    # ).tolist()
+
+    param_samples = np.array(samples).T.tolist()
 
     param_list_dict = []
     for p in param_samples:
@@ -237,17 +250,17 @@ if __name__ == "__main__":
     # param_list_dict.append({k: get_default(k) for k, v in param_grid.items()})
     param_list_dict.append({k: args.__dict__[k][0] for k, v in param_grid.items()})
 
-    print_dict = {k: [] for k in param_list_dict[0].keys()}
-    for p in param_list_dict:
-        for k, v in p.items():
-            print_dict[k].append(p[k])
-    for k, v in print_dict.items():
-        if len(np.unique(v)) == 1:
-            print_dict[k] = [v[0]]
-        else:
-            v.sort()
+    # print_dict = {k: [] for k in param_list_dict[0].keys()}
+    # for p in param_list_dict:
+    #     for k, v in p.items():
+    #         print_dict[k].append(p[k])
+    # for k, v in print_dict.items():
+    #     if len(np.unique(v)) == 1:
+    #         print_dict[k] = [v[0]]
+    #     else:
+    #         v.sort()
 
-    print(print_dict)
+    # print(print_dict)
 
     # -- generate cv samples
     param_grid_pool = [x.copy() for x in param_list_dict for _ in range(cv)]
@@ -338,6 +351,7 @@ if __name__ == "__main__":
     #         attractor_conflict_resolution='3')
     # os.rename(f'{tmp_folder}/score.png', f'{save_folder}/score.png')
     os.rename(f"{tmp_folder}/results.csv", f"{save_folder}/results.csv")
+    os.rename(f"{tmp_folder}/mu_sigma.csv", f"{save_folder}/mu_sigma.csv")
 
     telegram_bot.reply_to_timestamped_messages(
         f"Saved results to {save_folder}", main_msgs
